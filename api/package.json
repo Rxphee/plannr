@@ -7,11 +7,11 @@
     "scripts": {
         "build": "nest build",
         "check-node-version": "check-node-version --node $(cat ../.nvmrc)",
-        "console": "dotenv -e .env.secrets -e .env.local -e .env -- node dist/console.js",
+        "console": "dotenv -e .env.secrets -e .env.local -e .env -- node --import @swc-node/register/esm-register src/console.ts",
         "console:prod": "node dist/console.js",
-        "db:migrate": "npm run build && npm run console migrate --",
+        "db:migrate": "npm run console migrate --",
         "db:migrate:prod": "npm run console:prod migrate --",
-        "db:migration:create": "npm run build && npm run mikro-orm migration:create --",
+        "db:migration:create": "npm run mikro-orm migration:create --",
         "lint": "run-p -l lint:{eslint,knip,prettier,tsc,api-can-start}",
         "lint:api-can-start": "nest build && NODE_ENV=development dotenv -e ../.env -- node dist/console.js --help",
         "lint:ci": "npm run lint && npm run lint:generated-files-not-modified",
@@ -23,7 +23,7 @@
         "lint:knip": "knip --exports --files --dependencies --tags=-knipignore",
         "lint:prettier": "npx prettier --check '*.{ts,js,mjs,json,md,yml,yaml}'",
         "lint:tsc": "tsc --project ./tsconfig.lint.json",
-        "mikro-orm": "dotenv -e .env.secrets -e .env.local -e .env -- mikro-orm --config ./dist/db/ormconfig.cli.js",
+        "mikro-orm": "dotenv -e .env.secrets -e .env.local -e .env -- mikro-orm",
         "start": "dotenv -e .env.secrets -e .env.local -e .env -- nest start",
         "start:debug": "dotenv -e .env.secrets -e .env.local -e .env -- nest start --debug --watch --preserveWatchOutput",
         "start:dev": "npm run check-node-version && npm run db:migrate && dotenv -e .env.secrets -e .env.local -e .env -- nest start --watch --preserveWatchOutput",
@@ -36,6 +36,7 @@
         "@apollo/server": "^5.5.1",
         "@as-integrations/express5": "^1.1.2",
         "@mikro-orm/core": "^7.2.5",
+        "@mikro-orm/decorators": "^7.2.5",
         "@mikro-orm/migrations": "^7.2.5",
         "@mikro-orm/nestjs": "^7.1.0",
         "@mikro-orm/postgresql": "^7.2.5",
@@ -57,6 +58,8 @@
         "@mikro-orm/cli": "^7.2.5",
         "@nestjs/cli": "^12.0.10",
         "@nestjs/schematics": "^12.0.10",
+        "@swc-node/register": "^1.12.1",
+        "@swc/core": "^1.16.20",
         "@types/compression": "^1.8.1",
         "@types/node": "^26.0.0",
         "check-node-version": "^4.2.1",
@@ -67,6 +70,12 @@
         "prettier": "^3.9.10",
         "typescript": "^6.0.3",
         "vitest": "^5.0.5"
+    },
+    "mikro-orm": {
+        "configPaths": [
+            "./src/db/ormconfig.cli.ts"
+        ],
+        "tsLoader": "swc"
     },
     "engines": {
         "node": "26"
