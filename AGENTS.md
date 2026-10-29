@@ -111,7 +111,7 @@ npm --prefix web run gql:types   # Generate TypeScript types for the GraphQL doc
 - `api/src/db/` - ORM config, `migrations/`, `fixtures/` and the migration generator
 - `api/src/console.ts` - Console commands (`migrate`, `fixtures`)
 - `web/src/app/` - Next.js App Router pages, Server Actions and their GraphQL documents
-- `web/src/components/layout/` - parts of the app shell: `PageHeader`, `ViewTabs`, `SidebarNavLink`
+- `web/src/components/layout/` - parts of the app shell: `PageHeader`, `PageIntro`, `PageContent`, `ViewTabs`, `SidebarNavLink`
 - `web/src/components/ui/` - shadcn/ui components
 - `web/src/util/` - `gql` tag and `graphQLFetch`
 
@@ -192,9 +192,11 @@ Pages are Server Components that load data with `graphQLFetch` (server only). Mu
 
 ### App Shell
 
-The root layout puts the sidebar (`app/AppSidebar.tsx`) next to every page. A page starts with a `PageHeader` (breadcrumbs, actions such as "New project") and fills the width below it; only forms like the settings get a maximum width. Views of a list (e.g. open and archived projects) are `ViewTabs` that link to search params, so a view can be bookmarked. The sections of a project are `ViewTabs` in `app/projects/[key]/layout.tsx`; epics and issues will become further tabs there. Empty lists show the shadcn `Empty` component with the action that fills them.
+The root layout puts the sidebar (`app/AppSidebar.tsx`, shadcn variant `inset`) next to every page, so the page sits on its own rounded surface, clearly apart from the navigation. A page starts with a `PageHeader` (sidebar toggle, breadcrumbs, actions such as "New project"), followed by a `PageIntro` (title, optional icon, badge, meta line and description, with the view tabs on its bottom border) and the content in a `PageContent`. `PageIntro` and `PageContent` share a centered maximum width, so on wide screens the content does not stretch and title and content line up; forms like the settings get an even smaller width inside. Views of a list (e.g. open and archived projects) are `ViewTabs` that link to search params, so a view can be bookmarked. The sections of a project are `ViewTabs` in `app/projects/[key]/layout.tsx`; epics and issues will become further tabs there. Empty lists show the shadcn `Empty` component with the action that fills them.
 
-The theme builds on the shadcn preset `b51EUgJ0a` (font Inter) with the style Vega in `globals.css`: neutral gray surfaces and blue (`#2563eb`) as accent color, clearly apart from the red of errors and destructive actions. The accent is used sparingly: primary buttons, the active tab, focus rings and the logo. The root font size is 17px instead of 16px, so everything measured in rem is a little larger. Dark mode follows the system setting (`prefers-color-scheme`), there is no toggle yet.
+Projects are shown as cards (`ProjectCard`) in a grid, with a dashed `NewProjectCard` as the last tile of the open projects. Every project has a color, derived from its key by `projectHue` (a fixed list of hues without red), which `ProjectIcon` shows as a tile with the first letter of the key in the sidebar, the cards and the project header. Statuses carry a colored dot (`ProjectStatusBadge`): green for active, amber for paused, gray for archived.
+
+The theme builds on the shadcn preset `b51EUgJ0a` (font Inter) with the style Vega in `globals.css`: neutral gray surfaces and blue (`#2563eb`) as accent color, clearly apart from the red of errors and destructive actions. The sidebar is a step darker than the page surface, cards a step lighter. The accent is used sparingly: primary buttons, the active tab, focus rings and the logo. The root font size is 17px instead of 16px, so everything measured in rem is a little larger. Dark mode follows the system setting (`prefers-color-scheme`), there is no toggle yet.
 
 ### Forms
 
