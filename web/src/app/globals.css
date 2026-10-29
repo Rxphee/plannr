@@ -118,3 +118,86 @@
         cursor: pointer;
     }
 }
+
+@layer components {
+    .rich-text {
+        @apply text-base leading-relaxed;
+
+        > * + * {
+            @apply mt-3;
+        }
+
+        h2 {
+            @apply font-heading mt-5 text-lg font-semibold;
+        }
+
+        h3 {
+            @apply font-heading mt-4 font-semibold;
+        }
+
+        ul {
+            @apply list-disc pl-6;
+        }
+
+        ol {
+            @apply list-decimal pl-6;
+        }
+
+        li > p {
+            @apply my-0.5;
+        }
+
+        ul[data-type="taskList"] {
+            @apply list-none pl-0.5;
+
+            li {
+                @apply flex items-start gap-2;
+            }
+
+            li > label {
+                @apply mt-1.5 flex shrink-0;
+            }
+
+            li > div {
+                @apply min-w-0 flex-1;
+            }
+
+            input[type="checkbox"] {
+                @apply accent-primary size-4;
+            }
+
+            li[data-checked="true"] > div {
+                @apply text-muted-foreground line-through;
+            }
+        }
+
+        a {
+            @apply text-primary underline underline-offset-4;
+        }
+
+        code {
+            @apply bg-muted rounded px-1 py-0.5 font-mono text-[0.875em];
+        }
+
+        pre {
+            @apply bg-muted overflow-x-auto rounded-md p-3 text-sm;
+
+            code {
+                @apply bg-transparent p-0;
+            }
+        }
+
+        blockquote {
+            @apply text-muted-foreground border-l-2 pl-4;
+        }
+
+        hr {
+            @apply my-5;
+        }
+
+        p.is-editor-empty:first-child::before {
+            @apply text-muted-foreground pointer-events-none float-left h-0;
+            content: attr(data-placeholder);
+        }
+    }
+}
