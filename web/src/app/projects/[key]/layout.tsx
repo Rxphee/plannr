@@ -36,11 +36,11 @@ export default async function ProjectLayout({ children, params }: LayoutProps<"/
                     <>
                         <span className="font-mono">{project.key}</span>
                         <span className="flex items-center gap-1">
-                            <UsersIcon className="size-3.5" />
+                            <UsersIcon className="size-4" />
                             {project.members.length === 1 ? "1 member" : `${project.members.length} members`}
                         </span>
                         <span className="flex items-center gap-1">
-                            <CalendarIcon className="size-3.5" />
+                            <CalendarIcon className="size-4" />
                             Created {dateFormat.format(new Date(project.createdAt))}
                         </span>
                     </>

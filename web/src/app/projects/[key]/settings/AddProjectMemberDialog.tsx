@@ -24,7 +24,7 @@ export function AddProjectMemberDialog({ projectId, users }: AddProjectMemberDia
 
     return (
         <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger render={<Button variant="outline" size="sm" className="w-fit" disabled={users.length === 0} />}>
+            <DialogTrigger render={<Button variant="outline" className="w-fit" disabled={users.length === 0} />}>
                 <UserPlusIcon />
                 Add member
             </DialogTrigger>

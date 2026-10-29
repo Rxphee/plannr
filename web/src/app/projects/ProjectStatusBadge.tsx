@@ -16,8 +16,8 @@ const dotClasses: Record<GQLProjectStatus, string> = {
 
 export function ProjectStatusBadge({ status }: { status: GQLProjectStatus }) {
     return (
-        <Badge variant="outline" className="text-muted-foreground gap-1.5">
-            <span aria-hidden="true" className={cn("size-1.5 rounded-full", dotClasses[status])} />
+        <Badge variant="outline" className="text-muted-foreground h-6 gap-1.5 px-2.5 text-[0.8125rem]">
+            <span aria-hidden="true" className={cn("size-2 rounded-full", dotClasses[status])} />
             {projectStatusLabels[status]}
         </Badge>
     );

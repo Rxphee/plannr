@@ -33,19 +33,19 @@ export function ProjectCard({ project }: ProjectCardProps) {
                 <ProjectIcon projectKey={project.key} size="lg" />
                 <div className="grid min-w-0 flex-1">
                     <span className="font-heading truncate font-semibold">{project.name}</span>
-                    <span className="text-muted-foreground font-mono text-xs">{project.key}</span>
+                    <span className="text-muted-foreground font-mono text-sm">{project.key}</span>
                 </div>
                 <ProjectStatusBadge status={project.status} />
             </div>
             <p className="text-muted-foreground line-clamp-2 min-h-10 text-sm">{project.description || "No description yet."}</p>
             <div className="mt-auto flex items-center justify-between gap-3 border-t pt-4">
-                <AvatarGroup className="-space-x-1">
+                <AvatarGroup className="-space-x-1.5">
                     {project.members.slice(0, MAX_AVATARS).map(({ user }) => (
-                        <UserAvatar key={user.id} user={user} size="sm" className="ring-card!" />
+                        <UserAvatar key={user.id} user={user} className="ring-card!" />
                     ))}
-                    {hiddenMemberCount > 0 && <AvatarGroupCount className="ring-card! size-6 text-xs">+{hiddenMemberCount}</AvatarGroupCount>}
+                    {hiddenMemberCount > 0 && <AvatarGroupCount className="ring-card! text-xs">+{hiddenMemberCount}</AvatarGroupCount>}
                 </AvatarGroup>
-                <span className="text-muted-foreground text-xs">Created {dateFormat.format(new Date(project.createdAt))}</span>
+                <span className="text-muted-foreground text-sm">Created {dateFormat.format(new Date(project.createdAt))}</span>
             </div>
         </Link>
     );

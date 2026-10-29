@@ -46,7 +46,7 @@ export async function AppSidebar() {
                 <SidebarGroup>
                     <SidebarMenu>
                         <SidebarMenuItem>
-                            <SidebarNavLink href="/projects" tooltip="Projects" exact>
+                            <SidebarNavLink href="/projects" tooltip="Projects" exact className="h-9">
                                 <LayoutGridIcon />
                                 <span>Projects</span>
                             </SidebarNavLink>
@@ -57,7 +57,7 @@ export async function AppSidebar() {
                     <SidebarGroupLabel>Open projects</SidebarGroupLabel>
                     <CreateProjectDialog
                         trigger={
-                            <SidebarGroupAction title="New project">
+                            <SidebarGroupAction title="New project" className="top-2.5 right-2 size-7 [&>svg]:size-4.5">
                                 <PlusIcon />
                                 <span className="sr-only">New project</span>
                             </SidebarGroupAction>
@@ -69,14 +69,14 @@ export async function AppSidebar() {
                                 <SidebarNavLink
                                     href={`/projects/${project.key}`}
                                     tooltip={project.name}
-                                    className="group-data-[collapsible=icon]:p-1.5!"
+                                    className="h-9 group-data-[collapsible=icon]:p-1.5!"
                                 >
                                     <ProjectIcon projectKey={project.key} />
                                     <span className={project.status === "paused" ? "text-sidebar-foreground/60" : undefined}>{project.name}</span>
                                 </SidebarNavLink>
                                 {project.status === "paused" && (
-                                    <SidebarMenuBadge title="Paused">
-                                        <PauseIcon className="text-sidebar-foreground/50 size-3.5" />
+                                    <SidebarMenuBadge title="Paused" className="top-2!">
+                                        <PauseIcon className="text-sidebar-foreground/50 size-4" />
                                     </SidebarMenuBadge>
                                 )}
                             </SidebarMenuItem>

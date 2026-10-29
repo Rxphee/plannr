@@ -20,7 +20,7 @@ export default async function ProjectPage({ params }: PageProps<"/projects/[key]
     const settingsLink = (label: string) =>
         project.canManage && (
             <CardAction>
-                <Button variant="outline" size="xs" nativeButton={false} render={<Link href={`/projects/${project.key}/settings`} />}>
+                <Button variant="outline" size="sm" nativeButton={false} render={<Link href={`/projects/${project.key}/settings`} />}>
                     {label}
                 </Button>
             </CardAction>
@@ -56,7 +56,7 @@ export default async function ProjectPage({ params }: PageProps<"/projects/[key]
                                 <span className="flex-1 truncate font-medium">
                                     {user.firstName} {user.lastName}
                                 </span>
-                                <span className="text-muted-foreground text-xs">{projectMemberRoleLabels[role]}</span>
+                                <span className="text-muted-foreground text-sm">{projectMemberRoleLabels[role]}</span>
                             </li>
                         ))}
                     </ul>

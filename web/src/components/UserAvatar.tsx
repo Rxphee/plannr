@@ -10,7 +10,7 @@ interface UserAvatarProps {
 export function UserAvatar({ user, size, className }: UserAvatarProps) {
     return (
         <Avatar size={size} title={`${user.firstName} ${user.lastName}`} className={className}>
-            <AvatarFallback className="bg-secondary text-secondary-foreground font-medium group-data-[size=sm]/avatar:text-[0.625rem]">
+            <AvatarFallback className="bg-secondary text-secondary-foreground text-xs font-medium group-data-[size=lg]/avatar:text-sm">
                 {user.firstName[0]}
                 {user.lastName[0]}
             </AvatarFallback>
