@@ -20,8 +20,6 @@ export const ormConfig = defineConfig({
     entities: [path.join(srcOrDistDirectory, "**/*.entity.{js,ts}")],
     metadataProvider: ReflectMetadataProvider,
     discovery: {
-        // Remove once the first entity exists
-        warnWhenNoEntities: false,
         getMappedType(type: string, platform) {
             // Map all string types to TEXT instead of VARCHAR
             if (type === "string") {
