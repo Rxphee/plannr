@@ -37,7 +37,7 @@ export function IssueList({ projectKey, issues, hideEpic }: IssueListProps) {
                     <li key={issue.id}>
                         <Link
                             href={`/projects/${projectKey}/issues/${issue.number}`}
-                            className="hover:bg-muted/60 focus-visible:bg-muted/60 flex items-center gap-3 px-4 py-2.5 transition-colors outline-none"
+                            className="hover:bg-muted/60 focus-visible:bg-muted/60 flex items-center gap-3 px-4 py-2.5 outline-none"
                         >
                             <IssuePriorityIcon priority={issue.priority} />
                             <span className="text-muted-foreground w-16 shrink-0 font-mono text-sm">{issue.key}</span>
