@@ -1,5 +1,7 @@
 import { EntityManager, LockMode, UniqueConstraintViolationException } from "@mikro-orm/postgresql";
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
+import { Epic } from "@src/epics/entities/epic.entity.js";
+import { DEFAULT_EPIC_NAME } from "@src/epics/epic-constraints.js";
 import { User } from "@src/users/user.entity.js";
 
 import type { CreateProjectInput } from "./dto/create-project.input.js";
@@ -20,6 +22,14 @@ export class ProjectsService {
         return this.entityManager.findOne(Project, user.isAdmin ? { key } : { key, members: { user } });
     }
 
+    async findOneVisibleById(id: string, user: User): Promise<Project> {
+        const project = await this.entityManager.findOne(Project, user.isAdmin ? { id } : { id, members: { user } });
+        if (!project) {
+            throw new NotFoundException("The project does not exist");
+        }
+        return project;
+    }
+
     async findMembers(project: Project): Promise<ProjectMember[]> {
         return this.entityManager.find(ProjectMember, { project }, { populate: ["user"], orderBy: { user: { firstName: "asc", lastName: "asc" } } });
     }
@@ -29,13 +39,28 @@ export class ProjectsService {
         if (user.isAdmin) {
             return true;
         }
-        const membership = await this.entityManager.findOne(ProjectMember, { project, user });
-        return membership?.role === ProjectMemberRole.owner;
+        return (await this.findRole(project, user)) === ProjectMemberRole.owner;
+    }
+
+    // Owners, members and admins create and edit epics and issues, viewers only read them
+    async canContribute(project: Project, user: User): Promise<boolean> {
+        if (user.isAdmin) {
+            return true;
+        }
+        const role = await this.findRole(project, user);
+        return role === ProjectMemberRole.owner || role === ProjectMemberRole.member;
+    }
+
+    async assertCanContribute(project: Project, user: User): Promise<void> {
+        if (!(await this.canContribute(project, user))) {
+            throw new ForbiddenException("Viewers can only read the epics and issues of the project");
+        }
     }
 
     async create(input: CreateProjectInput, user: User): Promise<Project> {
         const project = this.entityManager.create(Project, { ...input, createdBy: user });
         this.entityManager.create(ProjectMember, { project, user, role: ProjectMemberRole.owner });
+        this.entityManager.create(Epic, { project, name: DEFAULT_EPIC_NAME, isDefault: true });
 
         try {
             await this.entityManager.flush();
@@ -106,11 +131,13 @@ export class ProjectsService {
         });
     }
 
+    private async findRole(project: Project, user: User): Promise<ProjectMemberRole | undefined> {
+        const membership = await this.entityManager.findOne(ProjectMember, { project, user });
+        return membership?.role;
+    }
+
     private async findOneManageableBy(id: string, user: User): Promise<Project> {
-        const project = await this.entityManager.findOne(Project, user.isAdmin ? { id } : { id, members: { user } });
-        if (!project) {
-            throw new NotFoundException("The project does not exist");
-        }
+        const project = await this.findOneVisibleById(id, user);
         if (!(await this.canManage(project, user))) {
             throw new ForbiddenException("Only owners and admins can manage the project");
         }

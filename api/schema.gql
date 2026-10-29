@@ -2,6 +2,26 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
+input CreateEpicInput {
+  """Markdown"""
+  description: String! = ""
+  name: String!
+  projectId: ID!
+}
+
+input CreateIssueInput {
+  """Markdown"""
+  description: String! = ""
+  dueDate: LocalDate
+
+  """Defaults to the epic General"""
+  epicId: ID
+  priority: IssuePriority! = normal
+  projectId: ID!
+  title: String!
+  type: IssueType! = task
+}
+
 input CreateProjectInput {
   description: String! = ""
 
@@ -15,24 +35,154 @@ A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date
 """
 scalar DateTime
 
+type Epic {
+  createdAt: DateTime!
+
+  """Markdown"""
+  description: String!
+  doneIssueCount: Int!
+  id: ID!
+
+  """
+  Whether this is the epic General, which every project has and which cannot be deleted
+  """
+  isDefault: Boolean!
+
+  """Issues of the epic without the canceled ones"""
+  issueCount: Int!
+  name: String!
+  project: Project!
+  updatedAt: DateTime!
+}
+
+type Issue {
+  """When the issue was done or canceled, empty while it is open"""
+  completedAt: DateTime
+  createdAt: DateTime!
+  createdBy: User!
+
+  """Markdown"""
+  description: String!
+  dueDate: LocalDate
+  epic: Epic!
+  id: ID!
+
+  """The key of the project and the number, e.g. KEY-42"""
+  key: String!
+
+  """Oldest first"""
+  links: [IssueLink!]!
+
+  """
+  Counts up per project, the key of the issue is built from it, e.g. KEY-42
+  """
+  number: Int!
+  priority: IssuePriority!
+  project: Project!
+  status: IssueStatus!
+  title: String!
+  type: IssueType!
+  updatedAt: DateTime!
+}
+
+input IssueFilter {
+  epicId: ID
+  priority: IssuePriority
+
+  """Part of the title, or the number or key of an issue like 42 or KEY-42"""
+  search: String
+
+  """Issues with any of the statuses"""
+  statuses: [IssueStatus!]
+  type: IssueType
+}
+
+type IssueLink {
+  createdAt: DateTime!
+  id: ID!
+
+  """Detected from the URL, e.g. a pull request on GitHub"""
+  kind: IssueLinkKind!
+  url: String!
+}
+
+input IssueLinkInput {
+  issueId: ID!
+
+  """A website, e.g. a pull request on GitHub, or a note in Obsidian"""
+  url: String!
+}
+
+enum IssueLinkKind {
+  other
+  pullRequest
+}
+
+enum IssuePriority {
+  high
+  low
+  normal
+}
+
+enum IssueStatus {
+  canceled
+  done
+  inProgress
+  todo
+}
+
+enum IssueType {
+  bug
+  task
+}
+
+"""
+A local date string (i.e., with no associated timezone) in `YYYY-MM-DD` format, e.g. `2020-01-01`.
+"""
+scalar LocalDate
+
 type Mutation {
+  addIssueLink(input: IssueLinkInput!): IssueLink!
   addProjectMember(input: ProjectMemberInput!): ProjectMember!
 
   """Fails if the project would lose its last owner"""
   changeProjectMemberRole(input: ProjectMemberInput!): ProjectMember!
   changeProjectStatus(id: ID!, status: ProjectStatus!): Project!
+  createEpic(input: CreateEpicInput!): Epic!
+  createIssue(input: CreateIssueInput!): Issue!
   createProject(input: CreateProjectInput!): Project!
+
+  """
+  Moves the issues of the epic to another epic of the project, or deletes them without one
+  """
+  deleteEpic(id: ID!, moveIssuesToEpicId: ID): Boolean!
+  deleteIssue(id: ID!): Boolean!
 
   """Deletes an archived project with everything in it"""
   deleteProject(id: ID!): Boolean!
+  removeIssueLink(id: ID!): Boolean!
 
   """Fails if the project would lose its last owner"""
   removeProjectMember(projectId: ID!, userId: ID!): Boolean!
+  updateEpic(id: ID!, input: UpdateEpicInput!): Epic!
+  updateIssue(id: ID!, input: UpdateIssueInput!): Issue!
   updateProject(id: ID!, input: UpdateProjectInput!): Project!
+}
+
+type PaginatedIssues {
+  nodes: [Issue!]!
+
+  """All issues that match the filter, not only the ones on this page"""
+  totalCount: Int!
 }
 
 type Project {
   archivedAt: DateTime
+
+  """
+  Whether the current user can create and edit the epics and issues of the project
+  """
+  canContribute: Boolean!
 
   """
   Whether the current user can change the settings, status and members of the project
@@ -40,6 +190,9 @@ type Project {
   canManage: Boolean!
   createdAt: DateTime!
   description: String!
+
+  """General first, then by name"""
+  epics: [Epic!]!
   id: ID!
   key: String!
 
@@ -77,6 +230,17 @@ enum ProjectStatus {
 }
 
 type Query {
+  """The epic, if the current user can see its project"""
+  epic(id: ID!): Epic
+
+  """
+  The issue with the key, e.g. KEY-42, if the current user can see its project
+  """
+  issue(key: String!): Issue
+
+  """Issues of a project, newest first"""
+  issues(filter: IssueFilter, limit: Int! = 50, offset: Int! = 0, projectId: ID!): PaginatedIssues!
+
   """The project with the key, if the current user can see it"""
   project(key: String!): Project
 
@@ -85,6 +249,27 @@ type Query {
 
   """All users who have logged in at least once, sorted by name"""
   users: [User!]!
+}
+
+input UpdateEpicInput {
+  """Markdown"""
+  description: String! = ""
+  name: String!
+}
+
+input UpdateIssueInput {
+  """Markdown"""
+  description: String
+
+  """null removes the due date"""
+  dueDate: LocalDate
+
+  """Another epic of the same project"""
+  epicId: ID
+  priority: IssuePriority
+  status: IssueStatus
+  title: String
+  type: IssueType
 }
 
 input UpdateProjectInput {

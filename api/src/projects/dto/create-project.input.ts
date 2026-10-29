@@ -1,10 +1,9 @@
 import { Field, InputType } from "@nestjs/graphql";
+import { trim } from "@src/common/trim.js";
 import { Transform } from "class-transformer";
 import { IsNotEmpty, IsString, Matches, MaxLength } from "class-validator";
 
 import { PROJECT_KEY_PATTERN, PROJECT_NAME_MAX_LENGTH } from "../project-constraints.js";
-
-const trim = ({ value }: { value: unknown }) => (typeof value === "string" ? value.trim() : value);
 
 @InputType()
 export class CreateProjectInput {

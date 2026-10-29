@@ -64,4 +64,9 @@ export class ProjectsResolver {
     async canManage(@Parent() project: Project, @CurrentUser() user: User): Promise<boolean> {
         return this.projectsService.canManage(project, user);
     }
+
+    @ResolveField(() => Boolean, { description: "Whether the current user can create and edit the epics and issues of the project" })
+    async canContribute(@Parent() project: Project, @CurrentUser() user: User): Promise<boolean> {
+        return this.projectsService.canContribute(project, user);
+    }
 }
