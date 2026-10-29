@@ -1,14 +1,13 @@
 import { PageContent } from "@src/components/layout/PageContent";
 import { Button } from "@src/components/ui/Button";
 import { Card, CardAction, CardContent, CardHeader, CardTitle } from "@src/components/ui/Card";
-import { UserAvatar } from "@src/components/UserAvatar";
 import { graphQLFetch } from "@src/util/graphQLFetch";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { projectQuery } from "./page.gql";
 import type { GQLProjectQuery, GQLProjectQueryVariables } from "./page.gql.generated";
-import { projectMemberRoleLabels } from "./projectMemberRoles";
+import { ProjectMemberOverview } from "./ProjectMemberOverview";
 
 export default async function ProjectPage({ params }: PageProps<"/projects/[key]">) {
     const { key } = await params;
@@ -45,21 +44,14 @@ export default async function ProjectPage({ params }: PageProps<"/projects/[key]
             </Card>
             <Card>
                 <CardHeader className="items-center">
-                    <CardTitle>Members</CardTitle>
+                    <CardTitle className="flex items-center gap-2">
+                        Members
+                        <span className="bg-muted text-muted-foreground rounded-md px-1.5 text-xs tabular-nums">{project.members.length}</span>
+                    </CardTitle>
                     {settingsLink("Manage")}
                 </CardHeader>
                 <CardContent>
-                    <ul className="grid gap-3">
-                        {project.members.map(({ role, user }) => (
-                            <li key={user.id} className="flex items-center gap-3">
-                                <UserAvatar user={user} />
-                                <span className="flex-1 truncate font-medium">
-                                    {user.firstName} {user.lastName}
-                                </span>
-                                <span className="text-muted-foreground text-sm">{projectMemberRoleLabels[role]}</span>
-                            </li>
-                        ))}
-                    </ul>
+                    <ProjectMemberOverview members={project.members} />
                 </CardContent>
             </Card>
         </PageContent>
