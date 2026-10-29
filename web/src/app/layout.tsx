@@ -1,5 +1,6 @@
 import "./globals.css";
 
+import { parseTheme, THEME_COOKIE_NAME } from "@src/components/theme/theme";
 import { SidebarInset, SidebarProvider } from "@src/components/ui/Sidebar";
 import { cn } from "@src/lib/utils";
 import type { Metadata } from "next";
@@ -17,14 +18,16 @@ export const metadata: Metadata = {
 };
 
 export default async function RootLayout({ children }: PropsWithChildren) {
+    const cookieStore = await cookies();
     // The sidebar remembers in this cookie whether it is collapsed
-    const isSidebarOpen = (await cookies()).get("sidebar_state")?.value !== "false";
+    const isSidebarOpen = cookieStore.get("sidebar_state")?.value !== "false";
+    const theme = parseTheme(cookieStore.get(THEME_COOKIE_NAME)?.value);
 
     return (
-        <html lang="en" className={cn("font-sans", inter.variable)}>
+        <html lang="en" className={cn("font-sans", inter.variable)} data-theme={theme === "system" ? undefined : theme}>
             <body>
                 <SidebarProvider defaultOpen={isSidebarOpen}>
-                    <AppSidebar />
+                    <AppSidebar theme={theme} />
                     <SidebarInset className="md:ring-border md:ring-1">{children}</SidebarInset>
                 </SidebarProvider>
             </body>

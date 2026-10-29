@@ -1,7 +1,10 @@
 import { SidebarNavLink } from "@src/components/layout/SidebarNavLink";
+import type { Theme } from "@src/components/theme/theme";
+import { ThemeSwitcher } from "@src/components/theme/ThemeSwitcher";
 import {
     Sidebar,
     SidebarContent,
+    SidebarFooter,
     SidebarGroup,
     SidebarGroupAction,
     SidebarGroupLabel,
@@ -21,7 +24,7 @@ import type { GQLSidebarProjectsQuery } from "./AppSidebar.gql.generated";
 import { CreateProjectDialog } from "./projects/CreateProjectDialog";
 import { ProjectIcon } from "./projects/ProjectIcon";
 
-export async function AppSidebar() {
+export async function AppSidebar({ theme }: { theme: Theme }) {
     const { projects } = await graphQLFetch<GQLSidebarProjectsQuery>(sidebarProjectsQuery);
     const openProjects = projects.filter((project) => project.status !== "archived");
 
@@ -85,6 +88,13 @@ export async function AppSidebar() {
                     </SidebarMenu>
                 </SidebarGroup>
             </SidebarContent>
+            <SidebarFooter>
+                <SidebarMenu>
+                    <SidebarMenuItem>
+                        <ThemeSwitcher initialTheme={theme} />
+                    </SidebarMenuItem>
+                </SidebarMenu>
+            </SidebarFooter>
             <SidebarRail />
         </Sidebar>
     );
