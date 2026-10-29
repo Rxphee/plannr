@@ -1,0 +1,46 @@
+{
+    "name": "plannr",
+    "private": true,
+    "scripts": {
+        "dev": "dev-pm start",
+        "setup-project-files": "node setup-project-files.js",
+        "lint": "run-p -l lint:{api,root,web}",
+        "lint:api": "npm --prefix api run lint",
+        "lint:ci": "npm run lint:root",
+        "lint:fix": "run-p -l lint:fix:{api,root,web}",
+        "lint:fix:api": "npm --prefix api run lint:fix",
+        "lint:fix:root": "npx prettier --write '{,!(api|web)/**/}*.{ts,mts,cts,js,mjs,cjs,json,md,yml,yaml}'",
+        "lint:fix:web": "npm --prefix web run lint:fix",
+        "lint:knip": "run-p -l lint:knip:{api,web}",
+        "lint:knip:api": "npm --prefix api run lint:knip",
+        "lint:knip:web": "npm --prefix web run lint:knip",
+        "lint:root": "npx prettier --check '{,!(api|web)/**/}*.{ts,mts,cts,js,mjs,cjs,json,md,yml,yaml}'",
+        "lint:web": "npm --prefix web run lint",
+        "test:ci": "run-p test:ci:*",
+        "test:ci:api": "npm --prefix api run test:ci",
+        "test:ci:web": "npm --prefix web run test:ci",
+        "build": "run-p build:*",
+        "build:api": "npm --prefix api run build",
+        "build:web": "npm --prefix web run build",
+        "prepare": "husky",
+        "browser": "run-p browser:api browser:web",
+        "browser:api": "dotenv -- sh -c 'open-cli $API_URL/graphql'",
+        "browser:web": "dotenv -- sh -c 'open-cli $WEB_URL'",
+        "setup:ci": "npm run setup-project-files"
+    },
+    "engines": {
+        "node": "24"
+    },
+    "devDependencies": {
+        "dev-process-manager": "^4.1.0",
+        "dotenv-cli": "^11.0.0",
+        "husky": "^9.1.7",
+        "knip": "^6.43.0",
+        "lint-staged": "^17.6.0",
+        "npm-run-all2": "^9.0.4",
+        "open-cli": "^9.0.0",
+        "prettier": "^3.9.10",
+        "ts-node": "^10.9.2",
+        "typescript": "^6.0.3"
+    }
+}

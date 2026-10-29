@@ -1,0 +1,8 @@
+{
+    "compilerOptions": {
+        "inlineSources": true,
+        "sourceRoot": "/dist"
+    },
+    "exclude": ["dist", "src/**/*.spec.ts"],
+    "extends": "./tsconfig.json"
+}

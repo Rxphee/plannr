@@ -1,0 +1,23 @@
+# compiled output
+/dist
+
+/node_modules
+.env
+.env.local
+.env.secrets
+.npmrc
+
+# Logs
+logs
+*.log
+npm-debug.log*
+
+# OS
+.DS_Store
+
+# Tests
+/coverage
+junit.xml
+
+# TypeScript
+*.tsbuildinfo

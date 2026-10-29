@@ -1,0 +1,8 @@
+{
+    "collection": "@nestjs/schematics",
+    "compilerOptions": {
+        "deleteOutDir": true,
+        "tsConfigPath": "tsconfig.build.json"
+    },
+    "sourceRoot": "src"
+}

@@ -1,0 +1,73 @@
+{
+    "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+    "extends": ["config:recommended"],
+    "timezone": "Europe/Vienna",
+    "prHourlyLimit": 0,
+    "docker": {
+        "pinDigests": true
+    },
+    "lockFileMaintenance": {
+        "enabled": true,
+        "schedule": ["before 6am on the first day of the month"]
+    },
+    "packageRules": [
+        {
+            "description": "Same delay as min-release-age in .npmrc, so Renovate does not propose versions npm refuses to install",
+            "matchDatasources": ["npm"],
+            "minimumReleaseAge": "3 days"
+        },
+        {
+            "description": "Frameworks whose majors need a migration: NestJS (incl. GraphQL and Apollo), MikroORM, Next.js and React",
+            "matchPackageNames": [
+                "@apollo/server",
+                "@mikro-orm/**",
+                "@nestjs/**",
+                "@types/react",
+                "@types/react-dom",
+                "graphql",
+                "next",
+                "react",
+                "react-dom",
+                "tailwindcss",
+                "@tailwindcss/**"
+            ],
+            "matchUpdateTypes": ["major"],
+            "dependencyDashboardApproval": true
+        },
+        {
+            "description": "Tooling that @dextinity/eslint-config builds on: its plugins support ESLint and TypeScript majors only with a delay",
+            "matchPackageNames": ["eslint", "typescript"],
+            "matchUpdateTypes": ["major"],
+            "dependencyDashboardApproval": true
+        },
+        {
+            "description": "typescript-eslint often supports only an older major than the newest TypeScript, so each major gets its own pull request",
+            "matchPackageNames": ["typescript"],
+            "separateMultipleMajor": true
+        },
+        {
+            "description": "The Node major has to change together with .nvmrc and the engines field",
+            "matchPackageNames": ["node", "@types/node"],
+            "matchUpdateTypes": ["major"],
+            "dependencyDashboardApproval": true
+        },
+        {
+            "description": "The local development setup follows major tags, pinning digests there only adds pull requests",
+            "matchFileNames": ["docker-compose.yml"],
+            "pinDigests": false
+        },
+        {
+            "matchManagers": ["npm"],
+            "matchUpdateTypes": ["minor", "patch"],
+            "groupName": "npm minor and patch",
+            "schedule": ["before 6am on monday"]
+        },
+        {
+            "matchPackageNames": ["postgres", "**/postgres"],
+            "matchUpdateTypes": ["major"],
+            "prBodyNotes": [
+                "A new Postgres major version cannot read the old data directory. Dump the database and restore it into a fresh copy first."
+            ]
+        }
+    ]
+}

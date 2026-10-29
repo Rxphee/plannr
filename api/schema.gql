@@ -1,0 +1,10 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
+type Query {
+  """
+  Returns OK while the API is running. Placeholder until the first real query exists.
+  """
+  status: String!
+}

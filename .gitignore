@@ -1,0 +1,13 @@
+.idea
+.DS_Store
+
+node_modules
+.npm
+
+.env.local
+.env.secrets
+coverage
+
+.claude/settings.local.json
+.claude/worktrees/
+.pm.sock

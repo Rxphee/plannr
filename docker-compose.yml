@@ -1,0 +1,19 @@
+services:
+  postgres:
+    image: mirror.gcr.io/library/postgres:18
+    pull_policy: weekly
+    tty: true
+    volumes:
+      # Postgres 18 keeps its data in /var/lib/postgresql/18/docker and expects
+      # /var/lib/postgresql itself to be mounted.
+      - postgres:/var/lib/postgresql
+    ports:
+      - "127.0.0.1:${POSTGRESQL_PORT}:5432"
+    environment:
+      POSTGRES_USER: ${POSTGRESQL_USER}
+      POSTGRES_PASSWORD: ${POSTGRESQL_PASSWORD}
+      POSTGRES_DB: ${POSTGRESQL_DB}
+
+volumes:
+  postgres:
+    driver: local
