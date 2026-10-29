@@ -1,6 +1,8 @@
 import { EntityManager } from "@mikro-orm/postgresql";
 import { Controller, Get, Header } from "@nestjs/common";
+import { Public } from "@src/auth/public.decorator.js";
 
+@Public()
 @Controller("healthcheck")
 export class HealthcheckController {
     constructor(private readonly entityManager: EntityManager) {}

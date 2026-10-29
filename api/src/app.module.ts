@@ -3,10 +3,12 @@ import { type DynamicModule, Module } from "@nestjs/common";
 import { GraphQLModule } from "@nestjs/graphql";
 import { GraphQLError } from "graphql";
 
+import { AuthModule } from "./auth/auth.module.js";
 import type { Config } from "./config/config.js";
 import { DbModule } from "./db/db.module.js";
+import { FixturesModule } from "./db/fixtures/fixtures.module.js";
 import { HealthcheckModule } from "./healthcheck/healthcheck.module.js";
-import { StatusModule } from "./status/status.module.js";
+import { ProjectsModule } from "./projects/projects.module.js";
 
 @Module({})
 export class AppModule {
@@ -15,6 +17,7 @@ export class AppModule {
             module: AppModule,
             imports: [
                 DbModule,
+                AuthModule,
                 GraphQLModule.forRoot<ApolloDriverConfig>({
                     driver: ApolloDriver,
                     // Serve GraphQL under /api/graphql like the REST routes
@@ -33,7 +36,8 @@ export class AppModule {
                     },
                 }),
                 HealthcheckModule,
-                StatusModule,
+                ProjectsModule,
+                FixturesModule,
             ],
         };
     }

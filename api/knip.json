@@ -1,6 +1,6 @@
 {
     "$schema": "https://unpkg.com/knip@5/schema.json",
-    "entry": ["./src/main.ts", "./src/console.ts", "./src/db/ormconfig.cli.ts"],
+    "entry": ["./src/main.ts", "./src/console.ts", "./src/db/ormconfig.cli.ts", "./src/db/migrations/*.ts"],
     "ignoreDependencies": ["@as-integrations/express5"],
     "project": ["./src/**/*.{ts,tsx}"],
     "rules": {
