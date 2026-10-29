@@ -2,6 +2,7 @@
 
 import { Button } from "@src/components/ui/Button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@src/components/ui/Select";
+import { UserAvatar } from "@src/components/UserAvatar";
 import type { GQLProjectMemberRole } from "@src/graphql.generated";
 import { XIcon } from "lucide-react";
 import { useState, useTransition } from "react";
@@ -36,9 +37,10 @@ export function ProjectMemberList({ project }: ProjectMemberListProps) {
                     const member = { projectId: project.id, userId: user.id };
 
                     return (
-                        <li key={user.id} className="flex items-center gap-3 px-4 py-3">
+                        <li key={user.id} className="flex items-center gap-3 px-3 py-2.5">
+                            <UserAvatar user={user} />
                             <div className="grid min-w-0 flex-1">
-                                <span className="truncate">{name}</span>
+                                <span className="truncate text-sm font-medium">{name}</span>
                                 <span className="text-muted-foreground truncate text-sm">{user.email}</span>
                             </div>
                             <Select
