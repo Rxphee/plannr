@@ -19,7 +19,7 @@ registerEnumType(ProjectStatus, { name: "ProjectStatus" });
 @Entity()
 @ObjectType()
 export class Project {
-    [OptionalProps]?: "description" | "status" | "issueCounter" | "createdAt" | "updatedAt";
+    [OptionalProps]?: "description" | "status" | "issueCounter" | "createdAt" | "updatedAt" | "archivedAt";
 
     @PrimaryKey({ type: "uuid" })
     @Field(() => ID)
@@ -69,6 +69,6 @@ export class Project {
     updatedAt: Date = new Date();
 
     @Property({ type: "timestamp with time zone", nullable: true })
-    @Field({ nullable: true })
-    archivedAt?: Date;
+    @Field(() => Date, { nullable: true })
+    archivedAt: Date | null = null;
 }

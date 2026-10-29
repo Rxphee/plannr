@@ -9,6 +9,10 @@ const DEVELOPMENT_USER_SUBJECT = "development-user";
 export class UsersService {
     constructor(private readonly entityManager: EntityManager) {}
 
+    async findAll(): Promise<User[]> {
+        return this.entityManager.find(User, {}, { orderBy: { firstName: "asc", lastName: "asc" } });
+    }
+
     // Stands in for the logged-in user until the OIDC login exists
     async findOrCreateDevelopmentUser(): Promise<User> {
         const existingUser = await this.entityManager.findOne(User, { oidcSubject: DEVELOPMENT_USER_SUBJECT });

@@ -16,15 +16,34 @@ A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date
 scalar DateTime
 
 type Mutation {
+  addProjectMember(input: ProjectMemberInput!): ProjectMember!
+
+  """Fails if the project would lose its last owner"""
+  changeProjectMemberRole(input: ProjectMemberInput!): ProjectMember!
+  changeProjectStatus(id: ID!, status: ProjectStatus!): Project!
   createProject(input: CreateProjectInput!): Project!
+
+  """Deletes an archived project with everything in it"""
+  deleteProject(id: ID!): Boolean!
+
+  """Fails if the project would lose its last owner"""
+  removeProjectMember(projectId: ID!, userId: ID!): Boolean!
+  updateProject(id: ID!, input: UpdateProjectInput!): Project!
 }
 
 type Project {
   archivedAt: DateTime
+
+  """
+  Whether the current user can change the settings, status and members of the project
+  """
+  canManage: Boolean!
   createdAt: DateTime!
   description: String!
   id: ID!
   key: String!
+
+  """Sorted by name"""
   members: [ProjectMember!]!
   name: String!
   status: ProjectStatus!
@@ -37,6 +56,12 @@ type ProjectMember {
   role: ProjectMemberRole!
   updatedAt: DateTime!
   user: User!
+}
+
+input ProjectMemberInput {
+  projectId: ID!
+  role: ProjectMemberRole!
+  userId: ID!
 }
 
 enum ProjectMemberRole {
@@ -52,8 +77,19 @@ enum ProjectStatus {
 }
 
 type Query {
+  """The project with the key, if the current user can see it"""
+  project(key: String!): Project
+
   """Projects visible to the current user, sorted by name"""
   projects: [Project!]!
+
+  """All users who have logged in at least once, sorted by name"""
+  users: [User!]!
+}
+
+input UpdateProjectInput {
+  description: String! = ""
+  name: String!
 }
 
 type User {
