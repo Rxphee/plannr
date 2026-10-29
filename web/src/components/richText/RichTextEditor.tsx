@@ -3,7 +3,18 @@
 import { Button } from "@src/components/ui/Button";
 import { cn } from "@src/lib/utils";
 import { type Editor, EditorContent, useEditor, useEditorState } from "@tiptap/react";
-import { BoldIcon, CodeIcon, Heading2Icon, ItalicIcon, ListChecksIcon, ListIcon, ListOrderedIcon, type LucideIcon } from "lucide-react";
+import {
+    BoldIcon,
+    CodeIcon,
+    Heading1Icon,
+    Heading2Icon,
+    Heading3Icon,
+    ItalicIcon,
+    ListChecksIcon,
+    ListIcon,
+    ListOrderedIcon,
+    type LucideIcon,
+} from "lucide-react";
 import { useEffect, useRef } from "react";
 
 import { createRichTextExtensions, removeEmptyParagraphs } from "./richTextExtensions";
@@ -93,12 +104,12 @@ const toolbarActions: ToolbarAction[] = [
         run: (editor) => editor.chain().focus().toggleItalic().run(),
     },
     { label: "Code", icon: CodeIcon, isActive: (editor) => editor.isActive("code"), run: (editor) => editor.chain().focus().toggleCode().run() },
-    {
-        label: "Heading",
-        icon: Heading2Icon,
-        isActive: (editor) => editor.isActive("heading", { level: 2 }),
-        run: (editor) => editor.chain().focus().toggleHeading({ level: 2 }).run(),
-    },
+    ...([1, 2, 3] as const).map((level): ToolbarAction => ({
+        label: `Heading ${level}`,
+        icon: [Heading1Icon, Heading2Icon, Heading3Icon][level - 1],
+        isActive: (editor) => editor.isActive("heading", { level }),
+        run: (editor) => editor.chain().focus().toggleHeading({ level }).run(),
+    })),
     {
         label: "Bulleted list",
         icon: ListIcon,

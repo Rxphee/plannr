@@ -13,7 +13,7 @@ describe("createRichTextExtensions", () => {
     it.each([
         ["checklists", "- [ ] Open\n- [x] Done\n  - [ ] Nested"],
         ["lists", "- One\n- Two\n\n1. First\n2. Second"],
-        ["headings and marks", "## Steps\n\nText with **bold**, *italic* and `code`."],
+        ["headings and marks", "# Goal\n\n## Steps\n\n### Details\n\nText with **bold**, *italic* and `code`."],
         ["links", "See [the pull request](https://github.com/Rxphee/plannr/pull/12)."],
         ["code blocks and quotes", "> Quote\n\n```ts\nconst answer = 42;\n```"],
     ])("keeps %s when the Markdown is read and written again", (_, text) => {

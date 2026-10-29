@@ -127,12 +127,20 @@
             @apply mt-3;
         }
 
+        h1 {
+            @apply font-heading mt-6 text-2xl font-semibold tracking-tight;
+        }
+
         h2 {
-            @apply font-heading mt-5 text-lg font-semibold;
+            @apply font-heading mt-5 text-xl font-semibold tracking-tight;
         }
 
         h3 {
-            @apply font-heading mt-4 font-semibold;
+            @apply font-heading mt-4 text-lg font-semibold;
+        }
+
+        > :first-child {
+            @apply mt-0;
         }
 
         ul {

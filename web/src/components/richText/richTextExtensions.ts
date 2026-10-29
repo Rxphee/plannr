@@ -7,7 +7,7 @@ import { StarterKit } from "@tiptap/starter-kit";
 export function createRichTextExtensions({ placeholder }: { placeholder?: string } = {}) {
     return [
         StarterKit.configure({
-            heading: { levels: [2, 3] },
+            heading: { levels: [1, 2, 3] },
             underline: false,
             link: { openOnClick: false, autolink: true, defaultProtocol: "https" },
         }),
