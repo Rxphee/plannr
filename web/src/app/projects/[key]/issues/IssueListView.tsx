@@ -5,7 +5,7 @@ import type { ReactNode } from "react";
 
 import { IssueFilters } from "./IssueFilters";
 import { IssueList } from "./IssueList";
-import { type IssueListParams, ISSUES_PAGE_SIZE, toIssueFilter } from "./issueListParams";
+import { isIssueListFiltered, type IssueListParams, ISSUES_PAGE_SIZE, toIssueFilter } from "./issueListParams";
 import { issueListQuery } from "./IssueListView.gql";
 import type { GQLIssueListQuery, GQLIssueListQueryVariables } from "./IssueListView.gql.generated";
 import { IssuePagination } from "./IssuePagination";
@@ -25,11 +25,11 @@ interface IssueListViewProps {
 export async function IssueListView({ project, path, params, epicId, createAction }: IssueListViewProps) {
     const { issues } = await graphQLFetch<GQLIssueListQuery, GQLIssueListQueryVariables>(issueListQuery, {
         projectId: project.id,
-        filter: toIssueFilter(epicId ? { ...params, epic: epicId } : params),
+        filter: toIssueFilter(epicId ? { ...params, epics: [epicId] } : params),
         offset: (params.page - 1) * ISSUES_PAGE_SIZE,
         limit: ISSUES_PAGE_SIZE,
     });
-    const isFiltered = params.status !== "open" || params.type || params.priority || params.epic || params.search || params.page > 1;
+    const isFiltered = isIssueListFiltered(params);
 
     return (
         <div className="grid gap-4">

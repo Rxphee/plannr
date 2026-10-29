@@ -7,12 +7,13 @@ import { IssuePriority, IssueStatus, IssueType } from "../entities/issue.entity.
 
 const ISSUES_MAX_LIMIT = 100;
 
+// Each list matches any of its values, the lists together match all of them
 @InputType()
 export class IssueFilter {
     @IsOptional()
-    @IsUUID("4")
-    @Field(() => ID, { nullable: true })
-    epicId?: string;
+    @IsUUID("4", { each: true })
+    @Field(() => [ID], { nullable: true, description: "Issues in any of the epics" })
+    epicIds?: string[];
 
     @IsOptional()
     @IsEnum(IssueStatus, { each: true })
@@ -20,14 +21,14 @@ export class IssueFilter {
     statuses?: IssueStatus[];
 
     @IsOptional()
-    @IsEnum(IssueType)
-    @Field(() => IssueType, { nullable: true })
-    type?: IssueType;
+    @IsEnum(IssueType, { each: true })
+    @Field(() => [IssueType], { nullable: true, description: "Issues of any of the types" })
+    types?: IssueType[];
 
     @IsOptional()
-    @IsEnum(IssuePriority)
-    @Field(() => IssuePriority, { nullable: true })
-    priority?: IssuePriority;
+    @IsEnum(IssuePriority, { each: true })
+    @Field(() => [IssuePriority], { nullable: true, description: "Issues with any of the priorities" })
+    priorities?: IssuePriority[];
 
     @IsOptional()
     @Transform(trim)

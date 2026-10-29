@@ -4,22 +4,24 @@ import { issuePriorityOptions, issueStatusOptions, issueTypeOptions } from "./is
 
 export const ISSUES_PAGE_SIZE = 50;
 
-// "open" is the default view: what still needs to be done
-export type IssueStatusView = "open" | "all" | GQLIssueStatus;
+// Without a status in the URL the list shows what still needs to be done
+const DEFAULT_STATUSES: GQLIssueStatus[] = ["todo", "inProgress"];
+// Stands for "no status filter" in the URL, which an empty status param could not tell apart from the default
+const ALL_STATUSES = "all";
 
-// The filters of the issue list live in the search params, so a filtered list can be bookmarked and shared
+// The filters of the issue list live in the search params, so a filtered list can be bookmarked and shared.
+// Each list matches any of its values; an empty list does not filter.
 export interface IssueListParams {
-    status: IssueStatusView;
-    type?: GQLIssueType;
-    priority?: GQLIssuePriority;
-    epic?: string;
+    statuses: GQLIssueStatus[];
+    types: GQLIssueType[];
+    priorities: GQLIssuePriority[];
+    epics: string[];
     search?: string;
     page: number;
 }
 
 type SearchParams = Record<string, string | string[] | undefined>;
 
-const statusViews: IssueStatusView[] = ["open", "all", ...issueStatusOptions.map(({ value }) => value)];
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 function readParam(searchParams: SearchParams, name: string): string | undefined {
@@ -27,57 +29,84 @@ function readParam(searchParams: SearchParams, name: string): string | undefined
     return Array.isArray(value) ? value[0] : value;
 }
 
-function oneOf<Value extends string>(value: string | undefined, values: Value[]): Value | undefined {
-    return values.find((candidate) => candidate === value);
+// "todo,done" becomes the known values among them, in the order of the options
+function readList<Value extends string>(searchParams: SearchParams, name: string, values: Value[]): Value[] {
+    const requested = readParam(searchParams, name)?.split(",") ?? [];
+    return values.filter((value) => requested.includes(value));
+}
+
+function readStatuses(searchParams: SearchParams): GQLIssueStatus[] {
+    const status = readParam(searchParams, "status");
+    if (status === undefined) {
+        return DEFAULT_STATUSES;
+    }
+    if (status === ALL_STATUSES) {
+        return [];
+    }
+    const statuses = readList(
+        searchParams,
+        "status",
+        issueStatusOptions.map(({ value }) => value),
+    );
+    return statuses.length > 0 ? statuses : DEFAULT_STATUSES;
 }
 
 export function parseIssueListParams(searchParams: SearchParams): IssueListParams {
-    const epic = readParam(searchParams, "epic");
     const page = Number(readParam(searchParams, "page"));
 
     return {
-        status: oneOf(readParam(searchParams, "status"), statusViews) ?? "open",
-        type: oneOf(
-            readParam(searchParams, "type"),
+        statuses: readStatuses(searchParams),
+        types: readList(
+            searchParams,
+            "type",
             issueTypeOptions.map(({ value }) => value),
         ),
-        priority: oneOf(
-            readParam(searchParams, "priority"),
+        priorities: readList(
+            searchParams,
+            "priority",
             issuePriorityOptions.map(({ value }) => value),
         ),
-        epic: epic && UUID_PATTERN.test(epic) ? epic : undefined,
+        epics: (readParam(searchParams, "epic")?.split(",") ?? []).filter((epic) => UUID_PATTERN.test(epic)),
         search: readParam(searchParams, "search")?.trim() || undefined,
         page: Number.isInteger(page) && page > 1 ? page : 1,
     };
 }
 
-export function toIssueFilter({ status, type, priority, epic, search }: IssueListParams): GQLIssueFilter {
-    const statusesByView: Record<IssueStatusView, GQLIssueStatus[] | null> = {
-        open: ["todo", "inProgress"],
-        all: null,
-        todo: ["todo"],
-        inProgress: ["inProgress"],
-        done: ["done"],
-        canceled: ["canceled"],
-    };
+function hasDefaultStatuses(statuses: GQLIssueStatus[]): boolean {
+    return statuses.length === DEFAULT_STATUSES.length && DEFAULT_STATUSES.every((status) => statuses.includes(status));
+}
 
-    return { statuses: statusesByView[status], type: type ?? null, priority: priority ?? null, epicId: epic ?? null, search: search ?? null };
+// Whether anything differs from the plain list of open issues
+export function isIssueListFiltered({ statuses, types, priorities, epics, search, page }: IssueListParams): boolean {
+    return !hasDefaultStatuses(statuses) || types.length > 0 || priorities.length > 0 || epics.length > 0 || Boolean(search) || page > 1;
+}
+
+export function toIssueFilter({ statuses, types, priorities, epics, search }: IssueListParams): GQLIssueFilter {
+    const listOrNull = <Value>(values: Value[]) => (values.length > 0 ? values : null);
+
+    return {
+        statuses: listOrNull(statuses),
+        types: listOrNull(types),
+        priorities: listOrNull(priorities),
+        epicIds: listOrNull(epics),
+        search: search ?? null,
+    };
 }
 
 // Leaves out the defaults, so the plain list keeps its plain URL
-export function issueListHref(path: string, { status, type, priority, epic, search, page }: IssueListParams): string {
+export function issueListHref(path: string, { statuses, types, priorities, epics, search, page }: IssueListParams): string {
     const searchParams = new URLSearchParams();
-    if (status !== "open") {
-        searchParams.set("status", status);
+    if (!hasDefaultStatuses(statuses)) {
+        searchParams.set("status", statuses.length > 0 ? statuses.join(",") : ALL_STATUSES);
     }
-    if (type) {
-        searchParams.set("type", type);
-    }
-    if (priority) {
-        searchParams.set("priority", priority);
-    }
-    if (epic) {
-        searchParams.set("epic", epic);
+    for (const [name, values] of [
+        ["type", types],
+        ["priority", priorities],
+        ["epic", epics],
+    ] as const) {
+        if (values.length > 0) {
+            searchParams.set(name, values.join(","));
+        }
     }
     if (search) {
         searchParams.set("search", search);
@@ -86,6 +115,7 @@ export function issueListHref(path: string, { status, type, priority, epic, sear
         searchParams.set("page", String(page));
     }
 
-    const query = searchParams.toString();
+    // Commas separate the values of a list, they need no escaping
+    const query = searchParams.toString().replaceAll("%2C", ",");
     return query ? `${path}?${query}` : path;
 }

@@ -26,20 +26,20 @@ export class IssuesService {
     // Newest first
     async findAll({ projectId, filter = {}, offset, limit }: IssuesArgs, user: User): Promise<PaginatedIssues> {
         const project = await this.projectsService.findOneVisibleById(projectId, user);
-        const { epicId, statuses, type, priority, search } = filter;
+        const { epicIds, statuses, types, priorities, search } = filter;
 
         const where: FilterQuery<Issue> = { project };
-        if (epicId) {
-            where.epic = epicId;
+        if (epicIds?.length) {
+            where.epic = { $in: epicIds };
         }
         if (statuses?.length) {
             where.status = { $in: statuses };
         }
-        if (type) {
-            where.type = type;
+        if (types?.length) {
+            where.type = { $in: types };
         }
-        if (priority) {
-            where.priority = priority;
+        if (priorities?.length) {
+            where.priority = { $in: priorities };
         }
         if (search) {
             const number = findIssueNumberIn(search);

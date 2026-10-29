@@ -86,15 +86,20 @@ type Issue {
 }
 
 input IssueFilter {
-  epicId: ID
-  priority: IssuePriority
+  """Issues in any of the epics"""
+  epicIds: [ID!]
+
+  """Issues with any of the priorities"""
+  priorities: [IssuePriority!]
 
   """Part of the title, or the number or key of an issue like 42 or KEY-42"""
   search: String
 
   """Issues with any of the statuses"""
   statuses: [IssueStatus!]
-  type: IssueType
+
+  """Issues of any of the types"""
+  types: [IssueType!]
 }
 
 type IssueLink {

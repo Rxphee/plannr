@@ -11,7 +11,17 @@ function validate(plain: Record<string, unknown>) {
 
 describe("IssuesArgs", () => {
     it("accepts a filter", () => {
-        expect(validate({ filter: { statuses: ["todo", "inProgress"], type: "bug", search: "header" } }).invalidProperties).toEqual([]);
+        expect(
+            validate({
+                filter: {
+                    statuses: ["todo", "inProgress"],
+                    types: ["bug"],
+                    priorities: ["high", "normal"],
+                    epicIds: ["6e2d9c41-8a3b-4b7f-a1e5-3c9d7f2b8e60"],
+                    search: "header",
+                },
+            }).invalidProperties,
+        ).toEqual([]);
     });
 
     it("trims the search", () => {
@@ -23,6 +33,9 @@ describe("IssuesArgs", () => {
         ["limit", { limit: 0 }],
         ["limit", { limit: 101 }],
         ["filter", { filter: { statuses: ["blocked"] } }],
+        ["filter", { filter: { types: ["story"] } }],
+        ["filter", { filter: { priorities: ["urgent"] } }],
+        ["filter", { filter: { epicIds: ["42"] } }],
     ])("rejects an invalid %s", (property, data) => {
         expect(validate(data).invalidProperties).toEqual([property]);
     });
