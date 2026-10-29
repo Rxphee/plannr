@@ -53,7 +53,7 @@ export default async function ProjectPage({ params }: PageProps<"/projects/[key]
                     </>
                 }
             />
-            <PageContent className="grid gap-4 lg:grid-cols-[1fr_20rem]">
+            <PageContent className="grid items-start gap-4 lg:grid-cols-[1fr_20rem]">
                 <Card>
                     <CardHeader className="items-center">
                         <CardTitle>About</CardTitle>
