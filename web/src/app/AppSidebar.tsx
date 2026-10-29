@@ -10,13 +10,13 @@ import {
     SidebarGroupLabel,
     SidebarHeader,
     SidebarMenu,
-    SidebarMenuBadge,
     SidebarMenuButton,
     SidebarMenuItem,
     SidebarRail,
 } from "@src/components/ui/Sidebar";
+import { cn } from "@src/lib/utils";
 import { graphQLFetch } from "@src/util/graphQLFetch";
-import { LayoutGridIcon, PauseIcon, PlusIcon } from "lucide-react";
+import { LayoutGridIcon, PlusIcon } from "lucide-react";
 import Link from "next/link";
 
 import { sidebarProjectsQuery } from "./AppSidebar.gql";
@@ -26,7 +26,8 @@ import { ProjectIcon } from "./projects/ProjectIcon";
 
 export async function AppSidebar({ theme }: { theme: Theme }) {
     const { projects } = await graphQLFetch<GQLSidebarProjectsQuery>(sidebarProjectsQuery);
-    const openProjects = projects.filter((project) => project.status !== "archived");
+    const activeProjects = projects.filter((project) => project.status === "active");
+    const pausedProjects = projects.filter((project) => project.status === "paused");
 
     return (
         <Sidebar variant="inset" collapsible="icon">
@@ -57,7 +58,7 @@ export async function AppSidebar({ theme }: { theme: Theme }) {
                     </SidebarMenu>
                 </SidebarGroup>
                 <SidebarGroup>
-                    <SidebarGroupLabel>Open projects</SidebarGroupLabel>
+                    <SidebarGroupLabel>Active projects</SidebarGroupLabel>
                     <CreateProjectDialog
                         trigger={
                             <SidebarGroupAction title="New project" className="top-2.5 right-2 size-7 [&>svg]:size-4.5">
@@ -66,27 +67,15 @@ export async function AppSidebar({ theme }: { theme: Theme }) {
                             </SidebarGroupAction>
                         }
                     />
-                    <SidebarMenu>
-                        {openProjects.map((project) => (
-                            <SidebarMenuItem key={project.id}>
-                                <SidebarNavLink
-                                    href={`/projects/${project.key}`}
-                                    tooltip={project.name}
-                                    className="h-9 group-data-[collapsible=icon]:p-1.5!"
-                                >
-                                    <ProjectIcon projectKey={project.key} />
-                                    <span className={project.status === "paused" ? "text-sidebar-foreground/60" : undefined}>{project.name}</span>
-                                </SidebarNavLink>
-                                {project.status === "paused" && (
-                                    <SidebarMenuBadge title="Paused" className="top-2!">
-                                        <PauseIcon className="text-sidebar-foreground/50 size-4" />
-                                    </SidebarMenuBadge>
-                                )}
-                            </SidebarMenuItem>
-                        ))}
-                        {openProjects.length === 0 && <p className="text-sidebar-foreground/60 px-2 py-1 text-sm">No open projects yet.</p>}
-                    </SidebarMenu>
+                    <SidebarProjectList projects={activeProjects} />
+                    {activeProjects.length === 0 && <p className="text-sidebar-foreground/60 px-2 py-1 text-sm">No active projects.</p>}
                 </SidebarGroup>
+                {pausedProjects.length > 0 && (
+                    <SidebarGroup>
+                        <SidebarGroupLabel>Paused</SidebarGroupLabel>
+                        <SidebarProjectList projects={pausedProjects} isMuted />
+                    </SidebarGroup>
+                )}
             </SidebarContent>
             <SidebarFooter>
                 <SidebarMenu>
@@ -97,5 +86,27 @@ export async function AppSidebar({ theme }: { theme: Theme }) {
             </SidebarFooter>
             <SidebarRail />
         </Sidebar>
+    );
+}
+
+function SidebarProjectList({ projects, isMuted }: { projects: GQLSidebarProjectsQuery["projects"]; isMuted?: boolean }) {
+    return (
+        <SidebarMenu>
+            {projects.map((project) => (
+                <SidebarMenuItem key={project.id}>
+                    <SidebarNavLink
+                        href={`/projects/${project.key}`}
+                        tooltip={project.name}
+                        className={cn(
+                            "h-9 group-data-[collapsible=icon]:p-1.5!",
+                            isMuted && "text-sidebar-foreground/60 [&>[aria-hidden]]:opacity-60",
+                        )}
+                    >
+                        <ProjectIcon projectKey={project.key} />
+                        <span>{project.name}</span>
+                    </SidebarNavLink>
+                </SidebarMenuItem>
+            ))}
+        </SidebarMenu>
     );
 }
