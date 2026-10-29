@@ -1,9 +1,11 @@
-import { EntityManager, UniqueConstraintViolationException } from "@mikro-orm/postgresql";
-import { BadRequestException, Injectable } from "@nestjs/common";
-import type { User } from "@src/users/user.entity.js";
+import { EntityManager, LockMode, UniqueConstraintViolationException } from "@mikro-orm/postgresql";
+import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
+import { User } from "@src/users/user.entity.js";
 
 import type { CreateProjectInput } from "./dto/create-project.input.js";
-import { Project } from "./entities/project.entity.js";
+import type { ProjectMemberInput } from "./dto/project-member.input.js";
+import type { UpdateProjectInput } from "./dto/update-project.input.js";
+import { Project, ProjectStatus } from "./entities/project.entity.js";
 import { ProjectMember, ProjectMemberRole } from "./entities/project-member.entity.js";
 
 @Injectable()
@@ -12,6 +14,23 @@ export class ProjectsService {
 
     async findAllVisibleTo(user: User): Promise<Project[]> {
         return this.entityManager.find(Project, user.isAdmin ? {} : { members: { user } }, { orderBy: { name: "asc" } });
+    }
+
+    async findOneVisibleTo(key: string, user: User): Promise<Project | null> {
+        return this.entityManager.findOne(Project, user.isAdmin ? { key } : { key, members: { user } });
+    }
+
+    async findMembers(project: Project): Promise<ProjectMember[]> {
+        return this.entityManager.find(ProjectMember, { project }, { populate: ["user"], orderBy: { user: { firstName: "asc", lastName: "asc" } } });
+    }
+
+    // Settings, status, deletion and members are up to the owners of a project and the admins
+    async canManage(project: Project, user: User): Promise<boolean> {
+        if (user.isAdmin) {
+            return true;
+        }
+        const membership = await this.entityManager.findOne(ProjectMember, { project, user });
+        return membership?.role === ProjectMemberRole.owner;
     }
 
     async create(input: CreateProjectInput, user: User): Promise<Project> {
@@ -27,5 +46,102 @@ export class ProjectsService {
             throw error;
         }
         return project;
+    }
+
+    async update(id: string, input: UpdateProjectInput, user: User): Promise<Project> {
+        const project = await this.findOneManageableBy(id, user);
+        this.entityManager.assign(project, input);
+        await this.entityManager.flush();
+        return project;
+    }
+
+    async changeStatus(id: string, status: ProjectStatus, user: User): Promise<Project> {
+        const project = await this.findOneManageableBy(id, user);
+        if (project.status !== status) {
+            project.status = status;
+            project.archivedAt = status === ProjectStatus.archived ? new Date() : null;
+            await this.entityManager.flush();
+        }
+        return project;
+    }
+
+    // Deletes the project with everything in it, so only archived projects can be deleted
+    async delete(id: string, user: User): Promise<void> {
+        const project = await this.findOneManageableBy(id, user);
+        if (project.status !== ProjectStatus.archived) {
+            throw new BadRequestException("Only archived projects can be deleted");
+        }
+        await this.entityManager.remove(project).flush();
+    }
+
+    async addMember({ projectId, userId, role }: ProjectMemberInput, user: User): Promise<ProjectMember> {
+        return this.changeMembers(projectId, user, async (project) => {
+            const newMember = await this.entityManager.findOne(User, userId);
+            if (!newMember) {
+                throw new BadRequestException("The user does not exist");
+            }
+            if ((await this.entityManager.count(ProjectMember, { project, user: newMember })) > 0) {
+                throw new BadRequestException(`${newMember.firstName} ${newMember.lastName} is already a member of the project`);
+            }
+            return this.entityManager.create(ProjectMember, { project, user: newMember, role });
+        });
+    }
+
+    async changeMemberRole({ projectId, userId, role }: ProjectMemberInput, user: User): Promise<ProjectMember> {
+        return this.changeMembers(projectId, user, async (project) => {
+            const member = await this.findMember(project, userId);
+            if (role !== ProjectMemberRole.owner) {
+                await this.assertProjectKeepsAnOwner(project, member);
+            }
+            member.role = role;
+            return member;
+        });
+    }
+
+    async removeMember(projectId: string, userId: string, user: User): Promise<void> {
+        await this.changeMembers(projectId, user, async (project) => {
+            const member = await this.findMember(project, userId);
+            await this.assertProjectKeepsAnOwner(project, member);
+            this.entityManager.remove(member);
+        });
+    }
+
+    private async findOneManageableBy(id: string, user: User): Promise<Project> {
+        const project = await this.entityManager.findOne(Project, user.isAdmin ? { id } : { id, members: { user } });
+        if (!project) {
+            throw new NotFoundException("The project does not exist");
+        }
+        if (!(await this.canManage(project, user))) {
+            throw new ForbiddenException("Only owners and admins can manage the project");
+        }
+        return project;
+    }
+
+    // Runs the change in a transaction that locks the project, so two concurrent changes cannot take away its last owner.
+    // Inside the transaction, this.entityManager resolves to the transaction's fork.
+    private async changeMembers<Result>(projectId: string, user: User, change: (project: Project) => Promise<Result>): Promise<Result> {
+        return this.entityManager.transactional(async () => {
+            const project = await this.findOneManageableBy(projectId, user);
+            await this.entityManager.lock(project, LockMode.PESSIMISTIC_WRITE);
+            return change(project);
+        });
+    }
+
+    private async findMember(project: Project, userId: string): Promise<ProjectMember> {
+        const member = await this.entityManager.findOne(ProjectMember, { project, user: userId });
+        if (!member) {
+            throw new BadRequestException("The user is not a member of the project");
+        }
+        return member;
+    }
+
+    private async assertProjectKeepsAnOwner(project: Project, member: ProjectMember): Promise<void> {
+        if (member.role !== ProjectMemberRole.owner) {
+            return;
+        }
+        const ownerCount = await this.entityManager.count(ProjectMember, { project, role: ProjectMemberRole.owner });
+        if (ownerCount <= 1) {
+            throw new BadRequestException("A project needs at least one owner. Make another member an owner first.");
+        }
     }
 }

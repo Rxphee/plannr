@@ -1,17 +1,11 @@
-import { Badge } from "@src/components/ui/Badge";
-import type { GQLProjectStatus } from "@src/graphql.generated";
 import { graphQLFetch } from "@src/util/graphQLFetch";
+import Link from "next/link";
 import { connection } from "next/server";
 
 import { CreateProjectDialog } from "./CreateProjectDialog";
 import { projectsQuery } from "./page.gql";
 import type { GQLProjectsQuery } from "./page.gql.generated";
-
-const statusLabels: Record<GQLProjectStatus, string> = {
-    active: "Active",
-    paused: "Paused",
-    archived: "Archived",
-};
+import { ProjectStatusBadge } from "./ProjectStatusBadge";
 
 export default async function ProjectsPage() {
     // Render on every request, the API is not reachable at build time
@@ -29,10 +23,12 @@ export default async function ProjectsPage() {
             ) : (
                 <ul className="divide-y rounded-lg border">
                     {projects.map((project) => (
-                        <li key={project.id} className="flex items-center gap-4 px-4 py-3">
-                            <span className="text-muted-foreground w-14 font-mono text-sm">{project.key}</span>
-                            <span className="flex-1 font-medium">{project.name}</span>
-                            <Badge variant={project.status === "active" ? "secondary" : "outline"}>{statusLabels[project.status]}</Badge>
+                        <li key={project.id}>
+                            <Link href={`/projects/${project.key}`} className="hover:bg-muted/50 flex items-center gap-4 px-4 py-3">
+                                <span className="text-muted-foreground w-14 font-mono text-sm">{project.key}</span>
+                                <span className="flex-1 font-medium">{project.name}</span>
+                                <ProjectStatusBadge status={project.status} />
+                            </Link>
                         </li>
                     ))}
                 </ul>
