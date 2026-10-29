@@ -9,9 +9,9 @@ export function NewProjectCard() {
             trigger={
                 <button
                     type="button"
-                    className="text-muted-foreground hover:text-foreground hover:border-foreground/30 hover:bg-muted/40 focus-visible:ring-ring flex h-full min-h-48 w-full flex-col items-center justify-center gap-2 rounded-xl border border-dashed text-sm font-medium transition-colors outline-none focus-visible:ring-2"
+                    className="group text-muted-foreground hover:text-foreground hover:border-primary/60 hover:bg-primary/5 focus-visible:ring-ring flex h-full min-h-48 w-full flex-col items-center justify-center gap-2 rounded-xl border border-dashed text-sm font-medium transition-colors outline-none focus-visible:ring-2"
                 >
-                    <span className="bg-muted flex size-10 items-center justify-center rounded-lg">
+                    <span className="bg-muted group-hover:bg-primary group-hover:text-primary-foreground flex size-10 items-center justify-center rounded-lg transition-colors">
                         <PlusIcon className="size-5" />
                     </span>
                     New project

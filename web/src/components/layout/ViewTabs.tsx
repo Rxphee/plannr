@@ -27,8 +27,8 @@ export function ViewTabs({ tabs, className }: { tabs: ViewTab[]; className?: str
                         href={tab.href}
                         aria-current={isActive ? "page" : undefined}
                         className={cn(
-                            "text-muted-foreground hover:text-foreground flex shrink-0 items-center gap-1.5 border-b-2 border-transparent py-2.5 text-sm font-medium transition-colors",
-                            isActive && "border-primary text-foreground",
+                            "text-muted-foreground hover:text-foreground hover:border-foreground/25 flex shrink-0 items-center gap-1.5 border-b-2 border-transparent py-2.5 text-sm font-medium transition-colors",
+                            isActive && "border-primary hover:border-primary text-foreground",
                         )}
                     >
                         {tab.label}
