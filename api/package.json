@@ -12,6 +12,7 @@
         "db:migrate": "npm run console migrate --",
         "db:migrate:prod": "npm run console:prod migrate --",
         "db:migration:create": "npm run mikro-orm migration:create --",
+        "fixtures": "npm run console fixtures --",
         "lint": "run-p -l lint:{eslint,knip,prettier,tsc,api-can-start}",
         "lint:api-can-start": "nest build && NODE_ENV=development dotenv -e ../.env -- node dist/console.js --help",
         "lint:ci": "npm run lint && npm run lint:generated-files-not-modified",

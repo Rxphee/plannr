@@ -6,6 +6,7 @@ import { GraphQLError } from "graphql";
 import { AuthModule } from "./auth/auth.module.js";
 import type { Config } from "./config/config.js";
 import { DbModule } from "./db/db.module.js";
+import { FixturesModule } from "./db/fixtures/fixtures.module.js";
 import { HealthcheckModule } from "./healthcheck/healthcheck.module.js";
 import { ProjectsModule } from "./projects/projects.module.js";
 
@@ -36,6 +37,7 @@ export class AppModule {
                 }),
                 HealthcheckModule,
                 ProjectsModule,
+                FixturesModule,
             ],
         };
     }

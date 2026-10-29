@@ -40,6 +40,9 @@ A lean, self-hosted issue tracker: projects, epics and issues with clear default
     // create a migration from entity changes
     npm --prefix api run db:migration:create
 
+    // drop all tables and fill the database with demo data (development only)
+    npm --prefix api run fixtures
+
 ### Lint
 
     npm run lint

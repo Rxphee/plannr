@@ -1,17 +1,24 @@
 import { MikroORM } from "@mikro-orm/postgresql";
-import { Logger } from "@nestjs/common";
+import { type INestApplicationContext, Logger } from "@nestjs/common";
 import { NestFactory } from "@nestjs/core";
 
 import { AppModule } from "./app.module.js";
 import { createConfig } from "./config/config.js";
+import { FixturesService } from "./db/fixtures/fixtures.service.js";
 
 // Entry point for maintenance commands, e.g. `node dist/console.js migrate`.
 // Booting the app module also writes schema.gql in development, which `lint:api-can-start` relies on.
-const commands: Record<string, { description: string; run: (orm: MikroORM) => Promise<void> }> = {
+const commands: Record<string, { description: string; run: (app: INestApplicationContext) => Promise<void> }> = {
     migrate: {
         description: "Runs all pending migrations",
-        run: async (orm) => {
-            await orm.migrator.up();
+        run: async (app) => {
+            await app.get(MikroORM).migrator.up();
+        },
+    },
+    fixtures: {
+        description: "Drops all tables and fills the database with demo data (development only)",
+        run: async (app) => {
+            await app.get(FixturesService).run();
         },
     },
 };
@@ -36,7 +43,7 @@ async function bootstrap(): Promise<void> {
         }
 
         logger.log(`Running ${commandName}...`);
-        await command.run(app.get(MikroORM));
+        await command.run(app);
         logger.log(`${commandName} finished`);
     } catch (error) {
         logger.error(error);
