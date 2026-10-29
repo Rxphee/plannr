@@ -1,0 +1,67 @@
+import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@src/components/ui/Empty";
+import { graphQLFetch } from "@src/util/graphQLFetch";
+import { ListTodoIcon } from "lucide-react";
+import type { ReactNode } from "react";
+
+import { IssueFilters } from "./IssueFilters";
+import { IssueList } from "./IssueList";
+import { type IssueListParams, ISSUES_PAGE_SIZE, toIssueFilter } from "./issueListParams";
+import { issueListQuery } from "./IssueListView.gql";
+import type { GQLIssueListQuery, GQLIssueListQueryVariables } from "./IssueListView.gql.generated";
+import { IssuePagination } from "./IssuePagination";
+
+interface IssueListViewProps {
+    project: { id: string; key: string; epics: { id: string; name: string }[] };
+    // The page the filters link to
+    path: string;
+    params: IssueListParams;
+    // Shows only the issues of this epic, without the epic filter
+    epicId?: string;
+    // Fills the empty list, e.g. with the dialog for a new issue
+    createAction?: ReactNode;
+}
+
+// The filters, the issues of the current page and the pagination, shared by the issue list and the page of an epic
+export async function IssueListView({ project, path, params, epicId, createAction }: IssueListViewProps) {
+    const { issues } = await graphQLFetch<GQLIssueListQuery, GQLIssueListQueryVariables>(issueListQuery, {
+        projectId: project.id,
+        filter: toIssueFilter(epicId ? { ...params, epic: epicId } : params),
+        offset: (params.page - 1) * ISSUES_PAGE_SIZE,
+        limit: ISSUES_PAGE_SIZE,
+    });
+    const isFiltered = params.status !== "open" || params.type || params.priority || params.epic || params.search || params.page > 1;
+
+    return (
+        <div className="grid gap-4">
+            <IssueFilters path={path} params={params} epics={epicId ? undefined : project.epics} />
+            {issues.nodes.length > 0 ? (
+                <>
+                    <IssueList projectKey={project.key} issues={issues.nodes} hideEpic={Boolean(epicId)} />
+                    <IssuePagination path={path} params={params} totalCount={issues.totalCount} />
+                </>
+            ) : (
+                <Empty className="rounded-xl border border-dashed">
+                    <EmptyHeader>
+                        <EmptyMedia variant="icon">
+                            <ListTodoIcon />
+                        </EmptyMedia>
+                        {isFiltered ? (
+                            <>
+                                <EmptyTitle>No matching issues</EmptyTitle>
+                                <EmptyDescription>Change the filters or the search to see more issues.</EmptyDescription>
+                            </>
+                        ) : (
+                            <>
+                                <EmptyTitle>No open issues</EmptyTitle>
+                                <EmptyDescription>
+                                    Issues are the tasks and bugs of the project. Done ones are under the status filter.
+                                </EmptyDescription>
+                            </>
+                        )}
+                    </EmptyHeader>
+                    {!isFiltered && createAction && <EmptyContent>{createAction}</EmptyContent>}
+                </Empty>
+            )}
+        </div>
+    );
+}
