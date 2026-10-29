@@ -6,7 +6,15 @@ export const projectsQuery = gql`
             id
             key
             name
+            description
             status
+            members {
+                user {
+                    id
+                    firstName
+                    lastName
+                }
+            }
         }
     }
 `;

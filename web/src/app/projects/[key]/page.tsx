@@ -1,13 +1,12 @@
-import { buttonVariants } from "@src/components/ui/Button";
+import { UserAvatar } from "@src/components/UserAvatar";
 import { graphQLFetch } from "@src/util/graphQLFetch";
-import { ArrowLeftIcon, SettingsIcon } from "lucide-react";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 
-import { ProjectStatusBadge } from "../ProjectStatusBadge";
 import { projectQuery } from "./page.gql";
 import type { GQLProjectQuery, GQLProjectQueryVariables } from "./page.gql.generated";
 import { projectMemberRoleLabels } from "./projectMemberRoles";
+
+const dateFormat = new Intl.DateTimeFormat("en", { dateStyle: "medium" });
 
 export default async function ProjectPage({ params }: PageProps<"/projects/[key]">) {
     const { key } = await params;
@@ -17,40 +16,35 @@ export default async function ProjectPage({ params }: PageProps<"/projects/[key]
     }
 
     return (
-        <main className="mx-auto flex max-w-3xl flex-col gap-6 px-4 py-10">
-            <Link href="/projects" className="text-muted-foreground hover:text-foreground flex w-fit items-center gap-1 text-sm">
-                <ArrowLeftIcon className="size-4" />
-                Projects
-            </Link>
-            <div className="flex items-start justify-between gap-4">
-                <div className="grid gap-1">
-                    <span className="text-muted-foreground font-mono text-sm">{project.key}</span>
-                    <div className="flex items-center gap-3">
-                        <h1 className="font-heading text-2xl font-semibold">{project.name}</h1>
-                        <ProjectStatusBadge status={project.status} />
-                    </div>
-                </div>
-                {project.canManage && (
-                    <Link href={`/projects/${project.key}/settings`} className={buttonVariants({ variant: "outline" })}>
-                        <SettingsIcon />
-                        Settings
-                    </Link>
+        <div className="grid gap-8 p-4 md:grid-cols-[1fr_16rem] md:p-6">
+            <section className="grid content-start gap-2">
+                <h2 className="text-muted-foreground text-sm font-medium">Description</h2>
+                {project.description ? (
+                    <p className="whitespace-pre-line">{project.description}</p>
+                ) : (
+                    <p className="text-muted-foreground text-sm">No description yet.</p>
                 )}
-            </div>
-            {project.description && <p className="whitespace-pre-line">{project.description}</p>}
-            <section className="grid gap-3">
-                <h2 className="font-heading text-lg font-semibold">Members</h2>
-                <ul className="divide-y rounded-lg border">
-                    {project.members.map(({ role, user }) => (
-                        <li key={user.id} className="flex items-center justify-between gap-4 px-4 py-3">
-                            <span>
-                                {user.firstName} {user.lastName}
-                            </span>
-                            <span className="text-muted-foreground text-sm">{projectMemberRoleLabels[role]}</span>
-                        </li>
-                    ))}
-                </ul>
             </section>
-        </main>
+            <aside className="grid content-start gap-6 text-sm">
+                <section className="grid gap-3">
+                    <h2 className="text-muted-foreground font-medium">Members</h2>
+                    <ul className="grid gap-2">
+                        {project.members.map(({ role, user }) => (
+                            <li key={user.id} className="flex items-center gap-2">
+                                <UserAvatar user={user} size="sm" />
+                                <span className="flex-1 truncate">
+                                    {user.firstName} {user.lastName}
+                                </span>
+                                <span className="text-muted-foreground text-xs">{projectMemberRoleLabels[role]}</span>
+                            </li>
+                        ))}
+                    </ul>
+                </section>
+                <section className="grid gap-1">
+                    <h2 className="text-muted-foreground font-medium">Created</h2>
+                    <span>{dateFormat.format(new Date(project.createdAt))}</span>
+                </section>
+            </aside>
+        </div>
     );
 }

@@ -7,22 +7,20 @@ import { Button } from "@src/components/ui/Button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@src/components/ui/Dialog";
 import type { GQLCreateProjectInput } from "@src/graphql.generated";
 import { FORM_ERROR } from "final-form";
-import { PlusIcon } from "lucide-react";
-import { useRef, useState } from "react";
+import { useRouter } from "next/navigation";
+import { type ReactElement, useRef, useState } from "react";
 
 import { createProject } from "./actions";
 import { PROJECT_KEY_MAX_LENGTH, PROJECT_NAME_MAX_LENGTH, validateProjectKey } from "./projectValidation";
 import { suggestProjectKey } from "./suggestProjectKey";
 
-export function CreateProjectDialog() {
+// The trigger differs by place, e.g. a button in the page header or an icon in the sidebar
+export function CreateProjectDialog({ trigger }: { trigger: ReactElement }) {
     const [open, setOpen] = useState(false);
 
     return (
         <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger render={<Button />}>
-                <PlusIcon />
-                New project
-            </DialogTrigger>
+            <DialogTrigger render={trigger} />
             <DialogContent>
                 {/* The popup unmounts when closed, so the form starts empty every time */}
                 <CreateProjectForm onCreated={() => setOpen(false)} />
@@ -32,6 +30,7 @@ export function CreateProjectDialog() {
 }
 
 function CreateProjectForm({ onCreated }: { onCreated: () => void }) {
+    const router = useRouter();
     // The key follows the name until the user edits it
     const keyWasEdited = useRef(false);
 
@@ -41,6 +40,7 @@ function CreateProjectForm({ onCreated }: { onCreated: () => void }) {
             return { [FORM_ERROR]: error };
         }
         onCreated();
+        router.push(`/projects/${values.key}`);
     };
 
     return (

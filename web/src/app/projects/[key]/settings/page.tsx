@@ -1,6 +1,4 @@
 import { graphQLFetch } from "@src/util/graphQLFetch";
-import { ArrowLeftIcon } from "lucide-react";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { AddProjectMemberDialog } from "./AddProjectMemberDialog";
@@ -10,6 +8,7 @@ import { projectSettingsQuery } from "./page.gql";
 import type { GQLProjectSettingsQuery, GQLProjectSettingsQueryVariables } from "./page.gql.generated";
 import { ProjectMemberList } from "./ProjectMemberList";
 import { ProjectStatusActions } from "./ProjectStatusActions";
+import { SettingsSection } from "./SettingsSection";
 
 export default async function ProjectSettingsPage({ params }: PageProps<"/projects/[key]/settings">) {
     const { key } = await params;
@@ -22,41 +21,29 @@ export default async function ProjectSettingsPage({ params }: PageProps<"/projec
     const usersToAdd = users.filter((user) => !memberIds.has(user.id));
 
     return (
-        <main className="mx-auto flex max-w-3xl flex-col gap-10 px-4 py-10">
-            <div className="grid gap-2">
-                <Link href={`/projects/${project.key}`} className="text-muted-foreground hover:text-foreground flex w-fit items-center gap-1 text-sm">
-                    <ArrowLeftIcon className="size-4" />
-                    {project.name}
-                </Link>
-                <h1 className="font-heading text-2xl font-semibold">Settings</h1>
-            </div>
-
-            <section className="grid gap-4">
-                <h2 className="font-heading text-lg font-semibold">General</h2>
+        <div className="w-full max-w-4xl p-4 md:p-6">
+            <SettingsSection title="General" description="Name and description of the project.">
                 <EditProjectForm project={project} />
-            </section>
+            </SettingsSection>
 
-            <section className="grid gap-4">
-                <div className="flex items-center justify-between gap-4">
-                    <h2 className="font-heading text-lg font-semibold">Members</h2>
+            <SettingsSection title="Members" description="Owners manage the project, members work on epics and issues, viewers only read.">
+                <div className="grid gap-3">
+                    <ProjectMemberList project={project} />
                     <AddProjectMemberDialog projectId={project.id} users={usersToAdd} />
                 </div>
-                <ProjectMemberList project={project} />
-            </section>
+            </SettingsSection>
 
-            <section className="grid gap-4">
-                <h2 className="font-heading text-lg font-semibold">Status</h2>
+            <SettingsSection title="Status" description="Pause a project while it waits, archive it when it is done.">
                 <ProjectStatusActions project={project} />
-            </section>
+            </SettingsSection>
 
-            <section className="grid gap-4">
-                <h2 className="font-heading text-lg font-semibold">Delete project</h2>
+            <SettingsSection title="Delete project" description="Deletes the project with everything in it. This cannot be undone.">
                 {project.status === "archived" ? (
                     <DeleteProjectDialog project={project} />
                 ) : (
-                    <p className="text-muted-foreground text-sm">Only archived projects can be deleted.</p>
+                    <p className="text-muted-foreground text-sm">Archive the project first to delete it.</p>
                 )}
-            </section>
-        </main>
+            </SettingsSection>
+        </div>
     );
 }

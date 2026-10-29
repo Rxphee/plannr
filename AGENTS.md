@@ -111,6 +111,7 @@ npm --prefix web run gql:types   # Generate TypeScript types for the GraphQL doc
 - `api/src/db/` - ORM config, `migrations/`, `fixtures/` and the migration generator
 - `api/src/console.ts` - Console commands (`migrate`, `fixtures`)
 - `web/src/app/` - Next.js App Router pages, Server Actions and their GraphQL documents
+- `web/src/components/layout/` - parts of the app shell: `PageHeader`, `ViewTabs`, `SidebarNavLink`
 - `web/src/components/ui/` - shadcn/ui components
 - `web/src/util/` - `gql` tag and `graphQLFetch`
 
@@ -189,12 +190,19 @@ Each entity has its own fixture service in `api/src/db/fixtures/` (`users-fixtur
 
 Pages are Server Components that load data with `graphQLFetch` (server only). Mutations are Server Actions (`actions.ts`) that take the input as an object and return `{ error?: string }`. GraphQL documents live in `*.gql.ts` next to their use; codegen writes the types to `*.gql.generated.ts` with the prefix `GQL`. Next.js 16 differs from older versions: read `web/AGENTS.md` and the docs in `web/node_modules/next/dist/docs/` before writing Next.js code.
 
+### App Shell
+
+The root layout puts the sidebar (`app/AppSidebar.tsx`) next to every page. A page starts with a `PageHeader` (breadcrumbs, actions such as "New project") and fills the width below it; only forms like the settings get a maximum width. Views of a list (e.g. open and archived projects) are `ViewTabs` that link to search params, so a view can be bookmarked. The sections of a project are `ViewTabs` in `app/projects/[key]/layout.tsx`; epics and issues will become further tabs there. Empty lists show the shadcn `Empty` component with the action that fills them.
+
+The theme builds on the shadcn preset `b51EUgJ0a` (font Inter) with the style Vega in `globals.css`: neutral gray surfaces and blue (`#2563eb`) as accent color, clearly apart from the red of errors and destructive actions. The accent is used sparingly: primary buttons, the active tab, focus rings and the logo. The root font size is 17px instead of 16px, so everything measured in rem is a little larger. Dark mode follows the system setting (`prefers-color-scheme`), there is no toggle yet.
+
 ### Forms
 
 Forms use react-final-form like the Dextinity admin, through the components in `web/src/components/form/`, never a plain `<form action>` or react-final-form's `<Form>` directly:
 
 - `FinalForm` - like Dextinity's `FinalForm`: react-final-form state and the HTML `<form>` in one; its children are a function of the form render props (`form`, `values`, `submitting`)
 - `TextField` - label, input and error message; `multiline` renders a textarea
+- `SelectField` - label, select and error message for a fixed list of options
 - `FormSubmitError` - the error the submit returned, placed where it fits (e.g. above a dialog footer, which reaches the bottom edge of the dialog)
 
 Fields validate themselves while typing: `required` (a value of only spaces counts as empty) and `validate` with the same rules as the API, shared per feature (e.g. `app/projects/projectValidation.ts`). The submit handler calls the Server Action and returns its error as `{ [FORM_ERROR]: error }`.
@@ -209,7 +217,9 @@ Fields validate themselves while typing: `required` (a value of only spaces coun
 Add a component with `npx shadcn add <name>` in `web/`, then:
 
 - Rename the file to PascalCase (`button.tsx` → `Button.tsx`) and fix the imports, including those inside the new component (`@src/components/ui/Button`).
-- Don't let shadcn overwrite an existing component.
+- Don't let shadcn overwrite an existing component. Only after switching the style, reinstall all components with `--overwrite` and repeat these steps.
+- Hooks go to `web/src/hooks/` in camelCase (`use-mobile.ts` → `useIsMobile.ts`).
+- `shadcn init` and `shadcn add` may rewrite `package-lock.json`. Revert changes that no `package.json` change asked for and run `npm ci`; restart the web dev server afterwards, Turbopack does not recover from a replaced `node_modules`.
 - Replace `import * as React from "react"` with named imports (ESLint forbids the namespace import).
 - Run `npm --prefix web run lint:fix`; knip ignores unused exports in `components/ui/`.
 
