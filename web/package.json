@@ -1,6 +1,7 @@
 {
     "name": "plannr-web",
     "private": true,
+    "license": "AGPL-3.0-only",
     "scripts": {
         "build": "npm run gql:types && next build",
         "check-node-version": "check-node-version --node $(cat ../.nvmrc)",

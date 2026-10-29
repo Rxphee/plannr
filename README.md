@@ -44,3 +44,7 @@ A lean, self-hosted issue tracker: projects, epics and issues with clear default
 
     npm run lint
     npm run lint:fix
+
+## License
+
+Plannr is licensed under the [GNU Affero General Public License v3.0](LICENSE).
