@@ -27,15 +27,15 @@ export function ProjectNavigation({ projects }: { projects: SidebarProject[] }) 
                     </SidebarNavLink>
                 </SidebarMenuItem>
                 <SidebarMenuItem>
-                    <SidebarNavLink href={`${projectPath}/issues`} tooltip="Issues" className="h-9">
-                        <ListTodoIcon />
-                        <span>Issues</span>
-                    </SidebarNavLink>
-                </SidebarMenuItem>
-                <SidebarMenuItem>
                     <SidebarNavLink href={`${projectPath}/epics`} tooltip="Epics" className="h-9">
                         <LayersIcon />
                         <span>Epics</span>
+                    </SidebarNavLink>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                    <SidebarNavLink href={`${projectPath}/issues`} tooltip="Issues" className="h-9">
+                        <ListTodoIcon />
+                        <span>Issues</span>
                     </SidebarNavLink>
                 </SidebarMenuItem>
                 {currentProject.canManage && (
