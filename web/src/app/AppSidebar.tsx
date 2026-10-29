@@ -7,33 +7,37 @@ import {
     SidebarGroupLabel,
     SidebarHeader,
     SidebarMenu,
+    SidebarMenuBadge,
     SidebarMenuButton,
     SidebarMenuItem,
     SidebarRail,
 } from "@src/components/ui/Sidebar";
 import { graphQLFetch } from "@src/util/graphQLFetch";
-import { FolderKanbanIcon, PlusIcon } from "lucide-react";
+import { LayoutGridIcon, PauseIcon, PlusIcon } from "lucide-react";
 import Link from "next/link";
 
 import { sidebarProjectsQuery } from "./AppSidebar.gql";
 import type { GQLSidebarProjectsQuery } from "./AppSidebar.gql.generated";
 import { CreateProjectDialog } from "./projects/CreateProjectDialog";
-import { ProjectKeyIcon } from "./projects/ProjectKeyIcon";
+import { ProjectIcon } from "./projects/ProjectIcon";
 
 export async function AppSidebar() {
     const { projects } = await graphQLFetch<GQLSidebarProjectsQuery>(sidebarProjectsQuery);
     const openProjects = projects.filter((project) => project.status !== "archived");
 
     return (
-        <Sidebar collapsible="icon">
+        <Sidebar variant="inset" collapsible="icon">
             <SidebarHeader>
                 <SidebarMenu>
                     <SidebarMenuItem>
                         <SidebarMenuButton size="lg" render={<Link href="/projects" />}>
-                            <span className="bg-primary text-primary-foreground flex size-8 shrink-0 items-center justify-center rounded-lg font-semibold">
+                            <span className="from-primary flex size-8 shrink-0 items-center justify-center rounded-lg bg-linear-to-br to-blue-800 font-semibold text-white shadow-xs">
                                 P
                             </span>
-                            <span className="font-heading text-base font-semibold">Plannr</span>
+                            <span className="grid leading-tight">
+                                <span className="font-heading text-base font-semibold">Plannr</span>
+                                <span className="text-sidebar-foreground/60 text-xs">Issue tracker</span>
+                            </span>
                         </SidebarMenuButton>
                     </SidebarMenuItem>
                 </SidebarMenu>
@@ -43,7 +47,7 @@ export async function AppSidebar() {
                     <SidebarMenu>
                         <SidebarMenuItem>
                             <SidebarNavLink href="/projects" tooltip="Projects" exact>
-                                <FolderKanbanIcon />
+                                <LayoutGridIcon />
                                 <span>Projects</span>
                             </SidebarNavLink>
                         </SidebarMenuItem>
@@ -62,12 +66,22 @@ export async function AppSidebar() {
                     <SidebarMenu>
                         {openProjects.map((project) => (
                             <SidebarMenuItem key={project.id}>
-                                <SidebarNavLink href={`/projects/${project.key}`} tooltip={project.name}>
-                                    <ProjectKeyIcon projectKey={project.key} />
-                                    <span>{project.name}</span>
+                                <SidebarNavLink
+                                    href={`/projects/${project.key}`}
+                                    tooltip={project.name}
+                                    className="group-data-[collapsible=icon]:p-1.5!"
+                                >
+                                    <ProjectIcon projectKey={project.key} />
+                                    <span className={project.status === "paused" ? "text-sidebar-foreground/60" : undefined}>{project.name}</span>
                                 </SidebarNavLink>
+                                {project.status === "paused" && (
+                                    <SidebarMenuBadge title="Paused">
+                                        <PauseIcon className="text-sidebar-foreground/50 size-3.5" />
+                                    </SidebarMenuBadge>
+                                )}
                             </SidebarMenuItem>
                         ))}
+                        {openProjects.length === 0 && <p className="text-sidebar-foreground/60 px-2 py-1 text-sm">No open projects yet.</p>}
                     </SidebarMenu>
                 </SidebarGroup>
             </SidebarContent>

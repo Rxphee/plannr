@@ -17,7 +17,7 @@ export function ViewTabs({ tabs, className }: { tabs: ViewTab[]; className?: str
     const pathname = usePathname();
 
     return (
-        <nav className={cn("-mb-px flex gap-4 overflow-x-auto", className)}>
+        <nav className={cn("-mb-px flex gap-5 overflow-x-auto", className)}>
             {tabs.map((tab) => {
                 const isActive = tab.isActive ?? pathname === tab.href;
 
@@ -33,7 +33,14 @@ export function ViewTabs({ tabs, className }: { tabs: ViewTab[]; className?: str
                     >
                         {tab.label}
                         {tab.count !== undefined && (
-                            <span className="bg-muted text-muted-foreground rounded-full px-1.5 text-xs tabular-nums">{tab.count}</span>
+                            <span
+                                className={cn(
+                                    "bg-muted text-muted-foreground min-w-5 rounded-md px-1.5 text-center text-xs tabular-nums",
+                                    isActive && "bg-foreground/10 text-foreground",
+                                )}
+                            >
+                                {tab.count}
+                            </span>
                         )}
                     </Link>
                 );

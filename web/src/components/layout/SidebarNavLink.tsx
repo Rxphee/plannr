@@ -11,14 +11,15 @@ interface SidebarNavLinkProps {
     tooltip: string;
     // Only active on the page itself, not on the pages below it
     exact?: boolean;
+    className?: string;
 }
 
-export function SidebarNavLink({ href, tooltip, exact, children }: PropsWithChildren<SidebarNavLinkProps>) {
+export function SidebarNavLink({ href, tooltip, exact, className, children }: PropsWithChildren<SidebarNavLinkProps>) {
     const pathname = usePathname();
     const isActive = exact ? pathname === href : pathname === href || pathname.startsWith(`${href}/`);
 
     return (
-        <SidebarMenuButton isActive={isActive} tooltip={tooltip} render={<Link href={href} />}>
+        <SidebarMenuButton isActive={isActive} tooltip={tooltip} className={className} render={<Link href={href} />}>
             {children}
         </SidebarMenuButton>
     );

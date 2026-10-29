@@ -7,6 +7,12 @@ export const projectLayoutQuery = gql`
             name
             status
             canManage
+            createdAt
+            members {
+                user {
+                    id
+                }
+            }
         }
     }
 `;

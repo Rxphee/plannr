@@ -25,7 +25,7 @@ export default async function RootLayout({ children }: PropsWithChildren) {
             <body>
                 <SidebarProvider defaultOpen={isSidebarOpen}>
                     <AppSidebar />
-                    <SidebarInset>{children}</SidebarInset>
+                    <SidebarInset className="md:ring-border md:ring-1">{children}</SidebarInset>
                 </SidebarProvider>
             </body>
         </html>
