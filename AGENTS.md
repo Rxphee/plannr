@@ -194,7 +194,7 @@ Pages are Server Components that load data with `graphQLFetch` (server only). Mu
 
 The root layout puts the sidebar (`app/AppSidebar.tsx`) next to every page. A page starts with a `PageHeader` (breadcrumbs, actions such as "New project") and fills the width below it; only forms like the settings get a maximum width. Views of a list (e.g. open and archived projects) are `ViewTabs` that link to search params, so a view can be bookmarked. The sections of a project are `ViewTabs` in `app/projects/[key]/layout.tsx`; epics and issues will become further tabs there. Empty lists show the shadcn `Empty` component with the action that fills them.
 
-The theme builds on the shadcn preset `b51EUgJ0a` (font Inter) with the style Vega in `globals.css`: neutral gray surfaces and the accent color `#ff1f57`, in light mode a little darker (`#e0003f`) so that white text on buttons keeps a contrast of 5:1. The accent is used sparingly: primary buttons, the active tab, focus rings and the logo. Dark mode follows the system setting (`prefers-color-scheme`), there is no toggle yet.
+The theme builds on the shadcn preset `b51EUgJ0a` (font Inter) with the style Vega in `globals.css`: neutral gray surfaces and blue (`#2563eb`) as accent color, clearly apart from the red of errors and destructive actions. The accent is used sparingly: primary buttons, the active tab, focus rings and the logo. The root font size is 17px instead of 16px, so everything measured in rem is a little larger. Dark mode follows the system setting (`prefers-color-scheme`), there is no toggle yet.
 
 ### Forms
 
