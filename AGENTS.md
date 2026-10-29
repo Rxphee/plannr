@@ -194,7 +194,7 @@ Pages are Server Components that load data with `graphQLFetch` (server only). Mu
 
 The root layout puts the sidebar (`app/AppSidebar.tsx`) next to every page. A page starts with a `PageHeader` (breadcrumbs, actions such as "New project") and fills the width below it; only forms like the settings get a maximum width. Views of a list (e.g. open and archived projects) are `ViewTabs` that link to search params, so a view can be bookmarked. The sections of a project are `ViewTabs` in `app/projects/[key]/layout.tsx`; epics and issues will become further tabs there. Empty lists show the shadcn `Empty` component with the action that fills them.
 
-The theme builds on the shadcn preset `b51EUgJ0a` (font Inter) with the style Vega and a violet palette in `globals.css`: deep violet as primary color in light mode, and in dark mode a violet-tinted black ("Dark Matter") with a brighter violet and a subtle glow (`--glow`) on primary buttons. Dark mode follows the system setting (`prefers-color-scheme`), there is no toggle yet. Red stays reserved for destructive actions, bugs and overdue dates.
+The theme builds on the shadcn preset `b51EUgJ0a` (font Inter) with the style Vega in `globals.css`: neutral gray surfaces and the accent color `#ff1f57`, in light mode a little darker (`#e0003f`) so that white text on buttons keeps a contrast of 5:1. The accent is used sparingly: primary buttons, the active tab, focus rings and the logo. Dark mode follows the system setting (`prefers-color-scheme`), there is no toggle yet.
 
 ### Forms
 
@@ -217,7 +217,7 @@ Fields validate themselves while typing: `required` (a value of only spaces coun
 Add a component with `npx shadcn add <name>` in `web/`, then:
 
 - Rename the file to PascalCase (`button.tsx` → `Button.tsx`) and fix the imports, including those inside the new component (`@src/components/ui/Button`).
-- Don't let shadcn overwrite an existing component. Only after switching the style, reinstall all components with `--overwrite` and repeat these steps; then add `shadow-(--glow)` to the default variant of `Button` again.
+- Don't let shadcn overwrite an existing component. Only after switching the style, reinstall all components with `--overwrite` and repeat these steps.
 - Hooks go to `web/src/hooks/` in camelCase (`use-mobile.ts` → `useIsMobile.ts`).
 - `shadcn init` and `shadcn add` may rewrite `package-lock.json`. Revert changes that no `package.json` change asked for and run `npm ci`; restart the web dev server afterwards, Turbopack does not recover from a replaced `node_modules`.
 - Replace `import * as React from "react"` with named imports (ESLint forbids the namespace import).

@@ -11,7 +11,7 @@ export function ProjectKeyIcon({ projectKey, size = "sm" }: ProjectKeyIconProps)
         <span
             aria-hidden="true"
             className={cn(
-                "bg-primary/10 text-primary flex shrink-0 items-center justify-center rounded-md font-semibold",
+                "bg-muted text-muted-foreground flex shrink-0 items-center justify-center rounded-md font-semibold",
                 size === "sm" ? "size-4 text-[0.625rem]" : "size-10 text-lg",
             )}
         >
