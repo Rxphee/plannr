@@ -12,12 +12,13 @@ interface ViewTab {
     isActive?: boolean;
 }
 
-// Underlined tabs that switch between the views or sections of a page
+// Underlined tabs that switch between the views or sections of a page.
+// The underline rests on the border below instead of overlapping it, so both lines never round to different pixels.
 export function ViewTabs({ tabs, className }: { tabs: ViewTab[]; className?: string }) {
     const pathname = usePathname();
 
     return (
-        <nav className={cn("-mb-px flex gap-5 overflow-x-auto", className)}>
+        <nav className={cn("flex gap-5 overflow-x-auto", className)}>
             {tabs.map((tab) => {
                 const isActive = tab.isActive ?? pathname === tab.href;
 
@@ -27,8 +28,8 @@ export function ViewTabs({ tabs, className }: { tabs: ViewTab[]; className?: str
                         href={tab.href}
                         aria-current={isActive ? "page" : undefined}
                         className={cn(
-                            "text-muted-foreground hover:text-foreground hover:border-foreground/25 flex shrink-0 items-center gap-1.5 border-b-2 border-transparent py-2.5 text-sm font-medium transition-colors",
-                            isActive && "border-primary hover:border-primary text-foreground",
+                            "text-muted-foreground hover:text-foreground hover:after:bg-foreground/25 relative flex shrink-0 items-center gap-1.5 pt-2.5 pb-3 text-sm font-medium transition-colors after:absolute after:inset-x-0 after:bottom-0 after:h-0.5 after:rounded-full after:transition-colors",
+                            isActive && "text-foreground after:bg-primary hover:after:bg-primary",
                         )}
                     >
                         {tab.label}
