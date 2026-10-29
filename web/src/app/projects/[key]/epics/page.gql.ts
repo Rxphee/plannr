@@ -7,7 +7,15 @@ export const epicsPageQuery = gql`
             key
             name
             canContribute
-            epics {
+        }
+    }
+`;
+
+export const epicCardsQuery = gql`
+    query EpicCards($projectId: ID!, $offset: Int!, $limit: Int!) {
+        epics(projectId: $projectId, offset: $offset, limit: $limit) {
+            totalCount
+            nodes {
                 id
                 name
                 description

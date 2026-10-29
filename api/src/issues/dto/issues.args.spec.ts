@@ -29,8 +29,6 @@ describe("IssuesArgs", () => {
     });
 
     it.each([
-        ["offset", { offset: -1 }],
-        ["limit", { limit: 0 }],
         ["limit", { limit: 101 }],
         ["filter", { filter: { statuses: ["blocked"] } }],
         ["filter", { filter: { types: ["story"] } }],

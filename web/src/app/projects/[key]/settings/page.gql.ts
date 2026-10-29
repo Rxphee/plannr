@@ -1,7 +1,7 @@
 import { gql } from "@src/util/gql";
 
 export const projectSettingsQuery = gql`
-    query ProjectSettings($key: String!) {
+    query ProjectSettings($key: String!, $memberOffset: Int!, $memberLimit: Int!) {
         project(key: $key) {
             id
             key
@@ -9,20 +9,46 @@ export const projectSettingsQuery = gql`
             description
             status
             canManage
-            members {
-                role
-                user {
-                    id
-                    firstName
-                    lastName
-                    email
+            members(offset: $memberOffset, limit: $memberLimit) {
+                totalCount
+                nodes {
+                    role
+                    user {
+                        id
+                        firstName
+                        lastName
+                        email
+                    }
                 }
             }
         }
-        users {
-            id
-            firstName
-            lastName
+    }
+`;
+
+export const projectSettingsUsersQuery = gql`
+    query ProjectSettingsUsers($offset: Int!, $limit: Int!) {
+        users(offset: $offset, limit: $limit) {
+            totalCount
+            nodes {
+                id
+                firstName
+                lastName
+            }
+        }
+    }
+`;
+
+export const projectMemberIdsQuery = gql`
+    query ProjectMemberIds($key: String!, $offset: Int!, $limit: Int!) {
+        project(key: $key) {
+            members(offset: $offset, limit: $limit) {
+                totalCount
+                nodes {
+                    user {
+                        id
+                    }
+                }
+            }
         }
     }
 `;

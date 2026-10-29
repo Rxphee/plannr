@@ -7,11 +7,6 @@ export const issuesPageQuery = gql`
             key
             name
             canContribute
-            epics {
-                id
-                name
-                isDefault
-            }
         }
     }
 `;

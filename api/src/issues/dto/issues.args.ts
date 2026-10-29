@@ -1,11 +1,10 @@
-import { ArgsType, Field, ID, InputType, Int } from "@nestjs/graphql";
+import { ArgsType, Field, ID, InputType } from "@nestjs/graphql";
+import { PaginationArgs } from "@src/common/pagination.args.js";
 import { trim } from "@src/common/trim.js";
 import { Transform, Type } from "class-transformer";
-import { IsEnum, IsInt, IsOptional, IsString, IsUUID, Max, Min, ValidateNested } from "class-validator";
+import { IsEnum, IsOptional, IsString, IsUUID, ValidateNested } from "class-validator";
 
 import { IssuePriority, IssueStatus, IssueType } from "../entities/issue.entity.js";
-
-const ISSUES_MAX_LIMIT = 100;
 
 // Each list matches any of its values, the lists together match all of them
 @InputType()
@@ -38,7 +37,7 @@ export class IssueFilter {
 }
 
 @ArgsType()
-export class IssuesArgs {
+export class IssuesArgs extends PaginationArgs {
     @IsUUID("4")
     @Field(() => ID)
     projectId: string;
@@ -48,15 +47,4 @@ export class IssuesArgs {
     @Type(() => IssueFilter)
     @Field(() => IssueFilter, { nullable: true })
     filter?: IssueFilter;
-
-    @IsInt()
-    @Min(0)
-    @Field(() => Int, { defaultValue: 0 })
-    offset: number;
-
-    @IsInt()
-    @Min(1)
-    @Max(ISSUES_MAX_LIMIT)
-    @Field(() => Int, { defaultValue: 50 })
-    limit: number;
 }

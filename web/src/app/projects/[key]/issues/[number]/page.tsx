@@ -7,6 +7,7 @@ import { graphQLFetch } from "@src/util/graphQLFetch";
 import { CalendarCheckIcon, CalendarIcon } from "lucide-react";
 import { notFound } from "next/navigation";
 
+import { fetchEpicOptions } from "../../epics/fetchEpicOptions";
 import { IssueStatusBadge } from "../IssueStatusBadge";
 import { IssueTypeIcon } from "../IssueTypeIcon";
 import { DeleteIssueDialog } from "./DeleteIssueDialog";
@@ -29,7 +30,7 @@ export default async function IssuePage({ params }: PageProps<"/projects/[key]/i
         notFound();
     }
 
-    const { project } = issue;
+    const project = { ...issue.project, epics: await fetchEpicOptions(issue.project.id) };
 
     return (
         <>

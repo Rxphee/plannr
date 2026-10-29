@@ -33,10 +33,6 @@ export const issuePageQuery = gql`
                 name
                 canContribute
                 canManage
-                epics {
-                    id
-                    name
-                }
             }
         }
     }

@@ -12,18 +12,23 @@ import {
     SidebarMenuItem,
     SidebarRail,
 } from "@src/components/ui/Sidebar";
+import { fetchAllPages } from "@src/util/fetchAllPages";
 import { graphQLFetch } from "@src/util/graphQLFetch";
 import { LayoutGridIcon } from "lucide-react";
 
 import { sidebarProjectsQuery } from "./AppSidebar.gql";
-import type { GQLSidebarProjectsQuery } from "./AppSidebar.gql.generated";
+import type { GQLSidebarProjectsQuery, GQLSidebarProjectsQueryVariables } from "./AppSidebar.gql.generated";
 import { ProjectNavigation } from "./ProjectNavigation";
 import { ProjectSwitcher } from "./ProjectSwitcher";
 
-export type SidebarProject = GQLSidebarProjectsQuery["projects"][number];
+export type SidebarProject = GQLSidebarProjectsQuery["projects"]["nodes"][number];
 
 export async function AppSidebar({ theme }: { theme: Theme }) {
-    const { projects } = await graphQLFetch<GQLSidebarProjectsQuery>(sidebarProjectsQuery);
+    // All of them, so that the sidebar finds the open project by its key
+    const projects = await fetchAllPages(async (pagination) => {
+        const data = await graphQLFetch<GQLSidebarProjectsQuery, GQLSidebarProjectsQueryVariables>(sidebarProjectsQuery, pagination);
+        return data.projects;
+    });
 
     return (
         <Sidebar variant="inset" collapsible="icon">

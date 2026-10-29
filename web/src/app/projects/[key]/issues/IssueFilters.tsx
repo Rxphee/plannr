@@ -45,7 +45,8 @@ export function IssueFilters({ path, params, epics }: IssueFiltersProps) {
     const reset = () => {
         clearTimeout(searchTimeout.current);
         setSearch("");
-        navigate(parseIssueListParams({}));
+        // Keeps the page size, it is no filter
+        navigate({ ...parseIssueListParams({}), pageSize: params.pageSize });
     };
 
     useEffect(() => () => clearTimeout(searchTimeout.current), []);
