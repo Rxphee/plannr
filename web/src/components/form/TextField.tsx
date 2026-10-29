@@ -17,13 +17,12 @@ interface TextFieldProps {
     onValueChange?: (value: string) => void;
     multiline?: boolean;
     rows?: number;
-    type?: "text" | "date";
     maxLength?: number;
     className?: string;
 }
 
 // A text input or, with multiline, a textarea for react-final-form, with label and error message
-export function TextField({ name, label, required, validate, parse, onValueChange, multiline, rows, type, maxLength, className }: TextFieldProps) {
+export function TextField({ name, label, required, validate, parse, onValueChange, multiline, rows, maxLength, className }: TextFieldProps) {
     const id = useId();
     const errorId = `${id}-error`;
 
@@ -60,7 +59,7 @@ export function TextField({ name, label, required, validate, parse, onValueChang
                             {label}
                             {required && <span aria-hidden="true">*</span>}
                         </Label>
-                        {multiline ? <Textarea {...controlProps} rows={rows} /> : <Input {...controlProps} type={type} />}
+                        {multiline ? <Textarea {...controlProps} rows={rows} /> : <Input {...controlProps} />}
                         {error && (
                             <p id={errorId} className="text-destructive text-sm">
                                 {error}

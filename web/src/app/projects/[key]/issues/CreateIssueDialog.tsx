@@ -1,5 +1,6 @@
 "use client";
 
+import { DateField } from "@src/components/form/DateField";
 import { FinalForm } from "@src/components/form/FinalForm";
 import { FormSubmitError } from "@src/components/form/FormSubmitError";
 import { RichTextField } from "@src/components/form/RichTextField";
@@ -13,7 +14,8 @@ import { PlusIcon } from "lucide-react";
 import { useState } from "react";
 
 import { createIssue } from "./actions";
-import { ISSUE_TITLE_MAX_LENGTH, issuePriorityOptions, issueTypeOptions } from "./issueOptions";
+import { ISSUE_TITLE_MAX_LENGTH } from "./issueOptions";
+import { issuePrioritySelectOptions, issueTypeSelectOptions, toEpicSelectOptions } from "./issueSelectOptions";
 
 interface CreateIssueDialogProps {
     project: { id: string; key: string; epics: { id: string; name: string }[] };
@@ -26,7 +28,7 @@ interface CreateIssueFormValues {
     type: GQLIssueType;
     priority: GQLIssuePriority;
     epicId: string;
-    dueDate?: string;
+    dueDate?: string | null;
     description?: string;
 }
 
@@ -67,15 +69,10 @@ function CreateIssueForm({ project, epicId, onCreated }: CreateIssueDialogProps 
                     </DialogHeader>
                     <TextField name="title" label="Title" required maxLength={ISSUE_TITLE_MAX_LENGTH} />
                     <div className="grid gap-4 sm:grid-cols-2">
-                        <SelectField name="type" label="Type" required options={issueTypeOptions} />
-                        <SelectField name="priority" label="Priority" required options={issuePriorityOptions} />
-                        <SelectField
-                            name="epicId"
-                            label="Epic"
-                            required
-                            options={project.epics.map((epic) => ({ value: epic.id, label: epic.name }))}
-                        />
-                        <TextField name="dueDate" label="Due date" type="date" />
+                        <SelectField name="type" label="Type" required options={issueTypeSelectOptions} />
+                        <SelectField name="priority" label="Priority" required options={issuePrioritySelectOptions} />
+                        <SelectField name="epicId" label="Epic" required options={toEpicSelectOptions(project.epics)} />
+                        <DateField name="dueDate" label="Due date" placeholder="No due date" />
                     </div>
                     <RichTextField name="description" label="Description" placeholder="What needs to be done? Checklists replace sub-tasks." />
                     <FormSubmitError />

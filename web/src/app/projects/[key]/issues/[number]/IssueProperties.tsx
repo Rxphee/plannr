@@ -1,15 +1,16 @@
 "use client";
 
-import { Input } from "@src/components/ui/Input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@src/components/ui/Select";
+import { DatePicker } from "@src/components/DatePicker";
+import { OptionSelect } from "@src/components/OptionSelect";
 import type { GQLIssuePriority, GQLIssueStatus, GQLIssueType, GQLUpdateIssueInput } from "@src/graphql.generated";
 import Link from "next/link";
 import { type ReactNode, useState, useTransition } from "react";
 
 import { updateIssue } from "../actions";
 import { formatDueDate } from "../dueDate";
-import { issuePriorityLabels, issuePriorityOptions, issueStatusOptions, issueTypeLabels, issueTypeOptions } from "../issueOptions";
+import { issuePriorityLabels, issueTypeLabels } from "../issueOptions";
 import { IssuePriorityIcon } from "../IssuePriorityIcon";
+import { issuePrioritySelectOptions, issueStatusSelectOptions, issueTypeSelectOptions, toEpicSelectOptions } from "../issueSelectOptions";
 import { IssueStatusBadge } from "../IssueStatusBadge";
 import { IssueTypeIcon } from "../IssueTypeIcon";
 
@@ -37,12 +38,6 @@ export function IssueProperties({ issue, project }: IssuePropertiesProps) {
         });
     };
 
-    const epicLink = (
-        <Link href={`/projects/${project.key}/epics/${issue.epic.id}`} className="hover:text-foreground truncate underline-offset-4 hover:underline">
-            {issue.epic.name}
-        </Link>
-    );
-
     if (!project.canContribute) {
         return (
             <dl className="grid gap-3 text-sm">
@@ -61,7 +56,14 @@ export function IssueProperties({ issue, project }: IssuePropertiesProps) {
                         {issueTypeLabels[issue.type]}
                     </span>
                 </Property>
-                <Property label="Epic">{epicLink}</Property>
+                <Property label="Epic">
+                    <Link
+                        href={`/projects/${project.key}/epics/${issue.epic.id}`}
+                        className="hover:text-foreground truncate underline-offset-4 hover:underline"
+                    >
+                        {issue.epic.name}
+                    </Link>
+                </Property>
                 <Property label="Due date">{issue.dueDate ? formatDueDate(issue.dueDate) : "None"}</Property>
             </dl>
         );
@@ -69,58 +71,55 @@ export function IssueProperties({ issue, project }: IssuePropertiesProps) {
 
     return (
         <div className="grid gap-3">
-            <dl className="grid gap-3 text-sm">
+            <dl className="grid gap-2 text-sm">
                 <Property label="Status">
-                    <PropertySelect
-                        label="Status"
+                    <OptionSelect
+                        size="sm"
+                        aria-label="Status"
+                        options={issueStatusSelectOptions}
                         value={issue.status}
-                        options={issueStatusOptions}
                         disabled={pending}
                         onChange={(status) => save({ status })}
                     />
                 </Property>
                 <Property label="Priority">
-                    <PropertySelect
-                        label="Priority"
+                    <OptionSelect
+                        size="sm"
+                        aria-label="Priority"
+                        options={issuePrioritySelectOptions}
                         value={issue.priority}
-                        options={issuePriorityOptions}
                         disabled={pending}
                         onChange={(priority) => save({ priority })}
                     />
                 </Property>
                 <Property label="Type">
-                    <PropertySelect
-                        label="Type"
+                    <OptionSelect
+                        size="sm"
+                        aria-label="Type"
+                        options={issueTypeSelectOptions}
                         value={issue.type}
-                        options={issueTypeOptions}
                         disabled={pending}
                         onChange={(type) => save({ type })}
                     />
                 </Property>
                 <Property label="Epic">
-                    <PropertySelect
-                        label="Epic"
+                    <OptionSelect
+                        size="sm"
+                        aria-label="Epic"
+                        options={toEpicSelectOptions(project.epics)}
                         value={issue.epic.id}
-                        options={project.epics.map((epic) => ({ value: epic.id, label: epic.name }))}
                         disabled={pending}
                         onChange={(epicId) => save({ epicId })}
                     />
                 </Property>
                 <Property label="Due date">
-                    <Input
-                        type="date"
-                        // Remounts when the saved date changes, so the field shows what was saved
-                        key={issue.dueDate}
-                        defaultValue={issue.dueDate ?? ""}
-                        disabled={pending}
+                    <DatePicker
+                        size="sm"
                         aria-label="Due date"
-                        className="h-8"
-                        onBlur={(event) => {
-                            const dueDate = event.target.value || null;
-                            if (dueDate !== issue.dueDate) {
-                                save({ dueDate });
-                            }
-                        }}
+                        value={issue.dueDate}
+                        placeholder="No due date"
+                        disabled={pending}
+                        onChange={(dueDate) => save({ dueDate })}
                     />
                 </Property>
             </dl>
@@ -135,43 +134,9 @@ export function IssueProperties({ issue, project }: IssuePropertiesProps) {
 
 function Property({ label, children }: { label: string; children: ReactNode }) {
     return (
-        <div className="grid grid-cols-[6rem_1fr] items-center gap-2">
+        <div className="grid grid-cols-[6rem_minmax(0,1fr)] items-center gap-2">
             <dt className="text-muted-foreground">{label}</dt>
             <dd className="flex min-w-0">{children}</dd>
         </div>
-    );
-}
-
-interface PropertySelectProps<Value extends string> {
-    label: string;
-    value: Value;
-    options: { value: Value; label: string }[];
-    disabled: boolean;
-    onChange: (value: Value) => void;
-}
-
-function PropertySelect<Value extends string>({ label, value, options, disabled, onChange }: PropertySelectProps<Value>) {
-    return (
-        <Select
-            items={options}
-            value={value}
-            disabled={disabled}
-            onValueChange={(newValue) => {
-                if (newValue && newValue !== value) {
-                    onChange(newValue);
-                }
-            }}
-        >
-            <SelectTrigger size="sm" className="w-full" aria-label={label}>
-                <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-                {options.map((option) => (
-                    <SelectItem key={option.value} value={option.value}>
-                        {option.label}
-                    </SelectItem>
-                ))}
-            </SelectContent>
-        </Select>
     );
 }
