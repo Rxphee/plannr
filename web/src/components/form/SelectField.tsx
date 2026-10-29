@@ -1,14 +1,14 @@
 "use client";
 
+import { OptionSelect, type SelectOption } from "@src/components/OptionSelect";
 import { Label } from "@src/components/ui/Label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@src/components/ui/Select";
 import { useId } from "react";
 import { Field } from "react-final-form";
 
 interface SelectFieldProps {
     name: string;
     label: string;
-    options: { value: string; label: string }[];
+    options: SelectOption[];
     required?: boolean;
     placeholder?: string;
 }
@@ -30,23 +30,15 @@ export function SelectField({ name, label, options, required, placeholder }: Sel
                             {label}
                             {required && <span aria-hidden="true">*</span>}
                         </Label>
-                        <Select items={options} value={input.value || null} onValueChange={(value) => input.onChange(value ?? undefined)}>
-                            <SelectTrigger
-                                id={id}
-                                className="w-full"
-                                aria-invalid={error ? true : undefined}
-                                aria-describedby={error ? errorId : undefined}
-                            >
-                                <SelectValue placeholder={placeholder} />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {options.map((option) => (
-                                    <SelectItem key={option.value} value={option.value}>
-                                        {option.label}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
+                        <OptionSelect
+                            id={id}
+                            options={options}
+                            value={input.value || undefined}
+                            onChange={input.onChange}
+                            placeholder={placeholder}
+                            aria-invalid={error ? true : undefined}
+                            aria-describedby={error ? errorId : undefined}
+                        />
                         {error && (
                             <p id={errorId} className="text-destructive text-sm">
                                 {error}

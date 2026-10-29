@@ -1,11 +1,11 @@
 "use client";
 
-import type { SubmissionErrors } from "final-form";
+import type { FormApi, SubmissionErrors } from "final-form";
 import type { ReactNode } from "react";
 import { Form, type FormRenderProps } from "react-final-form";
 
 interface FinalFormProps<FormValues> {
-    onSubmit: (values: FormValues) => Promise<SubmissionErrors | void> | SubmissionErrors | void;
+    onSubmit: (values: FormValues, form: FormApi<FormValues>) => Promise<SubmissionErrors | void> | SubmissionErrors | void;
     initialValues?: Partial<FormValues>;
     className?: string;
     children: (formRenderProps: FormRenderProps<FormValues>) => ReactNode;

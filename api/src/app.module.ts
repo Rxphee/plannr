@@ -7,7 +7,9 @@ import { AuthModule } from "./auth/auth.module.js";
 import type { Config } from "./config/config.js";
 import { DbModule } from "./db/db.module.js";
 import { FixturesModule } from "./db/fixtures/fixtures.module.js";
+import { EpicsModule } from "./epics/epics.module.js";
 import { HealthcheckModule } from "./healthcheck/healthcheck.module.js";
+import { IssuesModule } from "./issues/issues.module.js";
 import { ProjectsModule } from "./projects/projects.module.js";
 
 @Module({})
@@ -37,6 +39,8 @@ export class AppModule {
                 }),
                 HealthcheckModule,
                 ProjectsModule,
+                EpicsModule,
+                IssuesModule,
                 FixturesModule,
             ],
         };

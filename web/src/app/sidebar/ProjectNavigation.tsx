@@ -2,12 +2,12 @@
 
 import { SidebarNavLink } from "@src/components/layout/SidebarNavLink";
 import { SidebarGroup, SidebarGroupLabel, SidebarMenu, SidebarMenuItem } from "@src/components/ui/Sidebar";
-import { LayoutDashboardIcon, SettingsIcon } from "lucide-react";
+import { LayersIcon, LayoutDashboardIcon, ListTodoIcon, SettingsIcon } from "lucide-react";
 
 import type { SidebarProject } from "./AppSidebar";
 import { useCurrentProject } from "./useCurrentProject";
 
-// The sections of the open project; epics and issues will join them
+// The sections of the open project
 export function ProjectNavigation({ projects }: { projects: SidebarProject[] }) {
     const currentProject = useCurrentProject(projects);
     if (!currentProject) {
@@ -24,6 +24,18 @@ export function ProjectNavigation({ projects }: { projects: SidebarProject[] }) 
                     <SidebarNavLink href={projectPath} tooltip="Overview" exact className="h-9">
                         <LayoutDashboardIcon />
                         <span>Overview</span>
+                    </SidebarNavLink>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                    <SidebarNavLink href={`${projectPath}/epics`} tooltip="Epics" className="h-9">
+                        <LayersIcon />
+                        <span>Epics</span>
+                    </SidebarNavLink>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                    <SidebarNavLink href={`${projectPath}/issues`} tooltip="Issues" className="h-9">
+                        <ListTodoIcon />
+                        <span>Issues</span>
                     </SidebarNavLink>
                 </SidebarMenuItem>
                 {currentProject.canManage && (
