@@ -19,7 +19,7 @@ export default async function ProjectPage({ params }: PageProps<"/projects/[key]
 
     const settingsLink = (label: string) =>
         project.canManage && (
-            <CardAction>
+            <CardAction className="row-span-1">
                 <Button variant="outline" size="sm" nativeButton={false} render={<Link href={`/projects/${project.key}/settings`} />}>
                     {label}
                 </Button>
@@ -27,9 +27,9 @@ export default async function ProjectPage({ params }: PageProps<"/projects/[key]
         );
 
     return (
-        <PageContent className="grid items-start gap-4 lg:grid-cols-[1fr_20rem]">
+        <PageContent className="grid gap-4 lg:grid-cols-[1fr_20rem]">
             <Card>
-                <CardHeader>
+                <CardHeader className="items-center">
                     <CardTitle>About</CardTitle>
                     {settingsLink("Edit")}
                 </CardHeader>
@@ -44,7 +44,7 @@ export default async function ProjectPage({ params }: PageProps<"/projects/[key]
                 </CardContent>
             </Card>
             <Card>
-                <CardHeader>
+                <CardHeader className="items-center">
                     <CardTitle>Members</CardTitle>
                     {settingsLink("Manage")}
                 </CardHeader>
