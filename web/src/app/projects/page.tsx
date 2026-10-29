@@ -34,7 +34,7 @@ export default async function ProjectsPage({ searchParams }: PageProps<"/project
     const projectsIn = (view: View) => projects.filter((project) => (views[view].statuses as GQLProjectStatus[]).includes(project.status));
     const visibleProjects = projectsIn(currentView);
     const newProjectButton = (
-        <Button size="sm">
+        <Button>
             <PlusIcon />
             New project
         </Button>
@@ -42,10 +42,11 @@ export default async function ProjectsPage({ searchParams }: PageProps<"/project
 
     return (
         <>
-            <PageHeader breadcrumbs={[{ label: "Projects" }]} actions={<CreateProjectDialog trigger={newProjectButton} />} />
+            <PageHeader breadcrumbs={[{ label: "Projects" }]} />
             <PageIntro
                 title="Projects"
                 description="Each project holds the epics and issues of one goal. Open one to see what is going on."
+                actions={<CreateProjectDialog trigger={newProjectButton} />}
                 tabs={
                     <ViewTabs
                         tabs={Object.entries(views).map(([view, { label }]) => ({
