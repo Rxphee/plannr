@@ -1,8 +1,7 @@
 import type { GQLIssueFilter, GQLIssuePriority, GQLIssueStatus, GQLIssueType } from "@src/graphql.generated";
+import { type Pagination, parsePagination, writePagination } from "@src/util/pagination";
 
 import { issuePriorityOptions, issueStatusOptions, issueTypeOptions } from "./issueOptions";
-
-export const ISSUES_PAGE_SIZE = 50;
 
 // Without a status in the URL the list shows what still needs to be done
 const DEFAULT_STATUSES: GQLIssueStatus[] = ["todo", "inProgress"];
@@ -11,13 +10,12 @@ const ALL_STATUSES = "all";
 
 // The filters of the issue list live in the search params, so a filtered list can be bookmarked and shared.
 // Each list matches any of its values; an empty list does not filter.
-export interface IssueListParams {
+export interface IssueListParams extends Pagination {
     statuses: GQLIssueStatus[];
     types: GQLIssueType[];
     priorities: GQLIssuePriority[];
     epics: string[];
     search?: string;
-    page: number;
 }
 
 type SearchParams = Record<string, string | string[] | undefined>;
@@ -52,8 +50,6 @@ function readStatuses(searchParams: SearchParams): GQLIssueStatus[] {
 }
 
 export function parseIssueListParams(searchParams: SearchParams): IssueListParams {
-    const page = Number(readParam(searchParams, "page"));
-
     return {
         statuses: readStatuses(searchParams),
         types: readList(
@@ -68,7 +64,7 @@ export function parseIssueListParams(searchParams: SearchParams): IssueListParam
         ),
         epics: (readParam(searchParams, "epic")?.split(",") ?? []).filter((epic) => UUID_PATTERN.test(epic)),
         search: readParam(searchParams, "search")?.trim() || undefined,
-        page: Number.isInteger(page) && page > 1 ? page : 1,
+        ...parsePagination(searchParams),
     };
 }
 
@@ -76,7 +72,7 @@ function hasDefaultStatuses(statuses: GQLIssueStatus[]): boolean {
     return statuses.length === DEFAULT_STATUSES.length && DEFAULT_STATUSES.every((status) => statuses.includes(status));
 }
 
-// Whether anything differs from the plain list of open issues
+// Whether anything differs from the plain list of open issues; the page size is no filter
 export function isIssueListFiltered({ statuses, types, priorities, epics, search, page }: IssueListParams): boolean {
     return !hasDefaultStatuses(statuses) || types.length > 0 || priorities.length > 0 || epics.length > 0 || Boolean(search) || page > 1;
 }
@@ -94,7 +90,7 @@ export function toIssueFilter({ statuses, types, priorities, epics, search }: Is
 }
 
 // Leaves out the defaults, so the plain list keeps its plain URL
-export function issueListHref(path: string, { statuses, types, priorities, epics, search, page }: IssueListParams): string {
+export function issueListHref(path: string, { statuses, types, priorities, epics, search, ...pagination }: IssueListParams): string {
     const searchParams = new URLSearchParams();
     if (!hasDefaultStatuses(statuses)) {
         searchParams.set("status", statuses.length > 0 ? statuses.join(",") : ALL_STATUSES);
@@ -111,9 +107,7 @@ export function issueListHref(path: string, { statuses, types, priorities, epics
     if (search) {
         searchParams.set("search", search);
     }
-    if (page > 1) {
-        searchParams.set("page", String(page));
-    }
+    writePagination(searchParams, pagination);
 
     // Commas separate the values of a list, they need no escaping
     const query = searchParams.toString().replaceAll("%2C", ",");

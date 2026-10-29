@@ -174,10 +174,38 @@ type Mutation {
   updateProject(id: ID!, input: UpdateProjectInput!): Project!
 }
 
+type PaginatedEpics {
+  nodes: [Epic!]!
+
+  """All entries that match, not only the ones on this page"""
+  totalCount: Int!
+}
+
 type PaginatedIssues {
   nodes: [Issue!]!
 
-  """All issues that match the filter, not only the ones on this page"""
+  """All entries that match, not only the ones on this page"""
+  totalCount: Int!
+}
+
+type PaginatedProjectMembers {
+  nodes: [ProjectMember!]!
+
+  """All entries that match, not only the ones on this page"""
+  totalCount: Int!
+}
+
+type PaginatedProjects {
+  nodes: [Project!]!
+
+  """All entries that match, not only the ones on this page"""
+  totalCount: Int!
+}
+
+type PaginatedUsers {
+  nodes: [User!]!
+
+  """All entries that match, not only the ones on this page"""
   totalCount: Int!
 }
 
@@ -195,14 +223,11 @@ type Project {
   canManage: Boolean!
   createdAt: DateTime!
   description: String!
-
-  """General first, then by name"""
-  epics: [Epic!]!
   id: ID!
   key: String!
 
   """Sorted by name"""
-  members: [ProjectMember!]!
+  members(limit: Int! = 25, offset: Int! = 0): PaginatedProjectMembers!
   name: String!
   status: ProjectStatus!
   updatedAt: DateTime!
@@ -238,22 +263,31 @@ type Query {
   """The epic, if the current user can see its project"""
   epic(id: ID!): Epic
 
+  """Epics of a project, General first, then by name"""
+  epics(limit: Int! = 25, offset: Int! = 0, projectId: ID!): PaginatedEpics!
+
   """
   The issue with the key, e.g. KEY-42, if the current user can see its project
   """
   issue(key: String!): Issue
 
   """Issues of a project, newest first"""
-  issues(filter: IssueFilter, limit: Int! = 50, offset: Int! = 0, projectId: ID!): PaginatedIssues!
+  issues(filter: IssueFilter, limit: Int! = 25, offset: Int! = 0, projectId: ID!): PaginatedIssues!
 
   """The project with the key, if the current user can see it"""
   project(key: String!): Project
 
   """Projects visible to the current user, sorted by name"""
-  projects: [Project!]!
+  projects(
+    limit: Int! = 25
+    offset: Int! = 0
+
+    """Projects with any of the statuses, all projects without"""
+    statuses: [ProjectStatus!]
+  ): PaginatedProjects!
 
   """All users who have logged in at least once, sorted by name"""
-  users: [User!]!
+  users(limit: Int! = 25, offset: Int! = 0): PaginatedUsers!
 }
 
 input UpdateEpicInput {

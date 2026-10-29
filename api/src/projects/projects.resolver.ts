@@ -1,21 +1,24 @@
 import { ParseUUIDPipe } from "@nestjs/common";
 import { Args, ID, Mutation, Parent, Query, ResolveField, Resolver } from "@nestjs/graphql";
 import { CurrentUser } from "@src/auth/current-user.decorator.js";
+import { PaginationArgs } from "@src/common/pagination.args.js";
 import type { User } from "@src/users/user.entity.js";
 
 import { CreateProjectInput } from "./dto/create-project.input.js";
+import { PaginatedProjectMembers } from "./dto/paginated-project-members.js";
+import { PaginatedProjects } from "./dto/paginated-projects.js";
+import { ProjectsArgs } from "./dto/projects.args.js";
 import { UpdateProjectInput } from "./dto/update-project.input.js";
 import { Project, ProjectStatus } from "./entities/project.entity.js";
-import { ProjectMember } from "./entities/project-member.entity.js";
 import { ProjectsService } from "./projects.service.js";
 
 @Resolver(() => Project)
 export class ProjectsResolver {
     constructor(private readonly projectsService: ProjectsService) {}
 
-    @Query(() => [Project], { description: "Projects visible to the current user, sorted by name" })
-    async projects(@CurrentUser() user: User): Promise<Project[]> {
-        return this.projectsService.findAllVisibleTo(user);
+    @Query(() => PaginatedProjects, { description: "Projects visible to the current user, sorted by name" })
+    async projects(@Args() args: ProjectsArgs, @CurrentUser() user: User): Promise<PaginatedProjects> {
+        return this.projectsService.findAllVisibleTo(args, user);
     }
 
     @Query(() => Project, { nullable: true, description: "The project with the key, if the current user can see it" })
@@ -55,9 +58,9 @@ export class ProjectsResolver {
         return true;
     }
 
-    @ResolveField(() => [ProjectMember], { description: "Sorted by name" })
-    async members(@Parent() project: Project): Promise<ProjectMember[]> {
-        return this.projectsService.findMembers(project);
+    @ResolveField(() => PaginatedProjectMembers, { description: "Sorted by name" })
+    async members(@Parent() project: Project, @Args() args: PaginationArgs): Promise<PaginatedProjectMembers> {
+        return this.projectsService.findMembers(project, args);
     }
 
     @ResolveField(() => Boolean, { description: "Whether the current user can change the settings, status and members of the project" })

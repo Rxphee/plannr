@@ -6,6 +6,8 @@ import { ProjectsService } from "@src/projects/projects.service.js";
 import type { User } from "@src/users/user.entity.js";
 
 import type { CreateEpicInput } from "./dto/create-epic.input.js";
+import type { EpicsArgs } from "./dto/epics.args.js";
+import type { PaginatedEpics } from "./dto/paginated-epics.js";
 import type { UpdateEpicInput } from "./dto/update-epic.input.js";
 import { Epic } from "./entities/epic.entity.js";
 
@@ -16,9 +18,15 @@ export class EpicsService {
         private readonly projectsService: ProjectsService,
     ) {}
 
-    // General first, then by name
-    async findAll(project: Project): Promise<Epic[]> {
-        return this.entityManager.find(Epic, { project }, { orderBy: { isDefault: "desc", name: "asc" } });
+    // General first, then by name and ID, so that two epics with the same name keep their order across pages
+    async findAll({ projectId, offset, limit }: EpicsArgs, user: User): Promise<PaginatedEpics> {
+        const project = await this.projectsService.findOneVisibleById(projectId, user);
+        const [nodes, totalCount] = await this.entityManager.findAndCount(
+            Epic,
+            { project },
+            { orderBy: { isDefault: "desc", name: "asc", id: "asc" }, offset, limit },
+        );
+        return { nodes, totalCount };
     }
 
     async findOneVisibleTo(id: string, user: User): Promise<Epic | null> {

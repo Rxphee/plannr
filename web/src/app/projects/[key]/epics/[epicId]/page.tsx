@@ -10,6 +10,7 @@ import { CreateIssueDialog } from "../../issues/CreateIssueDialog";
 import { parseIssueListParams } from "../../issues/issueListParams";
 import { IssueListView } from "../../issues/IssueListView";
 import { EpicProgress } from "../EpicProgress";
+import { fetchEpicOptions } from "../fetchEpicOptions";
 import { DeleteEpicDialog } from "./DeleteEpicDialog";
 import { EditEpicDialog } from "./EditEpicDialog";
 import { epicPageQuery } from "./page.gql";
@@ -28,7 +29,7 @@ export default async function EpicPage({ params, searchParams }: PageProps<"/pro
         notFound();
     }
 
-    const { project } = epic;
+    const project = { ...epic.project, epics: await fetchEpicOptions(epic.project.id) };
     const path = `/projects/${project.key}/epics/${epic.id}`;
     const createAction = project.canContribute && <CreateIssueDialog project={project} epicId={epic.id} />;
 

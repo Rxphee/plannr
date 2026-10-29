@@ -1,6 +1,8 @@
 import { EntityManager } from "@mikro-orm/postgresql";
 import { Injectable } from "@nestjs/common";
+import type { PaginationArgs } from "@src/common/pagination.args.js";
 
+import type { PaginatedUsers } from "./dto/paginated-users.js";
 import { User } from "./user.entity.js";
 
 const DEVELOPMENT_USER_SUBJECT = "development-user";
@@ -9,8 +11,14 @@ const DEVELOPMENT_USER_SUBJECT = "development-user";
 export class UsersService {
     constructor(private readonly entityManager: EntityManager) {}
 
-    async findAll(): Promise<User[]> {
-        return this.entityManager.find(User, {}, { orderBy: { firstName: "asc", lastName: "asc" } });
+    // Sorted by name, then by ID, so that two users with the same name keep their order across pages
+    async findAll({ offset, limit }: PaginationArgs): Promise<PaginatedUsers> {
+        const [nodes, totalCount] = await this.entityManager.findAndCount(
+            User,
+            {},
+            { orderBy: { firstName: "asc", lastName: "asc", id: "asc" }, offset, limit },
+        );
+        return { nodes, totalCount };
     }
 
     // Stands in for the logged-in user until the OIDC login exists

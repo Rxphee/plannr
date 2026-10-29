@@ -4,6 +4,7 @@ import { PageIntro } from "@src/components/layout/PageIntro";
 import { graphQLFetch } from "@src/util/graphQLFetch";
 import { notFound } from "next/navigation";
 
+import { fetchEpicOptions } from "../epics/fetchEpicOptions";
 import { CreateIssueDialog } from "./CreateIssueDialog";
 import { parseIssueListParams } from "./issueListParams";
 import { IssueListView } from "./IssueListView";
@@ -12,10 +13,11 @@ import type { GQLIssuesPageQuery, GQLIssuesPageQueryVariables } from "./page.gql
 
 export default async function IssuesPage({ params, searchParams }: PageProps<"/projects/[key]/issues">) {
     const { key } = await params;
-    const { project } = await graphQLFetch<GQLIssuesPageQuery, GQLIssuesPageQueryVariables>(issuesPageQuery, { key });
-    if (!project) {
+    const data = await graphQLFetch<GQLIssuesPageQuery, GQLIssuesPageQueryVariables>(issuesPageQuery, { key });
+    if (!data.project) {
         notFound();
     }
+    const project = { ...data.project, epics: await fetchEpicOptions(data.project.id) };
 
     const defaultEpic = project.epics.find((epic) => epic.isDefault);
     const createAction = project.canContribute && defaultEpic && <CreateIssueDialog project={project} epicId={defaultEpic.id} />;

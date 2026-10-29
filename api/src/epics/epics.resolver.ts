@@ -5,6 +5,8 @@ import { Project } from "@src/projects/entities/project.entity.js";
 import type { User } from "@src/users/user.entity.js";
 
 import { CreateEpicInput } from "./dto/create-epic.input.js";
+import { EpicsArgs } from "./dto/epics.args.js";
+import { PaginatedEpics } from "./dto/paginated-epics.js";
 import { UpdateEpicInput } from "./dto/update-epic.input.js";
 import { Epic } from "./entities/epic.entity.js";
 import { EpicsService } from "./epics.service.js";
@@ -12,6 +14,11 @@ import { EpicsService } from "./epics.service.js";
 @Resolver(() => Epic)
 export class EpicsResolver {
     constructor(private readonly epicsService: EpicsService) {}
+
+    @Query(() => PaginatedEpics, { description: "Epics of a project, General first, then by name" })
+    async epics(@Args() args: EpicsArgs, @CurrentUser() user: User): Promise<PaginatedEpics> {
+        return this.epicsService.findAll(args, user);
+    }
 
     @Query(() => Epic, { nullable: true, description: "The epic, if the current user can see its project" })
     async epic(@Args("id", { type: () => ID }, new ParseUUIDPipe({ version: "4" })) id: string, @CurrentUser() user: User): Promise<Epic | null> {

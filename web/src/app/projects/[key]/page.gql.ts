@@ -9,12 +9,22 @@ export const projectQuery = gql`
             status
             canManage
             createdAt
-            members {
-                role
-                user {
-                    id
-                    firstName
-                    lastName
+        }
+    }
+`;
+
+export const projectMembersQuery = gql`
+    query ProjectMembers($key: String!, $offset: Int!, $limit: Int!) {
+        project(key: $key) {
+            members(offset: $offset, limit: $limit) {
+                totalCount
+                nodes {
+                    role
+                    user {
+                        id
+                        firstName
+                        lastName
+                    }
                 }
             }
         }

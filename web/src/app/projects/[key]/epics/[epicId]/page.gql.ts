@@ -15,10 +15,6 @@ export const epicPageQuery = gql`
                 name
                 canContribute
                 canManage
-                epics {
-                    id
-                    name
-                }
             }
         }
     }

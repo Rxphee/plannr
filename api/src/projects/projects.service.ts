@@ -1,11 +1,15 @@
-import { EntityManager, LockMode, UniqueConstraintViolationException } from "@mikro-orm/postgresql";
+import { EntityManager, type FilterQuery, LockMode, UniqueConstraintViolationException } from "@mikro-orm/postgresql";
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
+import type { PaginationArgs } from "@src/common/pagination.args.js";
 import { Epic } from "@src/epics/entities/epic.entity.js";
 import { DEFAULT_EPIC_NAME } from "@src/epics/epic-constraints.js";
 import { User } from "@src/users/user.entity.js";
 
 import type { CreateProjectInput } from "./dto/create-project.input.js";
+import type { PaginatedProjectMembers } from "./dto/paginated-project-members.js";
+import type { PaginatedProjects } from "./dto/paginated-projects.js";
 import type { ProjectMemberInput } from "./dto/project-member.input.js";
+import type { ProjectsArgs } from "./dto/projects.args.js";
 import type { UpdateProjectInput } from "./dto/update-project.input.js";
 import { Project, ProjectStatus } from "./entities/project.entity.js";
 import { ProjectMember, ProjectMemberRole } from "./entities/project-member.entity.js";
@@ -14,8 +18,18 @@ import { ProjectMember, ProjectMemberRole } from "./entities/project-member.enti
 export class ProjectsService {
     constructor(private readonly entityManager: EntityManager) {}
 
-    async findAllVisibleTo(user: User): Promise<Project[]> {
-        return this.entityManager.find(Project, user.isAdmin ? {} : { members: { user } }, { orderBy: { name: "asc" } });
+    // Sorted by name, then by ID, so that two projects with the same name keep their order across pages
+    async findAllVisibleTo({ statuses, offset, limit }: ProjectsArgs, user: User): Promise<PaginatedProjects> {
+        const where: FilterQuery<Project> = user.isAdmin ? {} : { members: { user } };
+        if (statuses?.length) {
+            where.status = { $in: statuses };
+        }
+        const [nodes, totalCount] = await this.entityManager.findAndCount(Project, where, {
+            orderBy: { name: "asc", id: "asc" },
+            offset,
+            limit,
+        });
+        return { nodes, totalCount };
     }
 
     async findOneVisibleTo(key: string, user: User): Promise<Project | null> {
@@ -30,8 +44,14 @@ export class ProjectsService {
         return project;
     }
 
-    async findMembers(project: Project): Promise<ProjectMember[]> {
-        return this.entityManager.find(ProjectMember, { project }, { populate: ["user"], orderBy: { user: { firstName: "asc", lastName: "asc" } } });
+    // Sorted by name, then by ID, so that two members with the same name keep their order across pages
+    async findMembers(project: Project, { offset, limit }: PaginationArgs): Promise<PaginatedProjectMembers> {
+        const [nodes, totalCount] = await this.entityManager.findAndCount(
+            ProjectMember,
+            { project },
+            { populate: ["user"], orderBy: { user: { firstName: "asc", lastName: "asc", id: "asc" } }, offset, limit },
+        );
+        return { nodes, totalCount };
     }
 
     // Settings, status, deletion and members are up to the owners of a project and the admins
