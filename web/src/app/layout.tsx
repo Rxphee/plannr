@@ -8,7 +8,7 @@ import { Inter } from "next/font/google";
 import { cookies } from "next/headers";
 import type { PropsWithChildren } from "react";
 
-import { AppSidebar } from "./AppSidebar";
+import { AppSidebar } from "./sidebar/AppSidebar";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 

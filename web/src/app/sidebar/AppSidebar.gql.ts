@@ -7,6 +7,7 @@ export const sidebarProjectsQuery = gql`
             key
             name
             status
+            canManage
         }
     }
 `;
