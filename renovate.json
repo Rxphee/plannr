@@ -2,6 +2,9 @@
     "$schema": "https://docs.renovatebot.com/renovate-schema.json",
     "extends": ["config:recommended"],
     "timezone": "Europe/Vienna",
+    "constraints": {
+        "npm": "^11"
+    },
     "prHourlyLimit": 0,
     "lockFileMaintenance": {
         "enabled": true,
