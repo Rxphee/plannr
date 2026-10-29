@@ -18,7 +18,8 @@ export function RichTextField({ name, label, placeholder }: RichTextFieldProps) 
     const errorId = `${id}-error`;
 
     return (
-        <Field<string | undefined> name={name}>
+        // Keeps an emptied editor as "" instead of undefined, so it still equals an empty initial value
+        <Field<string | undefined> name={name} parse={(value) => value}>
             {({ input, meta }) => {
                 const error: string | undefined = meta.dirtySinceLastSubmit ? undefined : meta.submitError;
 

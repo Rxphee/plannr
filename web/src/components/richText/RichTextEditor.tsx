@@ -34,8 +34,8 @@ interface RichTextEditorProps {
 }
 
 export function RichTextEditor({ value, onChange, readOnly, placeholder, id, className, ...ariaProps }: RichTextEditorProps) {
-    // The Markdown the editor last reported, so a new value from outside (e.g. a form reset) can be told apart from the user's own typing
-    const lastMarkdown = useRef(value);
+    // The Markdown of what the editor shows, so a new value from outside (e.g. a form reset) can be told apart from the user's own typing
+    const currentMarkdown = useRef(value);
 
     const editor = useEditor({
         extensions: createRichTextExtensions({ placeholder }),
@@ -54,16 +54,24 @@ export function RichTextEditor({ value, onChange, readOnly, placeholder, id, cla
                 class: cn("rich-text outline-none", !readOnly && "min-h-24 px-3 py-2"),
             },
         },
+        // Tiptap writes Markdown in its own style (e.g. *italic* for _italic_), which alone is no change by the user
+        onCreate: ({ editor: createdEditor }) => {
+            currentMarkdown.current = removeEmptyParagraphs(createdEditor.getMarkdown());
+        },
+        // Tiptap also reports changes that leave the Markdown as it is, e.g. when it normalizes the document
         onUpdate: ({ editor: updatedEditor }) => {
-            lastMarkdown.current = removeEmptyParagraphs(updatedEditor.getMarkdown());
-            onChange?.(lastMarkdown.current);
+            const markdown = removeEmptyParagraphs(updatedEditor.getMarkdown());
+            if (markdown !== currentMarkdown.current) {
+                currentMarkdown.current = markdown;
+                onChange?.(markdown);
+            }
         },
     });
 
     useEffect(() => {
-        if (editor && value !== lastMarkdown.current) {
-            lastMarkdown.current = value;
+        if (editor && value !== currentMarkdown.current) {
             editor.commands.setContent(value, { contentType: "markdown", emitUpdate: false });
+            currentMarkdown.current = removeEmptyParagraphs(editor.getMarkdown());
         }
     }, [editor, value]);
 
