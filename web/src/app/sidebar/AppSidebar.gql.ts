@@ -1,8 +1,9 @@
 import { gql } from "@src/util/gql";
 
-export const projectLayoutQuery = gql`
-    query ProjectLayout($key: String!) {
-        project(key: $key) {
+export const sidebarProjectsQuery = gql`
+    query SidebarProjects {
+        projects {
+            id
             key
             name
             status

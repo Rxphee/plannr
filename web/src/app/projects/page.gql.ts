@@ -8,6 +8,7 @@ export const projectsQuery = gql`
             name
             description
             status
+            createdAt
             members {
                 user {
                     id

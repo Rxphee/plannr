@@ -11,18 +11,41 @@ import type { FixtureUsers } from "./users-fixture.service.js";
 export class ProjectsFixtureService {
     constructor(private readonly projectsService: ProjectsService) {}
 
-    async generateProjects({ developmentUser, otherUser }: FixtureUsers): Promise<void> {
+    async generateProjects({ developmentUser, otherUser, team }: FixtureUsers): Promise<void> {
         const website = await this.createProject(developmentUser, {
             name: "Website Relaunch",
             key: "WEB",
             description: "New design and content for the company website.",
         });
-        await this.projectsService.addMember({ projectId: website.id, userId: otherUser.id, role: ProjectMemberRole.member }, developmentUser);
+        await this.addMembers(website, developmentUser, [
+            [otherUser, ProjectMemberRole.member],
+            [team[0], ProjectMemberRole.owner],
+            ...team.slice(1, 9).map((user): [User, ProjectMemberRole] => [user, ProjectMemberRole.member]),
+            ...team.slice(9).map((user): [User, ProjectMemberRole] => [user, ProjectMemberRole.viewer]),
+        ]);
 
-        await this.createProject(developmentUser, { name: "Mobile App", key: "APP", description: "" });
-        await this.createProject(developmentUser, { name: "Office Move", key: "MOVE", description: "" }, ProjectStatus.paused);
+        const app = await this.createProject(developmentUser, {
+            name: "Mobile App",
+            key: "APP",
+            description: "Companion app for iOS and Android with offline support.",
+        });
+        await this.addMembers(app, developmentUser, [
+            [team[2], ProjectMemberRole.member],
+            [team[5], ProjectMemberRole.member],
+            [team[7], ProjectMemberRole.viewer],
+        ]);
+
+        const move = await this.createProject(developmentUser, { name: "Office Move", key: "MOVE", description: "" }, ProjectStatus.paused);
+        await this.addMembers(move, developmentUser, [[team[3], ProjectMemberRole.member]]);
+
         await this.createProject(developmentUser, { name: "Holiday Planning", key: "HOL", description: "" }, ProjectStatus.archived);
         await this.createProject(otherUser, { name: "Secret Project", key: "SEC", description: "Only visible to its members and admins." });
+    }
+
+    private async addMembers(project: Project, owner: User, members: [User, ProjectMemberRole][]): Promise<void> {
+        for (const [user, role] of members) {
+            await this.projectsService.addMember({ projectId: project.id, userId: user.id, role }, owner);
+        }
     }
 
     private async createProject(user: User, input: CreateProjectInput, status: ProjectStatus = ProjectStatus.active): Promise<Project> {
