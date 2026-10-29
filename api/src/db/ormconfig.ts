@@ -5,6 +5,8 @@ import { ReflectMetadataProvider } from "@mikro-orm/decorators/legacy";
 import { Migrator } from "@mikro-orm/migrations";
 import { defineConfig } from "@mikro-orm/postgresql";
 
+import { MigrationGenerator } from "./migration-generator.js";
+
 // Entities and migrations are found next to this file, so the same config works from src (console, CLI) and from dist (production)
 const srcOrDistDirectory = path.resolve(import.meta.dirname, "..");
 
@@ -31,6 +33,7 @@ export const ormConfig = defineConfig({
     extensions: [Migrator],
     migrations: {
         tableName: "Migrations",
+        generator: MigrationGenerator,
         path: path.join(srcOrDistDirectory, "db/migrations"),
         disableForeignKeys: false,
         dropTables: false,
