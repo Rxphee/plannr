@@ -14,6 +14,7 @@ import type { UpdateIssueInput } from "./dto/update-issue.input.js";
 import { Issue } from "./entities/issue.entity.js";
 import { detectIssueLinkKind, IssueLink } from "./entities/issue-link.entity.js";
 import { findIssueKeyIn, issueKeyCondition, parseIssueKey } from "./issue-key.js";
+import { IssueView, issueViewCondition } from "./issue-views.js";
 
 @Injectable()
 export class IssuesService {
@@ -23,8 +24,8 @@ export class IssuesService {
         private readonly epicsService: EpicsService,
     ) {}
 
-    // Newest first
-    async findAll({ projectId, filter = {}, offset, limit }: IssuesArgs, user: User): Promise<PaginatedIssues> {
+    // Newest first, the view of due issues the soonest due first
+    async findAll({ projectId, view, filter = {}, offset, limit }: IssuesArgs, user: User): Promise<PaginatedIssues> {
         const project = projectId ? await this.projectsService.findOneVisibleById(projectId, user) : this.openProjectsVisibleTo(user);
         const { epicIds, statuses, types, priorities, search } = filter;
 
@@ -48,9 +49,9 @@ export class IssuesService {
 
         // The numbers only count up within a project, across projects the creation time and the ID decide
         const newestFirst: QueryOrderMap<Issue> = projectId ? { number: "desc" } : { createdAt: "desc", id: "desc" };
-        const [nodes, totalCount] = await this.entityManager.findAndCount(Issue, where, {
+        const [nodes, totalCount] = await this.entityManager.findAndCount(Issue, view ? { $and: [where, issueViewCondition(view)] } : where, {
             populate: ["epic", "links"],
-            orderBy: newestFirst,
+            orderBy: view === IssueView.due ? { dueDate: "asc", ...newestFirst } : newestFirst,
             offset,
             limit,
         });

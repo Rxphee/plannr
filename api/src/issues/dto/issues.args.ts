@@ -5,6 +5,7 @@ import { Transform, Type } from "class-transformer";
 import { IsEnum, IsOptional, IsString, IsUUID, ValidateNested } from "class-validator";
 
 import { IssuePriority, IssueStatus, IssueType } from "../entities/issue.entity.js";
+import { IssueView } from "../issue-views.js";
 
 // Each list matches any of its values, the lists together match all of them
 @InputType()
@@ -42,6 +43,11 @@ export class IssuesArgs extends PaginationArgs {
     @IsUUID("4")
     @Field(() => ID, { nullable: true, description: "Without a project, the issues of all active and paused projects the user can see" })
     projectId?: string;
+
+    @IsOptional()
+    @IsEnum(IssueView)
+    @Field(() => IssueView, { nullable: true, description: "One of the fixed views, combined with the filter" })
+    view?: IssueView;
 
     @IsOptional()
     @ValidateNested()

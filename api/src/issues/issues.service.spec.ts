@@ -6,7 +6,12 @@ import { User } from "@src/users/user.entity.js";
 import { describe, expect, it, vi } from "vitest";
 
 import type { IssuesArgs } from "./dto/issues.args.js";
+import { IssuePriority, IssueStatus, IssueType } from "./entities/issue.entity.js";
+import { IssueLinkKind } from "./entities/issue-link.entity.js";
+import { IssueView } from "./issue-views.js";
 import { IssuesService } from "./issues.service.js";
+
+const openStatuses = { status: { $in: [IssueStatus.todo, IssueStatus.inProgress] } };
 
 // The conditions and the order the service passes to the database, which the specs do not need
 async function findAll(args: Partial<IssuesArgs>, { isAdmin = false } = {}) {
@@ -30,6 +35,29 @@ describe("IssuesService.findAll", () => {
 
         expect(where).toEqual({ project });
         expect(orderBy).toEqual({ number: "desc" });
+    });
+
+    it.each([
+        [IssueView.focus, { priority: IssuePriority.high }],
+        [IssueView.due, { dueDate: { $ne: null } }],
+        [IssueView.bugs, { type: IssueType.bug }],
+        [IssueView.pullRequests, { links: { $some: { kind: IssueLinkKind.pullRequest } } }],
+    ])("shows the open issues of the view %s on top of the filter", async (view, viewCondition) => {
+        const { where, project } = await findAll({
+            projectId: "0b7f3a52-5c1e-4f0e-9d39-2f4a8e6b1c7d",
+            view,
+            filter: { statuses: [IssueStatus.inProgress] },
+        });
+
+        expect(where).toEqual({
+            $and: [{ project, status: { $in: [IssueStatus.inProgress] } }, { $and: [openStatuses, viewCondition] }],
+        });
+    });
+
+    it("sorts the due issues by their due date, then newest first", async () => {
+        const { orderBy } = await findAll({ projectId: "0b7f3a52-5c1e-4f0e-9d39-2f4a8e6b1c7d", view: IssueView.due });
+
+        expect(orderBy).toEqual({ dueDate: "asc", number: "desc" });
     });
 
     it("lists the issues of the active and paused projects of the user without a project", async () => {
