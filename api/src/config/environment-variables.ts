@@ -1,5 +1,5 @@
 import { Type } from "class-transformer";
-import { IsIn, IsInt, IsOptional, IsString } from "class-validator";
+import { IsIn, IsInt, IsNotEmpty, IsOptional, IsString, IsUrl } from "class-validator";
 
 export class EnvironmentVariables {
     @IsIn(["development", "production", "test"])
@@ -31,4 +31,11 @@ export class EnvironmentVariables {
 
     @IsString()
     CORS_ALLOWED_ORIGIN: string;
+
+    @IsUrl({ require_tld: false, protocols: ["http", "https"] })
+    OIDC_ISSUER: string;
+
+    @IsString()
+    @IsNotEmpty()
+    OIDC_AUDIENCE: string;
 }

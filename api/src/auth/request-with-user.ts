@@ -19,3 +19,7 @@ export function getRequest(context: ExecutionContext): RequestWithUser {
     }
     return context.switchToHttp().getRequest<RequestWithUser>();
 }
+
+export function getBearerToken(request: RequestWithUser): string | undefined {
+    return request.headers.authorization?.match(/^Bearer\s+(\S+)$/i)?.[1];
+}
