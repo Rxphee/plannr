@@ -1,8 +1,8 @@
 import { gql } from "@src/util/gql";
 
 export const issueListQuery = gql`
-    query IssueList($projectId: ID!, $filter: IssueFilter, $offset: Int!, $limit: Int!) {
-        issues(projectId: $projectId, filter: $filter, offset: $offset, limit: $limit) {
+    query IssueList($projectId: ID!, $view: IssueView, $filter: IssueFilter, $offset: Int!, $limit: Int!) {
+        issues(projectId: $projectId, view: $view, filter: $filter, offset: $offset, limit: $limit) {
             totalCount
             nodes {
                 id

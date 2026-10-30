@@ -12,6 +12,10 @@ import { useTransition } from "react";
 
 import { isIssueListFiltered, issueListHref, type IssueListParams, parseIssueListParams } from "./issueListParams";
 import { issuePrioritySelectOptions, issueStatusSelectOptions, issueTypeSelectOptions, toEpicSelectOptions } from "./issueSelectOptions";
+import { OPEN_ISSUE_STATUSES } from "./issueViews";
+
+// A view shows open issues only
+const openIssueStatusSelectOptions = issueStatusSelectOptions.filter((option) => OPEN_ISSUE_STATUSES.includes(option.value));
 
 interface IssueFiltersProps {
     path: string;
@@ -39,8 +43,8 @@ export function IssueFilters({ path, params, epics, labels }: IssueFiltersProps)
 
     const reset = () => {
         clearSearch();
-        // Keeps the page size, it is no filter
-        navigate({ ...parseIssueListParams({}), pageSize: params.pageSize });
+        // Keeps the view and the page size, they are no filters
+        navigate({ ...parseIssueListParams({}), view: params.view, pageSize: params.pageSize });
     };
 
     return (
@@ -57,7 +61,7 @@ export function IssueFilters({ path, params, epics, labels }: IssueFiltersProps)
             />
             <FilterMenu
                 label="Status"
-                options={issueStatusSelectOptions}
+                options={params.view ? openIssueStatusSelectOptions : issueStatusSelectOptions}
                 selected={params.statuses}
                 onChange={(statuses) => applyFilter({ statuses })}
             />

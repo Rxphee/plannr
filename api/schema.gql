@@ -196,6 +196,20 @@ enum IssueType {
   task
 }
 
+enum IssueView {
+  """Open bugs"""
+  bugs
+
+  """Open issues with a due date, the soonest first"""
+  due
+
+  """Open issues with priority high"""
+  focus
+
+  """Open issues with a link to a pull request"""
+  pullRequests
+}
+
 type Label {
   color: LabelColor!
   createdAt: DateTime!
@@ -400,8 +414,22 @@ type Query {
   """
   issue(key: String!): Issue
 
-  """Issues of a project, newest first"""
-  issues(filter: IssueFilter, limit: Int! = 25, offset: Int! = 0, projectId: ID!): PaginatedIssues!
+  """
+  Issues of a project or of all projects, newest first, the view of due issues the soonest due first
+  """
+  issues(
+    filter: IssueFilter
+    limit: Int! = 25
+    offset: Int! = 0
+
+    """
+    Without a project, the issues of all active and paused projects the user can see
+    """
+    projectId: ID
+
+    """One of the fixed views, combined with the filter"""
+    view: IssueView
+  ): PaginatedIssues!
 
   """The labels of the instance, sorted by name"""
   labels(limit: Int! = 25, offset: Int! = 0): PaginatedLabels!

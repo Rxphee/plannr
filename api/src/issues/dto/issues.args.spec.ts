@@ -25,12 +25,21 @@ describe("IssuesArgs", () => {
         ).toEqual([]);
     });
 
+    it("accepts a view", () => {
+        expect(validate({ view: "pullRequests" }).invalidProperties).toEqual([]);
+    });
+
+    it("accepts no project, for the issues of all projects", () => {
+        expect(validate({ projectId: undefined }).invalidProperties).toEqual([]);
+    });
+
     it("trims the search", () => {
         expect(validate({ filter: { search: " WEB-42 " } }).args.filter?.search).toBe("WEB-42");
     });
 
     it.each([
         ["limit", { limit: 101 }],
+        ["view", { view: "assigned" }],
         ["filter", { filter: { statuses: ["blocked"] } }],
         ["filter", { filter: { types: ["story"] } }],
         ["filter", { filter: { priorities: ["urgent"] } }],

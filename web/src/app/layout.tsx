@@ -8,6 +8,7 @@ import { Inter } from "next/font/google";
 import { cookies } from "next/headers";
 import type { PropsWithChildren } from "react";
 
+import { AppCommands } from "./commandMenu/AppCommands";
 import { AppSidebar } from "./sidebar/AppSidebar";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
@@ -27,8 +28,10 @@ export default async function RootLayout({ children }: PropsWithChildren) {
         <html lang="en" className={cn("font-sans", inter.variable)} data-theme={theme === "system" ? undefined : theme}>
             <body>
                 <SidebarProvider defaultOpen={isSidebarOpen}>
-                    <AppSidebar theme={theme} />
-                    <SidebarInset className="md:ring-border md:ring-1">{children}</SidebarInset>
+                    <AppCommands>
+                        <AppSidebar theme={theme} />
+                        <SidebarInset className="md:ring-border md:ring-1">{children}</SidebarInset>
+                    </AppCommands>
                 </SidebarProvider>
             </body>
         </html>
