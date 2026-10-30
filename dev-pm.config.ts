@@ -4,7 +4,8 @@ export default defineConfig({
     scripts: [
         {
             name: "docker",
-            script: "docker compose up",
+            // dev-pm passes no .env files to its scripts, so compose reads the ports of .env.local itself
+            script: "docker compose --env-file .env --env-file .env.local up",
             group: "api",
         },
         {
