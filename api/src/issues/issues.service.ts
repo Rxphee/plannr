@@ -1,8 +1,8 @@
-import { EntityManager, type FilterQuery, LockMode, ref } from "@mikro-orm/postgresql";
+import { EntityManager, type FilterQuery, LockMode, type QueryOrderMap, ref } from "@mikro-orm/postgresql";
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
 import { containsPattern } from "@src/db/contains-pattern.js";
 import { EpicsService } from "@src/epics/epics.service.js";
-import { Project } from "@src/projects/entities/project.entity.js";
+import { Project, ProjectStatus } from "@src/projects/entities/project.entity.js";
 import { ProjectsService } from "@src/projects/projects.service.js";
 import type { User } from "@src/users/user.entity.js";
 
@@ -13,7 +13,8 @@ import type { PaginatedIssues } from "./dto/paginated-issues.js";
 import type { UpdateIssueInput } from "./dto/update-issue.input.js";
 import { Issue } from "./entities/issue.entity.js";
 import { detectIssueLinkKind, IssueLink } from "./entities/issue-link.entity.js";
-import { findIssueNumberIn, parseIssueKey } from "./issue-key.js";
+import { findIssueKeyIn, issueKeyCondition, parseIssueKey } from "./issue-key.js";
+import { IssueView, issueViewCondition } from "./issue-views.js";
 
 @Injectable()
 export class IssuesService {
@@ -23,9 +24,9 @@ export class IssuesService {
         private readonly epicsService: EpicsService,
     ) {}
 
-    // Newest first
-    async findAll({ projectId, filter = {}, offset, limit }: IssuesArgs, user: User): Promise<PaginatedIssues> {
-        const project = await this.projectsService.findOneVisibleById(projectId, user);
+    // Newest first, the view of due issues the soonest due first
+    async findAll({ projectId, view, filter = {}, offset, limit }: IssuesArgs, user: User): Promise<PaginatedIssues> {
+        const project = projectId ? await this.projectsService.findOneVisibleById(projectId, user) : this.openProjectsVisibleTo(user);
         const { epicIds, statuses, types, priorities, search } = filter;
 
         const where: FilterQuery<Issue> = { project };
@@ -42,13 +43,15 @@ export class IssuesService {
             where.priority = { $in: priorities };
         }
         if (search) {
-            const number = findIssueNumberIn(search);
-            where.$or = [{ title: { $ilike: containsPattern(search) } }, ...(number ? [{ number }] : [])];
+            const issueKey = findIssueKeyIn(search);
+            where.$or = [{ title: { $ilike: containsPattern(search) } }, ...(issueKey ? [issueKeyCondition(issueKey)] : [])];
         }
 
-        const [nodes, totalCount] = await this.entityManager.findAndCount(Issue, where, {
+        // The numbers only count up within a project, across projects the creation time and the ID decide
+        const newestFirst: QueryOrderMap<Issue> = projectId ? { number: "desc" } : { createdAt: "desc", id: "desc" };
+        const [nodes, totalCount] = await this.entityManager.findAndCount(Issue, view ? { $and: [where, issueViewCondition(view)] } : where, {
             populate: ["epic", "links"],
-            orderBy: { number: "desc" },
+            orderBy: view === IssueView.due ? { dueDate: "asc", ...newestFirst } : newestFirst,
             offset,
             limit,
         });
@@ -127,6 +130,12 @@ export class IssuesService {
         }
         await this.findOneContributableBy(link.issue.id, user);
         await this.entityManager.remove(link).flush();
+    }
+
+    // Archived projects are left out, like in the project switcher
+    private openProjectsVisibleTo(user: User): FilterQuery<Project> {
+        const status = { $in: [ProjectStatus.active, ProjectStatus.paused] };
+        return user.isAdmin ? { status } : { status, members: { user } };
     }
 
     private async findOneOrFail(id: string, user: User): Promise<Issue> {

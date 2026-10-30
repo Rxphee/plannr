@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { isIssueListFiltered, issueListHref, type IssueListParams, parseIssueListParams, toIssueFilter } from "./issueListParams";
+import { isIssueListFiltered, issueListHref, type IssueListParams, parseIssueListParams, toIssueFilter, withView } from "./issueListParams";
 
 const epicId = "0b7f3a52-5c1e-4f0e-9d39-2f4a8e6b1c7d";
 const otherEpicId = "6e2d9c41-8a3b-4b7f-a1e5-3c9d7f2b8e60";
@@ -116,5 +116,48 @@ describe("issueListHref", () => {
         };
         const query = new URL(issueListHref("/issues", params), "http://localhost").searchParams;
         expect(parseIssueListParams(Object.fromEntries(query))).toEqual(params);
+    });
+});
+
+describe("views", () => {
+    it("reads the view", () => {
+        expect(parseIssueListParams({ view: "pullRequests" })).toEqual({ ...openIssues, view: "pullRequests" });
+    });
+
+    it("ignores an unknown view", () => {
+        expect(parseIssueListParams({ view: "assigned" })).toEqual(openIssues);
+    });
+
+    it.each([
+        ["done,todo", ["todo"]],
+        ["done", ["todo", "inProgress"]],
+        ["all", ["todo", "inProgress"]],
+    ])("keeps only the open statuses of %j in a view", (status, statuses) => {
+        expect(parseIssueListParams({ view: "bugs", status }).statuses).toEqual(statuses);
+    });
+
+    it("is not filtered in a view", () => {
+        expect(isIssueListFiltered({ ...openIssues, view: "focus" })).toBe(false);
+    });
+
+    it("writes the view first", () => {
+        expect(issueListHref("/projects/WEB/issues", { ...openIssues, view: "due", types: ["bug"] })).toBe("/projects/WEB/issues?view=due&type=bug");
+    });
+
+    it("switches to another view with the same filters on the first page", () => {
+        expect(withView({ ...openIssues, statuses: ["inProgress", "done"], search: "header", page: 3 }, "focus")).toEqual({
+            ...openIssues,
+            view: "focus",
+            statuses: ["inProgress"],
+            search: "header",
+        });
+    });
+
+    it("keeps the statuses when it switches back to all issues", () => {
+        expect(withView({ ...openIssues, view: "bugs", statuses: ["todo"], page: 2 })).toEqual({
+            ...openIssues,
+            view: undefined,
+            statuses: ["todo"],
+        });
     });
 });
