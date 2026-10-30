@@ -35,7 +35,7 @@ export function SearchInput({ value, onChange, onClear, placeholder, label, clas
                 // The own clear button replaces the one of the browser, which is small and cannot be styled
                 className="pr-9 pl-8 [&::-webkit-search-cancel-button]:appearance-none"
             />
-            {value && <ClearButton onClick={clear} className="absolute top-1/2 right-1 -translate-y-1/2" />}
+            {value && <ClearButton onClick={clear} className="absolute inset-y-0 right-1 my-auto" />}
         </div>
     );
 }
