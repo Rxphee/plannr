@@ -1,4 +1,4 @@
-import { requireEnv } from "@src/util/requireEnv";
+import { requireEnv, requireSecret } from "@src/util/requireEnv";
 
 import { seal, unseal } from "./sealedCookie";
 
@@ -20,11 +20,11 @@ export interface Session {
 }
 
 export async function sealSession(session: Session): Promise<string> {
-    return seal({ ...session }, { secret: requireEnv("SESSION_SECRET"), maxAge: SESSION_MAX_AGE });
+    return seal({ ...session }, { secret: requireSecret("SESSION_SECRET"), maxAge: SESSION_MAX_AGE });
 }
 
 export async function unsealSession(value: string | undefined): Promise<Session | undefined> {
-    const payload = await unseal(value, { secret: requireEnv("SESSION_SECRET") });
+    const payload = await unseal(value, { secret: requireSecret("SESSION_SECRET") });
     if (typeof payload?.accessToken !== "string" || typeof payload.expiresAt !== "number") {
         return undefined;
     }

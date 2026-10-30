@@ -1,4 +1,4 @@
-import { requireEnv } from "@src/util/requireEnv";
+import { requireEnv, requireSecret } from "@src/util/requireEnv";
 import {
     allowInsecureRequests,
     ClientSecretBasic,
@@ -33,7 +33,7 @@ export function getOidcConfiguration(): Promise<Configuration> {
 async function discoverConfiguration(): Promise<Configuration> {
     const issuer = new URL(requireEnv("OIDC_ISSUER"));
     const isLocalDevelopment = issuer.protocol === "http:" && process.env.NODE_ENV !== "production";
-    return discovery(issuer, requireEnv("OIDC_CLIENT_ID"), undefined, ClientSecretBasic(requireEnv("OIDC_CLIENT_SECRET")), {
+    return discovery(issuer, requireEnv("OIDC_CLIENT_ID"), undefined, ClientSecretBasic(requireSecret("OIDC_CLIENT_SECRET")), {
         // The local identity provider runs without TLS
         execute: isLocalDevelopment ? [allowInsecureRequests] : [],
     });

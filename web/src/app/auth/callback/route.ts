@@ -2,7 +2,7 @@ import { appUrl, callbackUrl, getOidcConfiguration, sessionFromTokens } from "@s
 import { parseReturnTo } from "@src/auth/returnTo";
 import { unseal } from "@src/auth/sealedCookie";
 import { sealSession, writeSessionCookies } from "@src/auth/session";
-import { requireEnv } from "@src/util/requireEnv";
+import { requireSecret } from "@src/util/requireEnv";
 import { type NextRequest, NextResponse } from "next/server";
 import { authorizationCodeGrant } from "openid-client";
 
@@ -10,7 +10,7 @@ import { LOGIN_COOKIE } from "../loginCookie";
 
 // The identity provider redirects here with the authorization code, which is exchanged for the tokens of the session
 export async function GET(request: NextRequest) {
-    const login = await unseal(request.cookies.get(LOGIN_COOKIE)?.value, { secret: requireEnv("SESSION_SECRET") });
+    const login = await unseal(request.cookies.get(LOGIN_COOKIE)?.value, { secret: requireSecret("SESSION_SECRET") });
     if (typeof login?.codeVerifier !== "string" || typeof login.state !== "string") {
         // e.g. the login took longer than the cookie lives, so it starts again
         return NextResponse.redirect(appUrl("/auth/login"));

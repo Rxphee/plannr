@@ -186,7 +186,7 @@ The access token lives five minutes in the realm, so the refresh runs often duri
 - `.env.local` - Local overrides (not committed)
 - `.env.secrets` - Local secrets (not committed)
 
-The OIDC variables in `.env` (`OIDC_ISSUER`, `OIDC_AUDIENCE`, `OIDC_CLIENT_ID`, `OIDC_CLIENT_SECRET`, `SESSION_SECRET`) are development values for the local Keycloak. Production sets its own: the API needs `OIDC_ISSUER` and `OIDC_AUDIENCE`, the web app `OIDC_ISSUER`, `OIDC_CLIENT_ID`, `OIDC_CLIENT_SECRET`, `SESSION_SECRET` (at least 32 random characters) and `WEB_URL` (the public URL, used for the redirect URIs). A changed `SESSION_SECRET` logs everyone out.
+The OIDC variables in `.env` (`OIDC_ISSUER`, `OIDC_AUDIENCE`, `OIDC_CLIENT_ID`, `OIDC_CLIENT_SECRET`, `SESSION_SECRET`) are development values for the local Keycloak. Production sets its own: the API needs `OIDC_ISSUER` and `OIDC_AUDIENCE`, the web app `OIDC_ISSUER`, `OIDC_CLIENT_ID`, `OIDC_CLIENT_SECRET`, `SESSION_SECRET` (at least 32 random characters) and `WEB_URL` (the public URL, used for the redirect URIs). A changed `SESSION_SECRET` logs everyone out. With `NODE_ENV=production` the web app refuses the development values of `SESSION_SECRET` and `OIDC_CLIENT_SECRET` (`requireSecret` in `web/src/util/requireEnv.ts`, a test keeps it in line with `.env`): every request fails instead of running with a publicly known key. The API reads no secret of the login.
 
 ## Key Patterns
 
