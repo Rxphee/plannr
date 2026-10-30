@@ -16,7 +16,7 @@ When making changes that affect project structure, commands, architecture, ports
 
 Plannr is a lean, self-hosted issue tracker: projects, epics and issues with clear defaults instead of endless options. The repository contains two packages:
 
-- **api/** - NestJS GraphQL backend (code-first) with MikroORM/PostgreSQL
+- **api/** - NestJS GraphQL backend (code-first) with MikroORM/PostgreSQL and an MCP interface
 - **web/** - Next.js frontend (App Router) with Tailwind CSS and shadcn/ui
 
 The repository is public under AGPL-3.0, so keep it exemplary clean.
@@ -107,7 +107,7 @@ npm --prefix web run gql:types   # Generate TypeScript types for the GraphQL doc
 
 ### Package Structure
 
-- `api/src/` - NestJS modules by feature: `auth/`, `users/`, `api-tokens/`, `projects/`, `epics/`, `issues/`, `labels/`, `healthcheck/`, `config/`, `db/`; helpers shared by several modules in `common/` (e.g. `trim` for inputs, `PaginationArgs` and `Paginated` for list queries)
+- `api/src/` - NestJS modules by feature: `auth/`, `users/`, `api-tokens/`, `projects/`, `epics/`, `issues/`, `labels/`, `mcp/`, `healthcheck/`, `config/`, `db/`; helpers shared by several modules in `common/` (e.g. `trim` for inputs, `PaginationArgs` and `Paginated` for list queries)
 - `api/src/db/` - ORM config, `migrations/`, `fixtures/` and the migration generator
 - `api/src/console.ts` - Console commands (`migrate`, `fixtures`)
 - `web/src/app/` - Next.js App Router pages, Server Actions and their GraphQL documents
@@ -133,11 +133,20 @@ Users log in through OpenID Connect, implemented provider-agnostic: Zitadel in p
 - **API** (`api/src/auth/`): the global `AuthGuard` tries the `AuthStrategy`s registered under `AUTH_STRATEGIES` in `AuthModule` in order, and the first that recognizes the credential logs the request in. Each returns `undefined` for a credential that is not its kind and throws `UnauthorizedException` for an invalid one of its kind, so a wrong credential never falls back to another login. The order is the personal API token (`ApiTokenAuthenticator`), then `OidcAuthStrategy`. A further login (e.g. for another client) is one more strategy in that list. `OidcAuthStrategy` takes bearer tokens shaped like a JWT and checks them with `OidcIssuer`: signature against the JWKS, issuer `OIDC_ISSUER` and audience `OIDC_AUDIENCE` (`jose`). The issuer is discovered on first use, so the API and the console start without the provider. `@Public()` marks routes without login (e.g. the healthcheck), `@CurrentUser()` injects the user into a resolver, the query `currentUser` returns it.
 - **Users** are created on their first login (just in time), there is no mutation to create users. The access token carries only the subject, so the API reads email, given and family name from the userinfo endpoint, validates them (`UserInfoClaims`: `@IsEmail`, names not blank; the email is trimmed and lowercased) and creates the user or takes over changed values (`UsersService.syncIdentity`). It asks once per access token, not per request. `oidcSubject` is the `sub` claim, the stable key; the email may change.
 
-Personal API tokens log in their user on any request, GraphQL as well as later endpoints such as MCP, with `Authorization: Bearer plannr_…`. They are a general feature, not tied to one client. The guard runs `ApiTokenAuthenticator` (`api-tokens/`) before any other login: a request without a Plannr token is left to the other logins (a bearer token without the `plannr_` prefix too, e.g. an OIDC access token), a wrong, expired or revoked Plannr token is refused with `UNAUTHENTICATED` instead of falling back to them. The token is `plannr_<lookup ID>_<secret>`: the API stores the 16 hex characters of the lookup ID to find the row and only the SHA-256 hash of the 256-bit secret (a slow password hash would only delay every request), compared in constant time. The token itself is returned once by `createApiToken`. `expiresAt` is optional, `revokeApiToken` sets `revokedAt` (revoked tokens stay in the table but no longer appear in `apiTokens`), and `lastUsedAt` is written at most once a minute. A request logged in by a token carries it as `request.apiToken`; `RejectApiTokenGuard` uses that to keep tokens away from the token management, so a leaked token cannot create new tokens that outlive its revocation. Users manage their tokens on the page "API tokens" (`web/src/app/settings/api-tokens/`, linked in the user menu); the token is shown once with a copy button.
+Personal API tokens log in their user on any request, GraphQL and MCP alike, with `Authorization: Bearer plannr_…`. They are a general feature, not tied to one client. The guard runs `ApiTokenAuthenticator` (`api-tokens/`) before any other login: a request without a Plannr token is left to the other logins (a bearer token without the `plannr_` prefix too, e.g. an OIDC access token), a wrong, expired or revoked Plannr token is refused with `UNAUTHENTICATED` instead of falling back to them. The token is `plannr_<lookup ID>_<secret>`: the API stores the 16 hex characters of the lookup ID to find the row and only the SHA-256 hash of the 256-bit secret (a slow password hash would only delay every request), compared in constant time. The token itself is returned once by `createApiToken`. `expiresAt` is optional, `revokeApiToken` sets `revokedAt` (revoked tokens stay in the table but no longer appear in `apiTokens`), and `lastUsedAt` is written at most once a minute. A request logged in by a token carries it as `request.apiToken`; `RejectApiTokenGuard` uses that to keep tokens away from the token management, so a leaked token cannot create new tokens that outlive its revocation. Users manage their tokens on the page "API tokens" (`web/src/app/settings/api-tokens/`, linked in the user menu); the token is shown once with a copy button.
 
 ### Permissions
 
-The services check the rights, so they hold for GraphQL and a later MCP interface alike. `ProjectsService` knows them: `canManage` (owners and admins: settings, members, status, deleting the project, epics and issues) and `canContribute` (owners, members and admins: creating and editing epics and issues). Viewers only read. Users who are not a member see neither the project nor anything in it, admins see all projects. Both checks are also fields on `Project`, so the web app shows only the actions the user may take. Labels belong to the whole instance: everyone reads them, only admins create, edit and delete them. `LabelsService.canManage` is the one place that decides this (the super-admin joins there), and the query `canManageLabels` tells the web app.
+The services check the rights, so they hold for GraphQL and the MCP interface alike. `ProjectsService` knows them: `canManage` (owners and admins: settings, members, status, deleting the project, epics and issues) and `canContribute` (owners, members and admins: creating and editing epics and issues). Viewers only read. Users who are not a member see neither the project nor anything in it, admins see all projects. Both checks are also fields on `Project`, so the web app shows only the actions the user may take. Labels belong to the whole instance: everyone reads them, only admins create, edit and delete them. `LabelsService.canManage` is the one place that decides this (the super-admin joins there), and the query `canManageLabels` tells the web app.
+
+### MCP
+
+`mcp/` serves the Model Context Protocol at `/api/mcp` with the official `@modelcontextprotocol/sdk`: Streamable HTTP, stateless (a new `McpServer` and transport per POST, GET and DELETE answer 405) and with plain JSON answers instead of an event stream. Requests are logged in like any other, so agents send a personal API token. The tools call the services directly, not GraphQL, so the services check the rights:
+
+- `list_projects` (active and paused by default), `list_epics`, `list_issues` (in one project or, without `project`, across all active and paused projects; a fixed `view` and the filters epic, statuses, types, priorities, labels, search; open issues by default, a view needs no statuses since it shows open issues anyway), `get_issue` (with epic, links and description)
+- `create_issue` (in the epic General unless another is given, with labels), `update_issue` (title, epic, type, status, priority, due date, description, links and labels to add or remove; the labels become the whole set `UpdateIssueInput.labelIds` expects)
+
+Tools take keys (`WEB`, `WEB-12`), epics by name or ID and labels by name (any case, `#` optional; a wrong name answers with the existing labels, so there is no tool to list them), and paginate with `offset` and `limit` like the API. They answer in short lines (`WEB-12 · bug · high · todo · due 2026-11-03 · Title · #frontend #upstream`, formatters in `mcp-format.ts`) instead of JSON, and the tool definitions stay short, because agents pay for every token. `McpToolsService` runs the class-validator rules of the GraphQL inputs on the arguments (`validateInput`), since the global `ValidationPipe` only covers resolvers, and checks every argument of `update_issue` before the first change. Errors the agent can correct (4xx exceptions) come back as tool errors with their message, others only as "The tool failed unexpectedly".
 
 ### Docker Services
 
@@ -160,7 +169,7 @@ The access token lives five minutes in the realm, so the refresh runs often duri
 
 ### Local Ports
 
-- API: 4000 (GraphQL at `/api/graphql`)
+- API: 4000 (GraphQL at `/api/graphql`, MCP at `/api/mcp`)
 - Web: 3000
 - OIDC provider: 8180 (Keycloak, issuer `http://localhost:8180/realms/plannr`)
 
@@ -196,7 +205,7 @@ After making code changes, always run `npm --prefix <package> run lint:fix` for 
 
 ### API Module Structure
 
-A feature module holds `entities/`, `dto/` (inputs), a service with the business logic and thin resolvers that only call the service. The service layer is the core that a later MCP interface will share with GraphQL. Errors the user can correct are thrown as `BadRequestException`; the web app shows their message. A field of another module's type that needs this module's service lives in a resolver of this module, so modules never depend on each other in a circle.
+A feature module holds `entities/`, `dto/` (inputs), a service with the business logic and thin resolvers that only call the service. The service layer is the core that the MCP interface shares with GraphQL. Errors the user can correct are thrown as `BadRequestException`; the web app shows their message. A field of another module's type that needs this module's service lives in a resolver of this module, so modules never depend on each other in a circle.
 
 ### Pagination
 
@@ -204,7 +213,7 @@ Every list (the queries `projects`, `epics`, `issues`, `labels`, `users` and `ap
 
 ### Issue Views
 
-The fixed views of the issue list are the `IssueView` argument of `issues` (`issues/issue-views.ts`), so GraphQL and a later MCP interface share them: `focus` (priority high), `due` (with a due date, sorted by it), `bugs` (type bug) and `pullRequests` (a link detected as a GitHub pull request). Each view shows open issues only (todo or in progress) and is combined with the filter (AND). A new view gets its condition there and a tab in `web/…/issues/issueViews.ts`.
+The fixed views of the issue list are the `IssueView` argument of `issues` (`issues/issue-views.ts`), so GraphQL and the MCP interface share them: `focus` (priority high), `due` (with a due date, sorted by it), `bugs` (type bug) and `pullRequests` (a link detected as a GitHub pull request). Each view shows open issues only (todo or in progress) and is combined with the filter (AND). A new view gets its condition there and a tab in `web/…/issues/issueViews.ts`.
 
 ### Entities
 
