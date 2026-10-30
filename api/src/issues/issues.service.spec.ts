@@ -1,5 +1,6 @@
 import type { EntityManager } from "@mikro-orm/postgresql";
 import type { EpicsService } from "@src/epics/epics.service.js";
+import type { LabelsService } from "@src/labels/labels.service.js";
 import { Project, ProjectStatus } from "@src/projects/entities/project.entity.js";
 import type { ProjectsService } from "@src/projects/projects.service.js";
 import { User } from "@src/users/user.entity.js";
@@ -22,6 +23,7 @@ async function findAll(args: Partial<IssuesArgs>, { isAdmin = false } = {}) {
         { findAndCount } as unknown as EntityManager,
         { findOneVisibleById: vi.fn().mockResolvedValue(project) } as unknown as ProjectsService,
         {} as EpicsService,
+        {} as LabelsService,
     );
 
     await service.findAll({ offset: 0, limit: 25, ...args }, user);
@@ -51,6 +53,15 @@ describe("IssuesService.findAll", () => {
 
         expect(where).toEqual({
             $and: [{ project, status: { $in: [IssueStatus.inProgress] } }, { $and: [openStatuses, viewCondition] }],
+        });
+    });
+
+    it("shows the issues with any of the labels on top of the view", async () => {
+        const labelIds = ["9c4e2a71-3b5d-4f8e-a6c2-1d7b9e3f5a80", "6e2d9c41-8a3b-4b7f-a1e5-3c9d7f2b8e60"];
+        const { where, project } = await findAll({ projectId: "0b7f3a52-5c1e-4f0e-9d39-2f4a8e6b1c7d", view: IssueView.bugs, filter: { labelIds } });
+
+        expect(where).toEqual({
+            $and: [{ project, labels: { $some: { id: { $in: labelIds } } } }, { $and: [openStatuses, { type: IssueType.bug }] }],
         });
     });
 
