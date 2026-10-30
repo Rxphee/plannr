@@ -39,7 +39,7 @@ export class Project {
     name: string;
 
     @Property()
-    @Field()
+    @Field({ description: "Markdown" })
     @IsOptional()
     @IsString()
     description: string = "";

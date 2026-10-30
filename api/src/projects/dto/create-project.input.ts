@@ -21,6 +21,6 @@ export class CreateProjectInput {
 
     @Transform(trim)
     @IsString()
-    @Field({ defaultValue: "" })
+    @Field({ defaultValue: "", description: "Markdown" })
     description: string;
 }

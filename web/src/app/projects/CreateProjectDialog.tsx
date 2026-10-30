@@ -2,6 +2,7 @@
 
 import { FinalForm } from "@src/components/form/FinalForm";
 import { FormSubmitError } from "@src/components/form/FormSubmitError";
+import { RichTextField } from "@src/components/form/RichTextField";
 import { TextField } from "@src/components/form/TextField";
 import { Button } from "@src/components/ui/Button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@src/components/ui/Dialog";
@@ -21,7 +22,7 @@ export function CreateProjectDialog({ trigger }: { trigger: ReactElement }) {
     return (
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger render={trigger} />
-            <DialogContent>
+            <DialogContent className="sm:max-w-2xl">
                 {/* The popup unmounts when closed, so the form starts empty every time */}
                 <CreateProjectForm onCreated={() => setOpen(false)} />
             </DialogContent>
@@ -76,7 +77,7 @@ function CreateProjectForm({ onCreated }: { onCreated: () => void }) {
                             keyWasEdited.current = true;
                         }}
                     />
-                    <TextField name="description" label="Description" multiline rows={4} />
+                    <RichTextField name="description" label="Description" placeholder="What is the goal of the project?" />
                     <FormSubmitError />
                     <DialogFooter>
                         <Button type="submit" disabled={submitting}>
