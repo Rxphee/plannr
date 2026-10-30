@@ -12,6 +12,10 @@ export class UserInfoClaims {
     @IsEmail()
     email: string;
 
+    // Anything but true counts as unverified
+    @Transform(({ value }) => value === true)
+    email_verified?: boolean;
+
     @Transform(trim)
     @IsString()
     @IsNotEmpty()

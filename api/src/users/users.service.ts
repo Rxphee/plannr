@@ -9,6 +9,7 @@ import { User } from "./user.entity.js";
 export interface UserIdentity {
     oidcSubject: string;
     email: string;
+    isEmailVerified: boolean;
     firstName: string;
     lastName: string;
 }

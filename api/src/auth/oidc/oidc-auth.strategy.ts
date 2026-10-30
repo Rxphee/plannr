@@ -43,6 +43,7 @@ export class OidcAuthStrategy implements AuthStrategy {
         const user = await this.usersService.syncIdentity({
             oidcSubject: claims.sub,
             email: claims.email,
+            isEmailVerified: claims.email_verified ?? false,
             firstName: claims.given_name,
             lastName: claims.family_name,
         });

@@ -4,7 +4,13 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { User } from "./user.entity.js";
 import { type UserIdentity, UsersService } from "./users.service.js";
 
-const identity: UserIdentity = { oidcSubject: "user-1", email: "erika@example.com", firstName: "Erika", lastName: "Mustermann" };
+const identity: UserIdentity = {
+    oidcSubject: "user-1",
+    email: "erika@example.com",
+    isEmailVerified: true,
+    firstName: "Erika",
+    lastName: "Mustermann",
+};
 
 describe("UsersService.syncIdentity", () => {
     let fork: { create: ReturnType<typeof vi.fn>; flush: ReturnType<typeof vi.fn> };

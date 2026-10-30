@@ -8,7 +8,7 @@ import { IsEmail, IsNotEmpty, IsString } from "class-validator";
 @Entity()
 @ObjectType()
 export class User {
-    [OptionalProps]?: "isAdmin" | "createdAt" | "updatedAt";
+    [OptionalProps]?: "isEmailVerified" | "isAdmin" | "createdAt" | "updatedAt";
 
     @PrimaryKey({ type: "uuid" })
     @Field(() => ID)
@@ -36,6 +36,10 @@ export class User {
     @Field()
     @IsEmail()
     email: string;
+
+    // "email_verified" of the identity provider, taken over on every login.
+    @Property()
+    isEmailVerified: boolean = false;
 
     @Property()
     @Field()

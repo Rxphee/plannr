@@ -9,7 +9,7 @@ import { OidcAuthStrategy } from "./oidc-auth.strategy.js";
 import type { OidcIssuer } from "./oidc-issuer.js";
 
 const accessToken = "header.payload.signature";
-const userInfo = { sub: "user-1", email: "Erika@Example.com", given_name: "Erika", family_name: "Mustermann" };
+const userInfo = { sub: "user-1", email: "Erika@Example.com", email_verified: true, given_name: "Erika", family_name: "Mustermann" };
 const user = { id: "1", oidcSubject: "user-1" } as User;
 
 function request(authorization?: string): RequestWithUser {
@@ -52,9 +52,23 @@ describe("OidcAuthStrategy", () => {
         expect(usersService.syncIdentity).toHaveBeenCalledWith({
             oidcSubject: "user-1",
             email: "erika@example.com",
+            isEmailVerified: true,
             firstName: "Erika",
             lastName: "Mustermann",
         });
+    });
+
+    it("takes over an unverified email address as unverified", async () => {
+        issuer.fetchUserInfo.mockResolvedValue({ ...userInfo, email_verified: false });
+        await strategy.authenticate(request(`Bearer ${accessToken}`));
+        expect(usersService.syncIdentity).toHaveBeenCalledWith(expect.objectContaining({ isEmailVerified: false }));
+    });
+
+    it("treats a missing email_verified claim as unverified", async () => {
+        const { email_verified: _emailVerified, ...userInfoWithoutVerification } = userInfo;
+        issuer.fetchUserInfo.mockResolvedValue(userInfoWithoutVerification);
+        await strategy.authenticate(request(`Bearer ${accessToken}`));
+        expect(usersService.syncIdentity).toHaveBeenCalledWith(expect.objectContaining({ isEmailVerified: false }));
     });
 
     it("syncs the claims only once per access token", async () => {
