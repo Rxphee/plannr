@@ -10,6 +10,8 @@ import { UpdateIssueInput } from "@src/issues/dto/update-issue.input.js";
 import { type Issue, IssuePriority, IssueStatus, IssueType } from "@src/issues/entities/issue.entity.js";
 import { IssueView } from "@src/issues/issue-views.js";
 import { IssuesService } from "@src/issues/issues.service.js";
+import type { Label } from "@src/labels/entities/label.entity.js";
+import { LabelsService } from "@src/labels/labels.service.js";
 import { ProjectsArgs } from "@src/projects/dto/projects.args.js";
 import { type Project, ProjectStatus } from "@src/projects/entities/project.entity.js";
 import { ProjectsService } from "@src/projects/projects.service.js";
@@ -38,7 +40,6 @@ interface ListEpicsArgs extends PageArgs {
     search?: string;
 }
 
-// Labels are added here once the API has them
 interface ListIssuesArgs extends PageArgs {
     // Without a project, the issues of all active and paused projects
     project?: string;
@@ -47,6 +48,8 @@ interface ListIssuesArgs extends PageArgs {
     statuses?: IssueStatus[];
     types?: IssueType[];
     priorities?: IssuePriority[];
+    // Label names, issues with any of them
+    labels?: string[];
     search?: string;
 }
 
@@ -58,6 +61,7 @@ interface CreateIssueArgs {
     priority?: IssuePriority;
     dueDate?: string | null;
     description?: string;
+    labels?: string[];
 }
 
 interface UpdateIssueArgs {
@@ -71,6 +75,15 @@ interface UpdateIssueArgs {
     description?: string;
     addLinks?: string[];
     removeLinks?: string[];
+    addLabels?: string[];
+    removeLabels?: string[];
+}
+
+interface LabelChanges {
+    key: string;
+    issue: Issue;
+    addLabels: string[];
+    removeLabels: string[];
 }
 
 // The MCP tools as text answers. They call the same services as GraphQL, which check the rights of the user.
@@ -80,6 +93,7 @@ export class McpToolsService {
         private readonly projectsService: ProjectsService,
         private readonly epicsService: EpicsService,
         private readonly issuesService: IssuesService,
+        private readonly labelsService: LabelsService,
     ) {}
 
     async listProjects(
@@ -107,6 +121,7 @@ export class McpToolsService {
             statuses = view ? undefined : OPEN_STATUSES,
             types,
             priorities,
+            labels,
             search,
             offset = 0,
             limit = DEFAULT_TOOL_PAGE_SIZE,
@@ -118,10 +133,11 @@ export class McpToolsService {
             throw new BadRequestException("An epic belongs to one project, pass the project too");
         }
         const epicIds = project && epic ? [(await this.findEpic(project, epic, user)).id] : undefined;
+        const labelIds = labels ? (await this.findLabels(labels)).map(({ id }) => id) : undefined;
         const args = validateInput(IssuesArgs, {
             projectId: project?.id,
             view,
-            filter: { epicIds, statuses, types, priorities, search },
+            filter: { epicIds, statuses, types, priorities, labelIds, search },
             offset,
             limit,
         });
@@ -136,12 +152,17 @@ export class McpToolsService {
         const project = await issue.project.loadOrFail();
         const epic = await issue.epic.loadOrFail();
         const links = await issue.links.loadItems();
+        await issue.labels.loadItems();
         return formatIssueDetails({ projectKey: project.key, issue, epicName: epic.name, links });
     }
 
-    async createIssue({ project: projectKey, epic, title, type, priority, dueDate, description }: CreateIssueArgs, user: User): Promise<string> {
+    async createIssue(
+        { project: projectKey, epic, title, type, priority, dueDate, description, labels = [] }: CreateIssueArgs,
+        user: User,
+    ): Promise<string> {
         const project = await this.findProject(projectKey, user);
         const epicId = epic ? (await this.findEpic(project, epic, user)).id : undefined;
+        const labelIds = (await this.findLabels(labels)).map(({ id }) => id);
         const input = validateInput(CreateIssueInput, {
             projectId: project.id,
             epicId,
@@ -150,18 +171,24 @@ export class McpToolsService {
             priority: priority ?? IssuePriority.normal,
             dueDate: dueDate ?? null,
             description: description ?? "",
+            labelIds,
         });
         const issue = await this.issuesService.create(input, user);
         return `Created ${formatIssueLine(project.key, issue)}`;
     }
 
-    async updateIssue({ key, epic, addLinks = [], removeLinks = [], ...fields }: UpdateIssueArgs, user: User): Promise<string> {
+    async updateIssue(
+        { key, epic, addLinks = [], removeLinks = [], addLabels = [], removeLabels = [], ...fields }: UpdateIssueArgs,
+        user: User,
+    ): Promise<string> {
         const issue = await this.findIssue(key, user);
         const project = await issue.project.loadOrFail();
 
         // Everything is checked before the first change, so a wrong argument changes nothing
         const epicId = epic ? (await this.findEpic(project, epic, user)).id : undefined;
-        const input = validateInput(UpdateIssueInput, { ...fields, epicId });
+        const labelIds =
+            addLabels.length > 0 || removeLabels.length > 0 ? await this.changeLabelIds({ key, issue, addLabels, removeLabels }) : undefined;
+        const input = validateInput(UpdateIssueInput, { ...fields, epicId, labelIds });
         const linksToAdd = addLinks.map((url) => validateInput(IssueLinkInput, { issueId: issue.id, url }));
         const existingLinks = await issue.links.loadItems();
         const linksToRemove = removeLinks.map((url) => {
@@ -179,7 +206,51 @@ export class McpToolsService {
         for (const link of linksToAdd) {
             await this.issuesService.addLink(link, user);
         }
+        await updatedIssue.labels.loadItems();
         return `Updated ${formatIssueLine(project.key, updatedIssue)}`;
+    }
+
+    // The API replaces the whole set of labels, so the changes are applied to the labels the issue has
+    private async changeLabelIds({ key, issue, addLabels, removeLabels }: LabelChanges): Promise<string[]> {
+        const currentLabelIds = (await issue.labels.loadItems()).map(({ id }) => id);
+        const labelIdsToRemove = new Set<string>();
+        for (const label of await this.findLabels(removeLabels)) {
+            if (!currentLabelIds.includes(label.id)) {
+                throw new BadRequestException(`${key} has no label ${label.name}`);
+            }
+            labelIdsToRemove.add(label.id);
+        }
+        const labelIdsToAdd = (await this.findLabels(addLabels)).map(({ id }) => id);
+        return [...new Set([...currentLabelIds.filter((id) => !labelIdsToRemove.has(id)), ...labelIdsToAdd])];
+    }
+
+    // Names in any case and with or without "#". A wrong name answers with the existing labels, so agents need no tool to list them.
+    private async findLabels(names: string[]): Promise<Label[]> {
+        if (names.length === 0) {
+            return [];
+        }
+        const allLabels = await this.loadAllLabels();
+        const labelsByName = new Map(allLabels.map((label) => [label.name.toLowerCase(), label]));
+        return names.map((name) => {
+            const label = labelsByName.get(name.trim().replace(/^#/, "").toLowerCase());
+            if (!label) {
+                const existingNames = allLabels.map((existingLabel) => existingLabel.name).join(", ") || "none";
+                throw new BadRequestException(`There is no label "${name}". Labels: ${existingNames}`);
+            }
+            return label;
+        });
+    }
+
+    // Labels belong to the whole instance and are few, so they are loaded in full
+    private async loadAllLabels(): Promise<Label[]> {
+        const labels: Label[] = [];
+        for (;;) {
+            const { nodes, totalCount } = await this.labelsService.findAll({ offset: labels.length, limit: MAX_PAGE_SIZE });
+            labels.push(...nodes);
+            if (nodes.length === 0 || labels.length >= totalCount) {
+                return labels;
+            }
+        }
     }
 
     // One query per project instead of one per issue, the issues of a list share few projects

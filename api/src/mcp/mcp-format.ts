@@ -15,8 +15,28 @@ export function formatEpicLine({ id, name, isDefault, issueCount, doneIssueCount
     return [name + (isDefault ? " (default)" : ""), `${doneIssueCount}/${issueCount} done`, `id ${id}`].join(SEPARATOR);
 }
 
-export function formatIssueLine(projectKey: string, { number, type, priority, status, dueDate, title }: Issue): string {
-    return [`${projectKey}-${number}`, type, priority, status, ...(dueDate ? [`due ${dueDate}`] : []), title].join(SEPARATOR);
+// The labels must be loaded
+export function formatIssueLine(projectKey: string, { number, type, priority, status, dueDate, title, labels }: Issue): string {
+    // By name like the API, also for an issue that was just created with its labels in another order
+    const labelNames = labels
+        .getItems()
+        .map(({ name }) => name)
+        .sort((first, second) => first.localeCompare(second))
+        .map(formatLabel);
+    return [
+        `${projectKey}-${number}`,
+        type,
+        priority,
+        status,
+        ...(dueDate ? [`due ${dueDate}`] : []),
+        title,
+        ...(labelNames.length > 0 ? [labelNames.join(" ")] : []),
+    ].join(SEPARATOR);
+}
+
+// #upstream, or #"needs review" for a name with spaces, so the names stay apart
+function formatLabel(name: string): string {
+    return /\s/.test(name) ? `#"${name}"` : `#${name}`;
 }
 
 interface IssueDetails {

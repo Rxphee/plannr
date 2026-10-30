@@ -1,6 +1,7 @@
 import { Epic } from "@src/epics/entities/epic.entity.js";
 import { Issue, IssuePriority, IssueStatus, IssueType } from "@src/issues/entities/issue.entity.js";
 import { IssueLink, IssueLinkKind } from "@src/issues/entities/issue-link.entity.js";
+import { Label } from "@src/labels/entities/label.entity.js";
 import { ProjectStatus } from "@src/projects/entities/project.entity.js";
 import { describe, expect, it } from "vitest";
 
@@ -41,6 +42,15 @@ describe("formatIssueLine", () => {
         expect(formatIssueLine("WEB", createIssue({ dueDate: "2026-11-03" }))).toBe(
             "WEB-12 · bug · high · todo · due 2026-11-03 · Navigation collapses too late",
         );
+    });
+});
+
+describe("formatIssueLine with labels", () => {
+    it("appends the labels and quotes names with spaces", () => {
+        const labels = [Object.assign(new Label(), { name: "needs review" }), Object.assign(new Label(), { name: "upstream" })];
+        const issue = createIssue({ labels: { getItems: () => labels } as unknown as Issue["labels"] });
+
+        expect(formatIssueLine("WEB", issue)).toBe('WEB-12 · bug · high · todo · Navigation collapses too late · #"needs review" #upstream');
     });
 });
 

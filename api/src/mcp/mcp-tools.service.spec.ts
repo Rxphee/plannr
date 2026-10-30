@@ -4,6 +4,8 @@ import type { EpicsService } from "@src/epics/epics.service.js";
 import { Issue, IssuePriority, IssueStatus, IssueType } from "@src/issues/entities/issue.entity.js";
 import { IssueView } from "@src/issues/issue-views.js";
 import type { IssuesService } from "@src/issues/issues.service.js";
+import { Label } from "@src/labels/entities/label.entity.js";
+import type { LabelsService } from "@src/labels/labels.service.js";
 import { Project, ProjectStatus } from "@src/projects/entities/project.entity.js";
 import type { ProjectsService } from "@src/projects/projects.service.js";
 import { User } from "@src/users/user.entity.js";
@@ -19,6 +21,14 @@ const project = Object.assign(new Project(), {
     status: ProjectStatus.active,
 });
 const designEpic = Object.assign(new Epic(), { id: "0b7f3a52-5c1e-4f0e-9d39-2f4a8e6b1c7d", name: "Design" });
+const frontendLabel = Object.assign(new Label(), { id: "1a2b3c4d-5e6f-4a7b-8c9d-0e1f2a3b4c5d", name: "frontend" });
+const upstreamLabel = Object.assign(new Label(), { id: "2b3c4d5e-6f7a-4b8c-9d0e-1f2a3b4c5d6e", name: "upstream" });
+
+// Stands in for a loaded collection of labels
+function labelsOf(labels: Label[]) {
+    return { loadItems: async () => labels, getItems: () => labels };
+}
+
 const issue = Object.assign(new Issue(), {
     id: "5d2e8c1a-3f4b-4a6c-9e7d-8b1a2c3d4e5f",
     number: 12,
@@ -28,6 +38,7 @@ const issue = Object.assign(new Issue(), {
     status: IssueStatus.todo,
     project: { id: project.id, loadOrFail: async () => project },
     links: { loadItems: async () => [{ id: "link-1", url: "https://example.com/old" }] },
+    labels: labelsOf([frontendLabel]),
 });
 
 describe("McpToolsService", () => {
@@ -41,10 +52,12 @@ describe("McpToolsService", () => {
         addLink: vi.fn(),
         removeLink: vi.fn(),
     };
+    const labelsService = { findAll: vi.fn() };
     const tools = new McpToolsService(
         projectsService as unknown as ProjectsService,
         epicsService as unknown as EpicsService,
         issuesService as unknown as IssuesService,
+        labelsService as unknown as LabelsService,
     );
 
     beforeEach(() => {
@@ -53,6 +66,7 @@ describe("McpToolsService", () => {
         issuesService.findOneByKeyVisibleTo.mockImplementation(async (key: string) => (key === "WEB-12" ? issue : null));
         epicsService.findAll.mockResolvedValue({ nodes: [designEpic], totalCount: 1 });
         issuesService.findAll.mockResolvedValue({ nodes: [issue], totalCount: 1 });
+        labelsService.findAll.mockResolvedValue({ nodes: [frontendLabel, upstreamLabel], totalCount: 2 });
     });
 
     describe("listProjects", () => {
@@ -70,7 +84,7 @@ describe("McpToolsService", () => {
     describe("listIssues", () => {
         it("lists the open issues of the project by default", async () => {
             await expect(tools.listIssues({ project: "web" }, user)).resolves.toBe(
-                "Issues 1-1 of 1\nWEB-12 · bug · high · todo · Navigation collapses too late",
+                "Issues 1-1 of 1\nWEB-12 · bug · high · todo · Navigation collapses too late · #frontend",
             );
             expect(issuesService.findAll.mock.calls[0][0]).toMatchObject({
                 projectId: project.id,
@@ -105,6 +119,17 @@ describe("McpToolsService", () => {
             expect(answer.split("\n").map((line) => line.split(" · ")[0])).toEqual(["Issues 1-2 of 2", "APP-3", "WEB-12"]);
         });
 
+        it("finds the labels by name, in any case and with or without #", async () => {
+            await tools.listIssues({ project: "WEB", labels: ["#Upstream", "frontend"] }, user);
+            expect(issuesService.findAll.mock.calls[0][0]).toMatchObject({ filter: { labelIds: [upstreamLabel.id, frontendLabel.id] } });
+        });
+
+        it("names the existing labels for a wrong one", async () => {
+            await expect(tools.listIssues({ project: "WEB", labels: ["backend"] }, user)).rejects.toThrow(
+                'There is no label "backend". Labels: frontend, upstream',
+            );
+        });
+
         it("needs the project to find an epic", async () => {
             await expect(tools.listIssues({ epic: "Design" }, user)).rejects.toThrow(BadRequestException);
         });
@@ -121,7 +146,7 @@ describe("McpToolsService", () => {
 
     describe("createIssue", () => {
         it("creates a task with normal priority in the epic General unless told otherwise", async () => {
-            issuesService.create.mockResolvedValue(Object.assign(new Issue(), { number: 57, title: "Try MCP" }));
+            issuesService.create.mockResolvedValue(Object.assign(new Issue(), { number: 57, title: "Try MCP", labels: labelsOf([]) }));
 
             await expect(tools.createIssue({ project: "WEB", title: "  Try MCP " }, user)).resolves.toBe(
                 "Created WEB-57 · task · normal · todo · Try MCP",
@@ -133,9 +158,19 @@ describe("McpToolsService", () => {
                     title: "Try MCP",
                     type: IssueType.task,
                     priority: IssuePriority.normal,
+                    labelIds: [],
                 }),
                 user,
             );
+        });
+
+        it("adds the labels by name", async () => {
+            issuesService.create.mockResolvedValue(Object.assign(new Issue(), { number: 57, title: "Try MCP", labels: labelsOf([upstreamLabel]) }));
+
+            await expect(tools.createIssue({ project: "WEB", title: "Try MCP", labels: ["upstream"] }, user)).resolves.toBe(
+                "Created WEB-57 · task · normal · todo · Try MCP · #upstream",
+            );
+            expect(issuesService.create).toHaveBeenCalledWith(expect.objectContaining({ labelIds: [upstreamLabel.id] }), user);
         });
     });
 
@@ -154,13 +189,29 @@ describe("McpToolsService", () => {
                     },
                     user,
                 ),
-            ).resolves.toBe("Updated WEB-12 · bug · high · done · Navigation collapses too late");
+            ).resolves.toBe("Updated WEB-12 · bug · high · done · Navigation collapses too late · #frontend");
             expect(issuesService.update).toHaveBeenCalledWith(issue.id, expect.objectContaining({ status: IssueStatus.done, dueDate: null }), user);
             expect(issuesService.removeLink).toHaveBeenCalledWith("link-1", user);
             expect(issuesService.addLink).toHaveBeenCalledWith(expect.objectContaining({ issueId: issue.id, url: "https://example.com/new" }), user);
         });
 
+        it("applies added and removed labels to the labels of the issue", async () => {
+            issuesService.update.mockResolvedValue(Object.assign(new Issue(), issue, { labels: labelsOf([upstreamLabel]) }));
+
+            await tools.updateIssue({ key: "WEB-12", addLabels: ["upstream"], removeLabels: ["frontend"] }, user);
+            expect(issuesService.update).toHaveBeenCalledWith(issue.id, expect.objectContaining({ labelIds: [upstreamLabel.id] }), user);
+        });
+
+        it("keeps the labels without label changes", async () => {
+            issuesService.update.mockResolvedValue(issue);
+
+            await tools.updateIssue({ key: "WEB-12", status: IssueStatus.done }, user);
+            expect(issuesService.update.mock.calls[0][1].labelIds).toBeUndefined();
+        });
+
         it.each([
+            ["a label the issue does not have", { removeLabels: ["upstream"] }],
+            ["a label that does not exist", { addLabels: ["backend"] }],
             ["a link that is no URL", { addLinks: ["javascript:alert(1)"] }],
             ["a link the issue does not have", { removeLinks: ["https://example.com/missing"] }],
             ["a due date that is no day", { dueDate: "next week" }],

@@ -23,6 +23,7 @@ const pagination = {
     offset: z.number().int().min(0).optional(),
     limit: z.number().int().min(1).max(MAX_PAGE_SIZE).optional().describe("Default 25"),
 };
+const labelNames = z.array(z.string()).optional();
 const dueDate = z.string().nullable().optional().describe("YYYY-MM-DD, null removes it");
 
 const readOnly = { readOnlyHint: true, openWorldHint: false };
@@ -82,7 +83,7 @@ function createMcpServer(tools: McpToolsService, user: User): McpServer {
     server.registerTool(
         "list_issues",
         {
-            description: "List issues, newest first. Line: key · type · priority · status · due date · title",
+            description: "List issues, newest first. Line: key · type · priority · status · due date · title · #labels",
             inputSchema: {
                 project: projectKey.optional().describe("Project key; without, all active and paused projects"),
                 view: z
@@ -93,6 +94,7 @@ function createMcpServer(tools: McpToolsService, user: User): McpServer {
                 statuses: z.array(z.enum(IssueStatus)).optional().describe("Default todo and inProgress, none with a view"),
                 types: z.array(z.enum(IssueType)).optional(),
                 priorities: z.array(z.enum(IssuePriority)).optional(),
+                labels: labelNames.describe("Label names, any of them"),
                 search: z.string().optional().describe("Part of the title, or an issue number"),
                 ...pagination,
             },
@@ -123,6 +125,7 @@ function createMcpServer(tools: McpToolsService, user: User): McpServer {
                 priority: z.enum(IssuePriority).optional().describe("Default normal"),
                 dueDate,
                 description: z.string().optional().describe("Markdown"),
+                labels: labelNames.describe("Label names"),
             },
             annotations: { openWorldHint: false },
         },
@@ -144,6 +147,8 @@ function createMcpServer(tools: McpToolsService, user: User): McpServer {
                 description: z.string().optional().describe("Markdown, replaces the old one"),
                 addLinks: z.array(z.string()).optional().describe("URLs, e.g. a GitHub pull request"),
                 removeLinks: z.array(z.string()).optional().describe("URLs"),
+                addLabels: labelNames.describe("Label names"),
+                removeLabels: labelNames,
             },
             annotations: { idempotentHint: true, openWorldHint: false },
         },
