@@ -8,6 +8,7 @@ import { fetchEpicOptions } from "../epics/fetchEpicOptions";
 import { CreateIssueDialog } from "./CreateIssueDialog";
 import { parseIssueListParams } from "./issueListParams";
 import { IssueListView } from "./IssueListView";
+import { IssueViewTabs } from "./IssueViewTabs";
 import { issuesPageQuery } from "./page.gql";
 import type { GQLIssuesPageQuery, GQLIssuesPageQueryVariables } from "./page.gql.generated";
 
@@ -18,6 +19,8 @@ export default async function IssuesPage({ params, searchParams }: PageProps<"/p
         notFound();
     }
     const project = { ...data.project, epics: await fetchEpicOptions(data.project.id) };
+    const path = `/projects/${project.key}/issues`;
+    const listParams = parseIssueListParams(await searchParams);
 
     const defaultEpic = project.epics.find((epic) => epic.isDefault);
     const createAction = project.canContribute && defaultEpic && <CreateIssueDialog project={project} epicId={defaultEpic.id} />;
@@ -31,14 +34,14 @@ export default async function IssuesPage({ params, searchParams }: PageProps<"/p
                     { label: "Issues" },
                 ]}
             />
-            <PageIntro title="Issues" description={`The tasks and bugs of ${project.name}, newest first.`} actions={createAction} />
+            <PageIntro
+                title="Issues"
+                description={`The tasks and bugs of ${project.name}, ${listParams.view === "due" ? "the soonest due first" : "newest first"}.`}
+                actions={createAction}
+                tabs={<IssueViewTabs projectId={project.id} path={path} params={listParams} />}
+            />
             <PageContent>
-                <IssueListView
-                    project={project}
-                    path={`/projects/${project.key}/issues`}
-                    params={parseIssueListParams(await searchParams)}
-                    createAction={createAction}
-                />
+                <IssueListView project={project} path={path} params={listParams} createAction={createAction} />
             </PageContent>
         </>
     );
