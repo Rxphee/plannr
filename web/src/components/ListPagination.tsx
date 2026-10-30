@@ -48,7 +48,10 @@ export function ListPagination({ pagination, totalCount, href, className }: List
                 <span>Per page</span>
                 <PageSizeSelect
                     pageSize={pageSize}
-                    hrefs={PAGE_SIZES.map((size) => ({ pageSize: size, href: href({ page: pageWithSize(pagination, size), pageSize: size }) }))}
+                    hrefs={PAGE_SIZES.map((size) => ({
+                        pageSize: size,
+                        href: href({ ...pagination, page: pageWithSize(pagination, size), pageSize: size }),
+                    }))}
                 />
             </div>
             <div className="flex items-center gap-3">

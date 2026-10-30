@@ -4,7 +4,15 @@ import { isIssueListFiltered, issueListHref, type IssueListParams, parseIssueLis
 
 const epicId = "0b7f3a52-5c1e-4f0e-9d39-2f4a8e6b1c7d";
 const otherEpicId = "6e2d9c41-8a3b-4b7f-a1e5-3c9d7f2b8e60";
-const openIssues: IssueListParams = { statuses: ["todo", "inProgress"], types: [], priorities: [], epics: [], page: 1, pageSize: 25 };
+const openIssues: IssueListParams = {
+    statuses: ["todo", "inProgress"],
+    types: [],
+    priorities: [],
+    epics: [],
+    page: 1,
+    pageSize: 25,
+    defaultPageSize: 25,
+};
 
 describe("parseIssueListParams", () => {
     it("starts with the open issues on the first page", () => {
@@ -30,6 +38,7 @@ describe("parseIssueListParams", () => {
             search: "header",
             page: 3,
             pageSize: 50,
+            defaultPageSize: 25,
         });
     });
 
@@ -103,6 +112,7 @@ describe("issueListHref", () => {
             search: "a,b",
             page: 2,
             pageSize: 100,
+            defaultPageSize: 25,
         };
         const query = new URL(issueListHref("/issues", params), "http://localhost").searchParams;
         expect(parseIssueListParams(Object.fromEntries(query))).toEqual(params);
