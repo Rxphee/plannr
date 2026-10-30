@@ -1,5 +1,6 @@
 import type { EntityManager } from "@mikro-orm/postgresql";
 import type { EpicsService } from "@src/epics/epics.service.js";
+import { InstanceRolesService } from "@src/instance-roles/instance-roles.service.js";
 import type { LabelsService } from "@src/labels/labels.service.js";
 import { Project, ProjectStatus } from "@src/projects/entities/project.entity.js";
 import { ProjectsService } from "@src/projects/projects.service.js";
@@ -24,6 +25,7 @@ async function findAll(args: Partial<IssuesArgs>, { isAdmin = false } = {}) {
         { findOneVisibleById: vi.fn().mockResolvedValue(project) } as unknown as ProjectsService,
         {} as EpicsService,
         {} as LabelsService,
+        new InstanceRolesService([]),
     );
 
     await service.findAll({ offset: 0, limit: 25, ...args }, user);
@@ -107,9 +109,10 @@ describe("IssuesService.delete", () => {
         const entityManager = { findOne: vi.fn(async () => ({ project: { loadOrFail: async () => project } })), remove: vi.fn() };
         const service = new IssuesService(
             entityManager as unknown as EntityManager,
-            new ProjectsService(entityManager as unknown as EntityManager),
+            new ProjectsService(entityManager as unknown as EntityManager, new InstanceRolesService([])),
             {} as EpicsService,
             {} as LabelsService,
+            new InstanceRolesService([]),
         );
 
         await expect(service.delete("0b7f3a52-5c1e-4f0e-9d39-2f4a8e6b1c7d", Object.assign(new User(), { isAdmin: true }))).rejects.toThrow(

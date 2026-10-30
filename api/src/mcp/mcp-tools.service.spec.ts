@@ -2,6 +2,7 @@ import type { EntityManager } from "@mikro-orm/postgresql";
 import { BadRequestException, NotFoundException } from "@nestjs/common";
 import { Epic } from "@src/epics/entities/epic.entity.js";
 import type { EpicsService } from "@src/epics/epics.service.js";
+import { InstanceRolesService } from "@src/instance-roles/instance-roles.service.js";
 import { Issue, IssuePriority, IssueStatus, IssueType } from "@src/issues/entities/issue.entity.js";
 import { IssueView } from "@src/issues/issue-views.js";
 import { IssuesService } from "@src/issues/issues.service.js";
@@ -236,8 +237,15 @@ describe("McpToolsService with the real permission checks", () => {
             transactional: vi.fn(async (work: () => Promise<unknown>) => work()),
             create: vi.fn(),
         };
-        const projectsService = new ProjectsService(entityManager as unknown as EntityManager);
-        const issuesService = new IssuesService(entityManager as unknown as EntityManager, projectsService, {} as EpicsService, {} as LabelsService);
+        const instanceRoles = new InstanceRolesService([]);
+        const projectsService = new ProjectsService(entityManager as unknown as EntityManager, instanceRoles);
+        const issuesService = new IssuesService(
+            entityManager as unknown as EntityManager,
+            projectsService,
+            {} as EpicsService,
+            {} as LabelsService,
+            instanceRoles,
+        );
         const tools = new McpToolsService(projectsService, {} as EpicsService, issuesService, {} as LabelsService);
 
         await expect(tools.createIssue({ project: "HOL", title: "Book the train" }, Object.assign(new User(), { isAdmin: true }))).rejects.toThrow(

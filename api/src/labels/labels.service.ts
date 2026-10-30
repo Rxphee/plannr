@@ -1,6 +1,7 @@
 import { EntityManager, UniqueConstraintViolationException } from "@mikro-orm/postgresql";
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
 import type { PaginationArgs } from "@src/common/pagination.args.js";
+import { InstanceRolesService } from "@src/instance-roles/instance-roles.service.js";
 import type { User } from "@src/users/user.entity.js";
 
 import type { CreateLabelInput } from "./dto/create-label.input.js";
@@ -10,7 +11,10 @@ import { Label } from "./entities/label.entity.js";
 
 @Injectable()
 export class LabelsService {
-    constructor(private readonly entityManager: EntityManager) {}
+    constructor(
+        private readonly entityManager: EntityManager,
+        private readonly instanceRoles: InstanceRolesService,
+    ) {}
 
     // Sorted by name, then by ID, so that the order stays the same across pages
     async findAll({ offset, limit }: PaginationArgs): Promise<PaginatedLabels> {
@@ -30,7 +34,7 @@ export class LabelsService {
 
     // Labels belong to the whole instance, so only admins manage them
     canManage(user: User): boolean {
-        return user.isAdmin;
+        return this.instanceRoles.hasAdminRights(user);
     }
 
     async create(input: CreateLabelInput, user: User): Promise<Label> {

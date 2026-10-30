@@ -38,7 +38,7 @@ Plannr logs in through OpenID Connect. In development a local Keycloak (started 
 
 | Login   | Name             | Role in the demo data               |
 | ------- | ---------------- | ----------------------------------- |
-| `admin` | Ada Admin        | admin, sees all projects            |
+| `admin` | Ada Admin        | super-admin, sees all projects      |
 | `max`   | Max Mustermann   | owns most projects                  |
 | `erika` | Erika Mustermann | member of one project, owns another |
 

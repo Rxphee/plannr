@@ -22,6 +22,8 @@ export const sidebarCurrentUserQuery = gql`
             firstName
             lastName
             email
+            instanceRole
         }
+        canAppointAdmins
     }
 `;

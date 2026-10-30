@@ -10,6 +10,7 @@ import { DbModule } from "./db/db.module.js";
 import { FixturesModule } from "./db/fixtures/fixtures.module.js";
 import { EpicsModule } from "./epics/epics.module.js";
 import { HealthcheckModule } from "./healthcheck/healthcheck.module.js";
+import { InstanceRolesModule } from "./instance-roles/instance-roles.module.js";
 import { IssuesModule } from "./issues/issues.module.js";
 import { LabelsModule } from "./labels/labels.module.js";
 import { McpModule } from "./mcp/mcp.module.js";
@@ -22,6 +23,7 @@ export class AppModule {
             module: AppModule,
             imports: [
                 DbModule,
+                InstanceRolesModule.forRoot(config),
                 AuthModule.forRoot(config),
                 GraphQLModule.forRoot<ApolloDriverConfig>({
                     driver: ApolloDriver,

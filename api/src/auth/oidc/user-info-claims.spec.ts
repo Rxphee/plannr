@@ -26,6 +26,15 @@ describe("UserInfoClaims", () => {
     });
 
     it.each([
+        [true, true],
+        [false, false],
+        ["true", false],
+        [undefined, false],
+    ])("reads email_verified %j as %j", (emailVerified, expected) => {
+        expect(validate({ email_verified: emailVerified }).claims.email_verified).toBe(expected);
+    });
+
+    it.each([
         ["sub", { sub: undefined }],
         ["email", { email: "no-email" }],
         ["email", { email: undefined }],

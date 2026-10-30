@@ -14,7 +14,7 @@ import {
 } from "@src/components/ui/Sidebar";
 import { fetchAllPages } from "@src/util/fetchAllPages";
 import { graphQLFetch } from "@src/util/graphQLFetch";
-import { LayoutGridIcon, TagIcon } from "lucide-react";
+import { LayoutGridIcon, TagIcon, UsersIcon } from "lucide-react";
 
 import { SidebarSearchButton } from "../commandMenu/SidebarSearchButton";
 import { sidebarCurrentUserQuery, sidebarProjectsQuery } from "./AppSidebar.gql";
@@ -26,7 +26,7 @@ import { UserMenu } from "./UserMenu";
 export type SidebarProject = GQLSidebarProjectsQuery["projects"]["nodes"][number];
 
 export async function AppSidebar({ theme }: { theme: Theme }) {
-    const [projects, { currentUser }] = await Promise.all([
+    const [projects, { currentUser, canAppointAdmins }] = await Promise.all([
         // All of them, so that the sidebar finds the open project by its key
         fetchAllPages(async (pagination) => {
             const data = await graphQLFetch<GQLSidebarProjectsQuery, GQLSidebarProjectsQueryVariables>(sidebarProjectsQuery, pagination);
@@ -60,6 +60,14 @@ export async function AppSidebar({ theme }: { theme: Theme }) {
                                 <span>Labels</span>
                             </SidebarNavLink>
                         </SidebarMenuItem>
+                        {canAppointAdmins && (
+                            <SidebarMenuItem>
+                                <SidebarNavLink href="/users" tooltip="Users" className="h-9">
+                                    <UsersIcon />
+                                    <span>Users</span>
+                                </SidebarNavLink>
+                            </SidebarMenuItem>
+                        )}
                     </SidebarMenu>
                 </SidebarGroup>
             </SidebarContent>
