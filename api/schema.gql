@@ -8,6 +8,31 @@ input AddProjectMembersInput {
   userIds: [ID!]!
 }
 
+type ApiToken {
+  createdAt: DateTime!
+
+  """Without a date the token stays valid until it is revoked"""
+  expiresAt: DateTime
+  id: ID!
+
+  """Accurate to a minute"""
+  lastUsedAt: DateTime
+
+  """
+  Chosen by the user to tell the tokens apart, e.g. the device or tool that uses it
+  """
+  name: String!
+
+  """The start of the token without the secret, to recognize it"""
+  prefix: String!
+}
+
+input CreateApiTokenInput {
+  """Without a date the token stays valid until it is revoked"""
+  expiresAt: DateTime
+  name: String!
+}
+
 input CreateEpicInput {
   """Markdown"""
   description: String! = ""
@@ -43,6 +68,15 @@ input CreateProjectInput {
   """2 to 5 uppercase letters, fixed after creation"""
   key: String!
   name: String!
+}
+
+type CreatedApiToken {
+  apiToken: ApiToken!
+
+  """
+  The token to send as `Authorization: Bearer <token>`. Only returned here, Plannr keeps nothing but its hash
+  """
+  token: String!
 }
 
 """
@@ -198,6 +232,9 @@ type Mutation {
   """Fails if the project would lose its last owner"""
   changeProjectMemberRole(input: ProjectMemberInput!): ProjectMember!
   changeProjectStatus(id: ID!, status: ProjectStatus!): Project!
+
+  """Creates an API token that logs in the current user"""
+  createApiToken(input: CreateApiTokenInput!): CreatedApiToken!
   createEpic(input: CreateEpicInput!): Epic!
   createIssue(input: CreateIssueInput!): Issue!
   createLabel(input: CreateLabelInput!): Label!
@@ -218,10 +255,22 @@ type Mutation {
 
   """Fails if the project would lose its last owner"""
   removeProjectMember(projectId: ID!, userId: ID!): Boolean!
+
+  """
+  Revokes an API token of the current user, every request with it fails from now on
+  """
+  revokeApiToken(id: ID!): Boolean!
   updateEpic(id: ID!, input: UpdateEpicInput!): Epic!
   updateIssue(id: ID!, input: UpdateIssueInput!): Issue!
   updateLabel(id: ID!, input: UpdateLabelInput!): Label!
   updateProject(id: ID!, input: UpdateProjectInput!): Project!
+}
+
+type PaginatedApiTokens {
+  nodes: [ApiToken!]!
+
+  """All entries that match, not only the ones on this page"""
+  totalCount: Int!
 }
 
 type PaginatedEpics {
@@ -327,6 +376,9 @@ enum ProjectStatus {
 }
 
 type Query {
+  """The API tokens of the current user that are not revoked, newest first"""
+  apiTokens(limit: Int! = 25, offset: Int! = 0): PaginatedApiTokens!
+
   """Whether the current user can create, edit and delete labels"""
   canManageLabels: Boolean!
 

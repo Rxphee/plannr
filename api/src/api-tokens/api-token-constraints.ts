@@ -1,0 +1,1 @@
+export const API_TOKEN_NAME_MAX_LENGTH = 80;

@@ -3,6 +3,7 @@ import { type DynamicModule, Module } from "@nestjs/common";
 import { GraphQLModule } from "@nestjs/graphql";
 import { GraphQLError } from "graphql";
 
+import { ApiTokensModule } from "./api-tokens/api-tokens.module.js";
 import { AuthModule } from "./auth/auth.module.js";
 import type { Config } from "./config/config.js";
 import { DbModule } from "./db/db.module.js";
@@ -43,6 +44,7 @@ export class AppModule {
                 EpicsModule,
                 IssuesModule,
                 LabelsModule,
+                ApiTokensModule,
                 FixturesModule,
             ],
         };
