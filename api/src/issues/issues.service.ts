@@ -2,6 +2,7 @@ import { EntityManager, type FilterQuery, LockMode, type QueryOrderMap, ref } fr
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
 import { containsPattern } from "@src/db/contains-pattern.js";
 import { EpicsService } from "@src/epics/epics.service.js";
+import { InstanceRolesService } from "@src/instance-roles/instance-roles.service.js";
 import { LabelsService } from "@src/labels/labels.service.js";
 import { Project, ProjectStatus } from "@src/projects/entities/project.entity.js";
 import { ProjectsService } from "@src/projects/projects.service.js";
@@ -24,6 +25,7 @@ export class IssuesService {
         private readonly projectsService: ProjectsService,
         private readonly epicsService: EpicsService,
         private readonly labelsService: LabelsService,
+        private readonly instanceRoles: InstanceRolesService,
     ) {}
 
     // Newest first, the view of due issues the soonest due first
@@ -71,7 +73,7 @@ export class IssuesService {
         const { projectKey, number } = issueKey;
         return this.entityManager.findOne(Issue, {
             number,
-            project: user.isAdmin ? { key: projectKey } : { key: projectKey, members: { user } },
+            project: this.instanceRoles.hasAdminRights(user) ? { key: projectKey } : { key: projectKey, members: { user } },
         });
     }
 
@@ -144,11 +146,14 @@ export class IssuesService {
     // Archived projects are left out, like in the project switcher
     private openProjectsVisibleTo(user: User): FilterQuery<Project> {
         const status = { $in: [ProjectStatus.active, ProjectStatus.paused] };
-        return user.isAdmin ? { status } : { status, members: { user } };
+        return this.instanceRoles.hasAdminRights(user) ? { status } : { status, members: { user } };
     }
 
     private async findOneOrFail(id: string, user: User): Promise<Issue> {
-        const issue = await this.entityManager.findOne(Issue, user.isAdmin ? { id } : { id, project: { members: { user } } });
+        const issue = await this.entityManager.findOne(
+            Issue,
+            this.instanceRoles.hasAdminRights(user) ? { id } : { id, project: { members: { user } } },
+        );
         if (!issue) {
             throw new NotFoundException("The issue does not exist");
         }

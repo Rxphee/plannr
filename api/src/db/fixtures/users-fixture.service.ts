@@ -7,7 +7,8 @@ import { developmentUsers } from "./development-users.js";
 
 // The first three can log in at the local identity provider, see README.md
 export interface FixtureUsers {
-    // An admin who is a member of no project, but sees all of them
+    // The super-admin (SUPER_ADMIN_EMAILS in .env), who is a member of no project, but sees all of them.
+    // Also an admin, so she keeps the admin rights without SUPER_ADMIN_EMAILS.
     admin: User;
     // Max Mustermann, who owns most projects
     developmentUser: User;
@@ -46,20 +47,23 @@ export class UsersFixtureService {
         const developmentUser = await this.usersService.syncIdentity(developmentUsers.max);
         const otherUser = await this.usersService.syncIdentity(developmentUsers.erika);
 
-        const team = teamNames.map(([firstName, lastName]) => this.createUser(firstName, lastName));
+        // The first one is an admin, so the list of users shows one next to the super-admin
+        const team = teamNames.map(([firstName, lastName], index) => this.createUser({ firstName, lastName, isAdmin: index === 0 }));
 
         await this.entityManager.flush();
 
         return { admin, developmentUser, otherUser, team };
     }
 
-    private createUser(firstName: string, lastName: string): User {
+    private createUser({ firstName, lastName, isAdmin }: { firstName: string; lastName: string; isAdmin: boolean }): User {
         const name = `${firstName}-${lastName}`.toLowerCase();
         return this.entityManager.create(User, {
             oidcSubject: `fixture-${name}`,
             firstName,
             lastName,
             email: `${name.replace("-", ".")}@plannr.localhost`,
+            isEmailVerified: true,
+            isAdmin,
         });
     }
 }

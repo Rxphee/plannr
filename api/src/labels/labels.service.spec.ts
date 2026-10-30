@@ -1,13 +1,14 @@
 import type { EntityManager } from "@mikro-orm/postgresql";
 import { BadRequestException, ForbiddenException } from "@nestjs/common";
+import { InstanceRolesService } from "@src/instance-roles/instance-roles.service.js";
 import { User } from "@src/users/user.entity.js";
 import { describe, expect, it, vi } from "vitest";
 
 import { Label, LabelColor } from "./entities/label.entity.js";
 import { LabelsService } from "./labels.service.js";
 
-function createUser(isAdmin: boolean): User {
-    return Object.assign(new User(), { firstName: "Anna", lastName: "Pichler", email: "anna@plannr.localhost", oidcSubject: "anna", isAdmin });
+function createUser(isAdmin: boolean, { email = "anna@plannr.localhost", isEmailVerified = true } = {}): User {
+    return Object.assign(new User(), { firstName: "Anna", lastName: "Pichler", email, isEmailVerified, oidcSubject: "anna", isAdmin });
 }
 
 function createService(labels: Label[] = []) {
@@ -18,7 +19,8 @@ function createService(labels: Label[] = []) {
         flush: vi.fn(async () => {}),
         remove: vi.fn(() => entityManager),
     };
-    return { service: new LabelsService(entityManager as unknown as EntityManager), entityManager };
+    const instanceRoles = new InstanceRolesService(["ada@plannr.localhost"]);
+    return { service: new LabelsService(entityManager as unknown as EntityManager, instanceRoles), entityManager };
 }
 
 const upstream = Object.assign(new Label(), { name: "upstream", color: LabelColor.red });
@@ -28,6 +30,12 @@ describe("LabelsService", () => {
         const { service } = createService();
         expect(service.canManage(createUser(true))).toBe(true);
         expect(service.canManage(createUser(false))).toBe(false);
+    });
+
+    it("lets the super-admin manage labels without the admin flag", () => {
+        const { service } = createService();
+        expect(service.canManage(createUser(false, { email: "ada@plannr.localhost" }))).toBe(true);
+        expect(service.canManage(createUser(false, { email: "ada@plannr.localhost", isEmailVerified: false }))).toBe(false);
     });
 
     it("creates a label for an admin", async () => {

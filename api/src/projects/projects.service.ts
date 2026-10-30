@@ -3,6 +3,7 @@ import { BadRequestException, ForbiddenException, Injectable, NotFoundException 
 import { containsPattern } from "@src/db/contains-pattern.js";
 import { Epic } from "@src/epics/entities/epic.entity.js";
 import { DEFAULT_EPIC_NAME } from "@src/epics/epic-constraints.js";
+import { InstanceRolesService } from "@src/instance-roles/instance-roles.service.js";
 import { User } from "@src/users/user.entity.js";
 
 import type { AddProjectMembersInput } from "./dto/add-project-members.input.js";
@@ -18,11 +19,14 @@ import { ProjectMember, ProjectMemberRole } from "./entities/project-member.enti
 
 @Injectable()
 export class ProjectsService {
-    constructor(private readonly entityManager: EntityManager) {}
+    constructor(
+        private readonly entityManager: EntityManager,
+        private readonly instanceRoles: InstanceRolesService,
+    ) {}
 
     // Sorted by name, then by ID, so that two projects with the same name keep their order across pages
     async findAllVisibleTo({ statuses, search, offset, limit }: ProjectsArgs, user: User): Promise<PaginatedProjects> {
-        const where: FilterQuery<Project> = user.isAdmin ? {} : { members: { user } };
+        const where: FilterQuery<Project> = this.instanceRoles.hasAdminRights(user) ? {} : { members: { user } };
         if (statuses?.length) {
             where.status = { $in: statuses };
         }
@@ -38,11 +42,11 @@ export class ProjectsService {
     }
 
     async findOneVisibleTo(key: string, user: User): Promise<Project | null> {
-        return this.entityManager.findOne(Project, user.isAdmin ? { key } : { key, members: { user } });
+        return this.entityManager.findOne(Project, this.instanceRoles.hasAdminRights(user) ? { key } : { key, members: { user } });
     }
 
     async findOneVisibleById(id: string, user: User): Promise<Project> {
-        const project = await this.entityManager.findOne(Project, user.isAdmin ? { id } : { id, members: { user } });
+        const project = await this.entityManager.findOne(Project, this.instanceRoles.hasAdminRights(user) ? { id } : { id, members: { user } });
         if (!project) {
             throw new NotFoundException("The project does not exist");
         }
@@ -77,7 +81,7 @@ export class ProjectsService {
 
     // Settings, status, deletion and members are up to the owners of a project and the admins
     async canManage(project: Project, user: User): Promise<boolean> {
-        if (user.isAdmin) {
+        if (this.instanceRoles.hasAdminRights(user)) {
             return true;
         }
         return (await this.findRole(project, user)) === ProjectMemberRole.owner;
@@ -89,7 +93,7 @@ export class ProjectsService {
         if (project.status === ProjectStatus.archived) {
             return false;
         }
-        if (user.isAdmin) {
+        if (this.instanceRoles.hasAdminRights(user)) {
             return true;
         }
         const role = await this.findRole(project, user);

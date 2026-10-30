@@ -104,6 +104,12 @@ type Epic {
   updatedAt: DateTime!
 }
 
+enum InstanceRole {
+  admin
+  superAdmin
+  user
+}
+
 type Issue {
   """When the issue was done or canceled, empty while it is open"""
   completedAt: DateTime
@@ -274,6 +280,9 @@ type Mutation {
   Revokes an API token of the current user, every request with it fails from now on
   """
   revokeApiToken(id: ID!): Boolean!
+
+  """Appoints or removes an admin, only for the super-admin"""
+  setUserAdmin(id: ID!, isAdmin: Boolean!): User!
   updateEpic(id: ID!, input: UpdateEpicInput!): Epic!
   updateIssue(id: ID!, input: UpdateIssueInput!): Issue!
   updateLabel(id: ID!, input: UpdateLabelInput!): Label!
@@ -393,6 +402,11 @@ type Query {
   """The API tokens of the current user that are not revoked, newest first"""
   apiTokens(limit: Int! = 25, offset: Int! = 0): PaginatedApiTokens!
 
+  """
+  Whether the current user can appoint and remove admins, which only the super-admin can
+  """
+  canAppointAdmins: Boolean!
+
   """Whether the current user can create, edit and delete labels"""
   canManageLabels: Boolean!
 
@@ -453,7 +467,15 @@ type Query {
   ): PaginatedProjects!
 
   """All users who have logged in at least once, sorted by name"""
-  users(limit: Int! = 25, offset: Int! = 0): PaginatedUsers!
+  users(
+    limit: Int! = 25
+    offset: Int! = 0
+
+    """
+    Words that each appear in the first name, last name or email, e.g. a full name
+    """
+    search: String
+  ): PaginatedUsers!
 }
 
 input UpdateEpicInput {
@@ -498,6 +520,15 @@ type User {
   email: String!
   firstName: String!
   id: ID!
+
+  """
+  The role in the whole instance; the super-admin comes from SUPER_ADMIN_EMAILS
+  """
+  instanceRole: InstanceRole!
+
+  """
+  Appointed by the super-admin, who has admin rights without it (see instanceRole)
+  """
   isAdmin: Boolean!
   lastName: String!
   updatedAt: DateTime!

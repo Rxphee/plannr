@@ -1,7 +1,9 @@
 import { type EntityManager, UniqueConstraintViolationException } from "@mikro-orm/postgresql";
+import { BadRequestException, ForbiddenException, NotFoundException } from "@nestjs/common";
+import { InstanceRolesService } from "@src/instance-roles/instance-roles.service.js";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import type { User } from "./user.entity.js";
+import { User } from "./user.entity.js";
 import { type UserIdentity, UsersService } from "./users.service.js";
 
 const identity: UserIdentity = {
@@ -32,7 +34,7 @@ describe("UsersService.syncIdentity", () => {
             flush: vi.fn(),
             fork: () => fork,
         };
-        usersService = new UsersService(entityManager as unknown as EntityManager);
+        usersService = new UsersService(entityManager as unknown as EntityManager, new InstanceRolesService([]));
     });
 
     it("creates the user on the first login", async () => {
@@ -66,5 +68,49 @@ describe("UsersService.syncIdentity", () => {
         fork.flush.mockRejectedValue(error);
 
         await expect(usersService.syncIdentity(identity)).rejects.toBe(error);
+    });
+});
+
+describe("UsersService.setAdmin", () => {
+    const instanceRoles = new InstanceRolesService(["ada@plannr.localhost"]);
+    const createUser = (email: string, isAdmin = false) =>
+        Object.assign(new User(), { id: email, firstName: "Max", lastName: "Mustermann", email, isEmailVerified: true, isAdmin });
+    const superAdmin = createUser("ada@plannr.localhost");
+
+    function createService(target: User | null) {
+        const entityManager = { findOne: vi.fn().mockResolvedValue(target), flush: vi.fn() };
+        return { service: new UsersService(entityManager as unknown as EntityManager, instanceRoles), entityManager };
+    }
+
+    it("lets the super-admin appoint and remove admins", async () => {
+        const max = createUser("max@plannr.localhost");
+        const { service, entityManager } = createService(max);
+
+        await expect(service.setAdmin({ id: max.id, isAdmin: true }, superAdmin)).resolves.toMatchObject({ isAdmin: true });
+        await expect(service.setAdmin({ id: max.id, isAdmin: false }, superAdmin)).resolves.toMatchObject({ isAdmin: false });
+        expect(entityManager.flush).toHaveBeenCalledTimes(2);
+    });
+
+    it.each([
+        ["an admin", createUser("erika@plannr.localhost", true)],
+        ["a user", createUser("erika@plannr.localhost")],
+        ["a user with the super-admin email address unverified", Object.assign(createUser("ada@plannr.localhost"), { isEmailVerified: false })],
+    ])("refuses %s", async (_name, actingUser) => {
+        const max = createUser("max@plannr.localhost");
+        const { service, entityManager } = createService(max);
+
+        await expect(service.setAdmin({ id: max.id, isAdmin: true }, actingUser)).rejects.toThrow(ForbiddenException);
+        expect(max.isAdmin).toBe(false);
+        expect(entityManager.flush).not.toHaveBeenCalled();
+    });
+
+    it("leaves the super-admin an admin", async () => {
+        const { service } = createService(superAdmin);
+        await expect(service.setAdmin({ id: superAdmin.id, isAdmin: false }, superAdmin)).rejects.toThrow(BadRequestException);
+    });
+
+    it("fails for an unknown user", async () => {
+        const { service } = createService(null);
+        await expect(service.setAdmin({ id: "unknown", isAdmin: true }, superAdmin)).rejects.toThrow(NotFoundException);
     });
 });

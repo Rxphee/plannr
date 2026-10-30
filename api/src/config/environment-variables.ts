@@ -1,5 +1,5 @@
-import { Type } from "class-transformer";
-import { IsIn, IsInt, IsNotEmpty, IsOptional, IsString, IsUrl } from "class-validator";
+import { Transform, Type } from "class-transformer";
+import { IsEmail, IsIn, IsInt, IsNotEmpty, IsOptional, IsString, IsUrl } from "class-validator";
 
 export class EnvironmentVariables {
     @IsIn(["development", "production", "test"])
@@ -38,4 +38,17 @@ export class EnvironmentVariables {
     @IsString()
     @IsNotEmpty()
     OIDC_AUDIENCE: string;
+
+    // Comma-separated, compared case-insensitively. An invalid address stops the start instead of leaving the instance without super-admin.
+    @IsOptional()
+    @Transform(({ value }) =>
+        typeof value === "string"
+            ? value
+                  .split(",")
+                  .map((email) => email.trim().toLowerCase())
+                  .filter((email) => email !== "")
+            : value,
+    )
+    @IsEmail({}, { each: true })
+    SUPER_ADMIN_EMAILS?: string[];
 }

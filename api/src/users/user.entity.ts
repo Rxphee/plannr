@@ -37,12 +37,13 @@ export class User {
     @IsEmail()
     email: string;
 
-    // "email_verified" of the identity provider, taken over on every login.
+    // "email_verified" of the identity provider, taken over on every login. Only a verified address makes a user super-admin.
     @Property()
     isEmailVerified: boolean = false;
 
+    // Whether a user has admin rights is up to InstanceRolesService, which counts the super-admin too
     @Property()
-    @Field()
+    @Field({ description: "Appointed by the super-admin, who has admin rights without it (see instanceRole)" })
     isAdmin: boolean = false;
 
     @Property({ type: "timestamp with time zone" })

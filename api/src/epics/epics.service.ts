@@ -1,6 +1,7 @@
 import { EntityManager, type FilterQuery } from "@mikro-orm/postgresql";
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
 import { containsPattern } from "@src/db/contains-pattern.js";
+import { InstanceRolesService } from "@src/instance-roles/instance-roles.service.js";
 import { Issue } from "@src/issues/entities/issue.entity.js";
 import type { Project } from "@src/projects/entities/project.entity.js";
 import { ProjectsService } from "@src/projects/projects.service.js";
@@ -17,6 +18,7 @@ export class EpicsService {
     constructor(
         private readonly entityManager: EntityManager,
         private readonly projectsService: ProjectsService,
+        private readonly instanceRoles: InstanceRolesService,
     ) {}
 
     // General first, then by name and ID, so that two epics with the same name keep their order across pages
@@ -35,7 +37,7 @@ export class EpicsService {
     }
 
     async findOneVisibleTo(id: string, user: User): Promise<Epic | null> {
-        return this.entityManager.findOne(Epic, user.isAdmin ? { id } : { id, project: { members: { user } } });
+        return this.entityManager.findOne(Epic, this.instanceRoles.hasAdminRights(user) ? { id } : { id, project: { members: { user } } });
     }
 
     async findDefault(project: Project): Promise<Epic> {

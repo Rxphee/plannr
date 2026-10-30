@@ -18,6 +18,7 @@ export function createConfig(processEnv: NodeJS.ProcessEnv) {
             issuer: envVars.OIDC_ISSUER,
             audience: envVars.OIDC_AUDIENCE,
         },
+        superAdminEmails: envVars.SUPER_ADMIN_EMAILS ?? [],
     };
 }
 
