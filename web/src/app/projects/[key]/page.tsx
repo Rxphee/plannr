@@ -46,6 +46,11 @@ export default async function ProjectPage({ params }: PageProps<"/projects/[key]
                 title={project.name}
                 icon={<ProjectIcon projectKey={project.key} size="xl" />}
                 badge={<ProjectStatusBadge status={project.status} />}
+                description={
+                    project.status === "archived"
+                        ? "Its epics and issues are read-only until an owner or admin sets the project back to active."
+                        : undefined
+                }
                 meta={
                     <>
                         <span className="font-mono">{project.key}</span>

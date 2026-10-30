@@ -56,17 +56,19 @@ export default async function EpicPage({ params, searchParams }: PageProps<"/pro
                 }
                 meta={<EpicProgress epic={epic} className="w-full max-w-sm" />}
                 actions={
-                    <>
-                        {createAction}
-                        {project.canContribute && <EditEpicDialog epic={epic} />}
-                        {project.canManage && !epic.isDefault && (
-                            <DeleteEpicDialog
-                                projectKey={project.key}
-                                epic={epic}
-                                otherEpics={project.epics.filter((otherEpic) => otherEpic.id !== epic.id)}
-                            />
-                        )}
-                    </>
+                    project.canContribute && (
+                        <>
+                            {createAction}
+                            <EditEpicDialog epic={epic} />
+                            {project.canManage && !epic.isDefault && (
+                                <DeleteEpicDialog
+                                    projectKey={project.key}
+                                    epic={epic}
+                                    otherEpics={project.epics.filter((otherEpic) => otherEpic.id !== epic.id)}
+                                />
+                            )}
+                        </>
+                    )
                 }
             />
             <PageContent className="grid gap-6">
