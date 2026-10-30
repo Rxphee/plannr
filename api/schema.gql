@@ -299,8 +299,17 @@ type Query {
   """
   issue(key: String!): Issue
 
-  """Issues of a project, newest first"""
-  issues(filter: IssueFilter, limit: Int! = 25, offset: Int! = 0, projectId: ID!): PaginatedIssues!
+  """Issues of a project or of all projects, newest first"""
+  issues(
+    filter: IssueFilter
+    limit: Int! = 25
+    offset: Int! = 0
+
+    """
+    Without a project, the issues of all active and paused projects the user can see
+    """
+    projectId: ID
+  ): PaginatedIssues!
 
   """The project with the key, if the current user can see it"""
   project(key: String!): Project

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { findIssueNumberIn, parseIssueKey } from "./issue-key.js";
+import { findIssueKeyIn, parseIssueKey } from "./issue-key.js";
 
 describe("parseIssueKey", () => {
     it("splits a key into project key and number", () => {
@@ -12,16 +12,16 @@ describe("parseIssueKey", () => {
     });
 });
 
-describe("findIssueNumberIn", () => {
+describe("findIssueKeyIn", () => {
     it.each([
-        ["42", 42],
-        ["WEB-42", 42],
-        ["web-7", 7],
-    ])("finds the number in %j", (search, number) => {
-        expect(findIssueNumberIn(search)).toBe(number);
+        ["42", { number: 42 }],
+        ["WEB-42", { projectKey: "WEB", number: 42 }],
+        ["web-7", { projectKey: "WEB", number: 7 }],
+    ])("finds the key in %j", (search, issueKey) => {
+        expect(findIssueKeyIn(search)).toEqual(issueKey);
     });
 
-    it.each(["header", "42 header", "1234567890"])("finds no number in %j", (search) => {
-        expect(findIssueNumberIn(search)).toBeUndefined();
+    it.each(["header", "42 header", "1234567890", "W-42"])("finds no key in %j", (search) => {
+        expect(findIssueKeyIn(search)).toBeUndefined();
     });
 });

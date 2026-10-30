@@ -38,9 +38,10 @@ export class IssueFilter {
 
 @ArgsType()
 export class IssuesArgs extends PaginationArgs {
+    @IsOptional()
     @IsUUID("4")
-    @Field(() => ID)
-    projectId: string;
+    @Field(() => ID, { nullable: true, description: "Without a project, the issues of all active and paused projects the user can see" })
+    projectId?: string;
 
     @IsOptional()
     @ValidateNested()
