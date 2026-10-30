@@ -6,6 +6,7 @@ import type { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
 import { HttpException, Logger } from "@nestjs/common";
 import { MAX_PAGE_SIZE } from "@src/common/pagination.args.js";
 import { IssuePriority, IssueStatus, IssueType } from "@src/issues/entities/issue.entity.js";
+import { IssueView } from "@src/issues/issue-views.js";
 import { ProjectStatus } from "@src/projects/entities/project.entity.js";
 import type { User } from "@src/users/user.entity.js";
 import { z } from "zod";
@@ -81,11 +82,15 @@ function createMcpServer(tools: McpToolsService, user: User): McpServer {
     server.registerTool(
         "list_issues",
         {
-            description: "List issues of a project, newest first. Line: key · type · priority · status · due date · title",
+            description: "List issues, newest first. Line: key · type · priority · status · due date · title",
             inputSchema: {
-                project: projectKey,
+                project: projectKey.optional().describe("Project key; without, all active and paused projects"),
+                view: z
+                    .enum(IssueView)
+                    .optional()
+                    .describe("Open issues only. focus: high priority, due: soonest first, pullRequests: with a PR link"),
                 epic: epic.optional(),
-                statuses: z.array(z.enum(IssueStatus)).optional().describe("Default todo and inProgress"),
+                statuses: z.array(z.enum(IssueStatus)).optional().describe("Default todo and inProgress, none with a view"),
                 types: z.array(z.enum(IssueType)).optional(),
                 priorities: z.array(z.enum(IssuePriority)).optional(),
                 search: z.string().optional().describe("Part of the title, or an issue number"),

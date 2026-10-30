@@ -8,6 +8,7 @@ import { IssueLinkInput } from "@src/issues/dto/issue-link.input.js";
 import { IssuesArgs } from "@src/issues/dto/issues.args.js";
 import { UpdateIssueInput } from "@src/issues/dto/update-issue.input.js";
 import { type Issue, IssuePriority, IssueStatus, IssueType } from "@src/issues/entities/issue.entity.js";
+import { IssueView } from "@src/issues/issue-views.js";
 import { IssuesService } from "@src/issues/issues.service.js";
 import { ProjectsArgs } from "@src/projects/dto/projects.args.js";
 import { type Project, ProjectStatus } from "@src/projects/entities/project.entity.js";
@@ -37,9 +38,11 @@ interface ListEpicsArgs extends PageArgs {
     search?: string;
 }
 
-// Labels and the fixed views of the issue list are added here once the API has them
+// Labels are added here once the API has them
 interface ListIssuesArgs extends PageArgs {
-    project: string;
+    // Without a project, the issues of all active and paused projects
+    project?: string;
+    view?: IssueView;
     epic?: string;
     statuses?: IssueStatus[];
     types?: IssueType[];
@@ -98,8 +101,10 @@ export class McpToolsService {
     async listIssues(
         {
             project: projectKey,
+            view,
             epic,
-            statuses = OPEN_STATUSES,
+            // A view shows open issues anyway
+            statuses = view ? undefined : OPEN_STATUSES,
             types,
             priorities,
             search,
@@ -108,11 +113,22 @@ export class McpToolsService {
         }: ListIssuesArgs,
         user: User,
     ): Promise<string> {
-        const project = await this.findProject(projectKey, user);
-        const epicIds = epic ? [(await this.findEpic(project, epic, user)).id] : undefined;
-        const args = validateInput(IssuesArgs, { projectId: project.id, filter: { epicIds, statuses, types, priorities, search }, offset, limit });
+        const project = projectKey ? await this.findProject(projectKey, user) : undefined;
+        if (epic && !project) {
+            throw new BadRequestException("An epic belongs to one project, pass the project too");
+        }
+        const epicIds = project && epic ? [(await this.findEpic(project, epic, user)).id] : undefined;
+        const args = validateInput(IssuesArgs, {
+            projectId: project?.id,
+            view,
+            filter: { epicIds, statuses, types, priorities, search },
+            offset,
+            limit,
+        });
         const { nodes, totalCount } = await this.issuesService.findAll(args, user);
-        return formatPage({ noun: "issues", offset, lines: nodes.map((issue) => formatIssueLine(project.key, issue)), totalCount });
+        const projectKeys = await this.loadProjectKeys(nodes);
+        const lines = nodes.map((issue) => formatIssueLine(projectKeys.get(issue.project.id) ?? "", issue));
+        return formatPage({ noun: "issues", offset, lines, totalCount });
     }
 
     async getIssue({ key }: { key: string }, user: User): Promise<string> {
@@ -164,6 +180,17 @@ export class McpToolsService {
             await this.issuesService.addLink(link, user);
         }
         return `Updated ${formatIssueLine(project.key, updatedIssue)}`;
+    }
+
+    // One query per project instead of one per issue, the issues of a list share few projects
+    private async loadProjectKeys(issues: Issue[]): Promise<Map<string, string>> {
+        const projectKeys = new Map<string, string>();
+        for (const { project } of issues) {
+            if (!projectKeys.has(project.id)) {
+                projectKeys.set(project.id, (await project.loadOrFail()).key);
+            }
+        }
+        return projectKeys;
     }
 
     private async findProject(key: string, user: User): Promise<Project> {

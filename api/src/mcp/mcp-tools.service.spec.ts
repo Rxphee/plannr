@@ -2,6 +2,7 @@ import { BadRequestException, NotFoundException } from "@nestjs/common";
 import { Epic } from "@src/epics/entities/epic.entity.js";
 import type { EpicsService } from "@src/epics/epics.service.js";
 import { Issue, IssuePriority, IssueStatus, IssueType } from "@src/issues/entities/issue.entity.js";
+import { IssueView } from "@src/issues/issue-views.js";
 import type { IssuesService } from "@src/issues/issues.service.js";
 import { Project, ProjectStatus } from "@src/projects/entities/project.entity.js";
 import type { ProjectsService } from "@src/projects/projects.service.js";
@@ -25,7 +26,7 @@ const issue = Object.assign(new Issue(), {
     type: IssueType.bug,
     priority: IssuePriority.high,
     status: IssueStatus.todo,
-    project: { loadOrFail: async () => project },
+    project: { id: project.id, loadOrFail: async () => project },
     links: { loadItems: async () => [{ id: "link-1", url: "https://example.com/old" }] },
 });
 
@@ -85,6 +86,27 @@ describe("McpToolsService", () => {
         it("asks for the ID if several epics have the name", async () => {
             epicsService.findAll.mockResolvedValue({ nodes: [designEpic, { ...designEpic, id: "other" }], totalCount: 2 });
             await expect(tools.listIssues({ project: "WEB", epic: "Design" }, user)).rejects.toThrow(/pass the ID/);
+        });
+
+        it("leaves the statuses to a view, which shows open issues anyway", async () => {
+            await tools.listIssues({ project: "WEB", view: IssueView.bugs }, user);
+            const [args] = issuesService.findAll.mock.calls[0];
+            expect(args).toMatchObject({ view: IssueView.bugs });
+            expect(args.filter.statuses).toBeUndefined();
+        });
+
+        it("lists the issues of all projects without a project, each line with its key", async () => {
+            const appProject = Object.assign(new Project(), { id: "9b4d6e2f-3c5e-4d7f-9a1b-2c3d4e5f6a70", key: "APP" });
+            const appIssue = Object.assign(new Issue(), issue, { number: 3, project: { id: appProject.id, loadOrFail: async () => appProject } });
+            issuesService.findAll.mockResolvedValue({ nodes: [appIssue, issue], totalCount: 2 });
+
+            const answer = await tools.listIssues({ view: IssueView.focus }, user);
+            expect(issuesService.findAll.mock.calls[0][0].projectId).toBeUndefined();
+            expect(answer.split("\n").map((line) => line.split(" · ")[0])).toEqual(["Issues 1-2 of 2", "APP-3", "WEB-12"]);
+        });
+
+        it("needs the project to find an epic", async () => {
+            await expect(tools.listIssues({ epic: "Design" }, user)).rejects.toThrow(BadRequestException);
         });
 
         it("refuses a project the user cannot see", async () => {
