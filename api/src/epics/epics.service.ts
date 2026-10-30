@@ -74,6 +74,7 @@ export class EpicsService {
         await this.entityManager.transactional(async () => {
             const epic = await this.findOneOrFail(id, user);
             const project = await epic.project.loadOrFail();
+            await this.projectsService.assertCanContribute(project, user);
             if (!(await this.projectsService.canManage(project, user))) {
                 throw new ForbiddenException("Only owners and admins can delete epics");
             }

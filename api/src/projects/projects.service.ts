@@ -83,8 +83,12 @@ export class ProjectsService {
         return (await this.findRole(project, user)) === ProjectMemberRole.owner;
     }
 
-    // Owners, members and admins create and edit epics and issues, viewers only read them
+    // Owners, members and admins create and edit epics and issues, viewers only read them.
+    // Archived projects are read-only for everyone until an owner or admin sets them back to active.
     async canContribute(project: Project, user: User): Promise<boolean> {
+        if (project.status === ProjectStatus.archived) {
+            return false;
+        }
         if (user.isAdmin) {
             return true;
         }
@@ -92,10 +96,15 @@ export class ProjectsService {
         return role === ProjectMemberRole.owner || role === ProjectMemberRole.member;
     }
 
+    // Every change to the epics and issues of a project goes through here, deleting them needs canManage on top
     async assertCanContribute(project: Project, user: User): Promise<void> {
-        if (!(await this.canContribute(project, user))) {
-            throw new ForbiddenException("Viewers can only read the epics and issues of the project");
+        if (await this.canContribute(project, user)) {
+            return;
         }
+        if (project.status === ProjectStatus.archived) {
+            throw new ForbiddenException("The project is archived. Set it back to active to change it");
+        }
+        throw new ForbiddenException("Viewers can only read the epics and issues of the project");
     }
 
     async create(input: CreateProjectInput, user: User): Promise<Project> {

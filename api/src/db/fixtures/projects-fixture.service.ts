@@ -10,7 +10,7 @@ import type { FixtureUsers } from "./users-fixture.service.js";
 export interface FixtureProjects {
     website: Project;
     app: Project;
-    // Archived, to check that deleting a project takes its epics and issues along
+    // Archived after its issues exist, to check that deleting a project takes its epics and issues along
     holiday: Project;
 }
 
@@ -46,10 +46,15 @@ export class ProjectsFixtureService {
         const move = await this.createProject(developmentUser, { name: "Office Move", key: "MOVE", description: "" }, ProjectStatus.paused);
         await this.addMembers(move, developmentUser, [[team[3], ProjectMemberRole.member]]);
 
-        const holiday = await this.createProject(developmentUser, { name: "Holiday Planning", key: "HOL", description: "" }, ProjectStatus.archived);
+        const holiday = await this.createProject(developmentUser, { name: "Holiday Planning", key: "HOL", description: "" });
         await this.createProject(otherUser, { name: "Secret Project", key: "SEC", description: "Only visible to its members and admins." });
 
         return { website, app, holiday };
+    }
+
+    // Runs after the epics and issues are generated, since archived projects are read-only
+    async archiveProjects({ holiday }: FixtureProjects, user: User): Promise<void> {
+        await this.projectsService.changeStatus(holiday.id, ProjectStatus.archived, user);
     }
 
     private async addMembers(project: Project, owner: User, members: [User, ProjectMemberRole][]): Promise<void> {
