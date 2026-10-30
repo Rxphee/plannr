@@ -66,7 +66,10 @@ export function FilterMenu<Value extends string>({ label, options, selected, onC
                 {selectedOptions.length > 0 && (
                     <>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem onClick={() => onChange([])} className="text-muted-foreground">
+                        <DropdownMenuItem
+                            onClick={() => onChange([])}
+                            className="text-muted-foreground focus:bg-destructive/10 focus:text-destructive focus:**:text-destructive dark:focus:bg-destructive/20"
+                        >
                             <XIcon />
                             Clear filter
                         </DropdownMenuItem>

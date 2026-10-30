@@ -264,7 +264,14 @@ type Query {
   epic(id: ID!): Epic
 
   """Epics of a project, General first, then by name"""
-  epics(limit: Int! = 25, offset: Int! = 0, projectId: ID!): PaginatedEpics!
+  epics(
+    limit: Int! = 25
+    offset: Int! = 0
+    projectId: ID!
+
+    """Part of the name"""
+    search: String
+  ): PaginatedEpics!
 
   """
   The issue with the key, e.g. KEY-42, if the current user can see its project
@@ -281,6 +288,9 @@ type Query {
   projects(
     limit: Int! = 25
     offset: Int! = 0
+
+    """Part of the name or key"""
+    search: String
 
     """Projects with any of the statuses, all projects without"""
     statuses: [ProjectStatus!]
