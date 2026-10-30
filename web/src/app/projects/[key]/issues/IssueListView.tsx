@@ -10,6 +10,7 @@ import { IssueList } from "./IssueList";
 import { isIssueListFiltered, issueListHref, type IssueListParams, toIssueFilter } from "./issueListParams";
 import { issueListQuery } from "./IssueListView.gql";
 import type { GQLIssueListQuery, GQLIssueListQueryVariables } from "./IssueListView.gql.generated";
+import { issueViews } from "./issueViews";
 
 interface IssueListViewProps {
     project: { id: string; key: string; epics: { id: string; name: string }[] };
@@ -26,10 +27,12 @@ interface IssueListViewProps {
 export async function IssueListView({ project, path, params, epicId, createAction }: IssueListViewProps) {
     const { issues } = await graphQLFetch<GQLIssueListQuery, GQLIssueListQueryVariables>(issueListQuery, {
         projectId: project.id,
+        view: params.view ?? null,
         filter: toIssueFilter(epicId ? { ...params, epics: [epicId] } : params),
         ...toOffsetAndLimit(params),
     });
     const isFiltered = isIssueListFiltered(params);
+    const view = params.view && issueViews[params.view];
 
     return (
         <div className="grid gap-4">
@@ -54,6 +57,11 @@ export async function IssueListView({ project, path, params, epicId, createActio
                                 <EmptyTitle>No matching issues</EmptyTitle>
                                 <EmptyDescription>Change the filters or the search to see more issues.</EmptyDescription>
                             </>
+                        ) : view ? (
+                            <>
+                                <EmptyTitle>{view.emptyTitle}</EmptyTitle>
+                                <EmptyDescription>{view.emptyDescription}</EmptyDescription>
+                            </>
                         ) : (
                             <>
                                 <EmptyTitle>No open issues</EmptyTitle>
@@ -63,7 +71,7 @@ export async function IssueListView({ project, path, params, epicId, createActio
                             </>
                         )}
                     </EmptyHeader>
-                    {!isFiltered && createAction && <EmptyContent>{createAction}</EmptyContent>}
+                    {!isFiltered && !view && createAction && <EmptyContent>{createAction}</EmptyContent>}
                 </Empty>
             )}
         </div>
