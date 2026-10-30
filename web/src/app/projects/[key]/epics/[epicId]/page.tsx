@@ -1,3 +1,4 @@
+import { fetchLabelOptions } from "@src/app/labels/fetchLabelOptions";
 import { PageContent } from "@src/components/layout/PageContent";
 import { PageHeader } from "@src/components/layout/PageHeader";
 import { PageIntro } from "@src/components/layout/PageIntro";
@@ -29,9 +30,10 @@ export default async function EpicPage({ params, searchParams }: PageProps<"/pro
         notFound();
     }
 
-    const project = { ...epic.project, epics: await fetchEpicOptions(epic.project.id) };
+    const [epics, labels] = await Promise.all([fetchEpicOptions(epic.project.id), fetchLabelOptions()]);
+    const project = { ...epic.project, epics };
     const path = `/projects/${project.key}/epics/${epic.id}`;
-    const createAction = project.canContribute && <CreateIssueDialog project={project} epicId={epic.id} />;
+    const createAction = project.canContribute && <CreateIssueDialog project={project} epicId={epic.id} labels={labels} />;
 
     return (
         <>
@@ -79,6 +81,7 @@ export default async function EpicPage({ params, searchParams }: PageProps<"/pro
                 )}
                 <IssueListView
                     project={project}
+                    labels={labels}
                     path={path}
                     params={parseIssueListParams(await searchParams)}
                     epicId={epic.id}

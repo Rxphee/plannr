@@ -4,11 +4,13 @@ import { isIssueListFiltered, issueListHref, type IssueListParams, parseIssueLis
 
 const epicId = "0b7f3a52-5c1e-4f0e-9d39-2f4a8e6b1c7d";
 const otherEpicId = "6e2d9c41-8a3b-4b7f-a1e5-3c9d7f2b8e60";
+const labelId = "9c4e2a71-3b5d-4f8e-a6c2-1d7b9e3f5a80";
 const openIssues: IssueListParams = {
     statuses: ["todo", "inProgress"],
     types: [],
     priorities: [],
     epics: [],
+    labels: [],
     page: 1,
     pageSize: 25,
     defaultPageSize: 25,
@@ -26,6 +28,7 @@ describe("parseIssueListParams", () => {
                 type: "bug",
                 priority: "high,low",
                 epic: `${epicId},${otherEpicId}`,
+                label: labelId,
                 search: " header ",
                 page: "3",
                 size: "50",
@@ -35,6 +38,7 @@ describe("parseIssueListParams", () => {
             types: ["bug"],
             priorities: ["high", "low"],
             epics: [epicId, otherEpicId],
+            labels: [labelId],
             search: "header",
             page: 3,
             pageSize: 50,
@@ -48,7 +52,16 @@ describe("parseIssueListParams", () => {
 
     it("ignores unknown values", () => {
         expect(
-            parseIssueListParams({ status: "blocked", type: "story,bug", priority: "urgent", epic: "42", search: "  ", page: "-2", size: "30" }),
+            parseIssueListParams({
+                status: "blocked",
+                type: "story,bug",
+                priority: "urgent",
+                epic: "42",
+                label: "upstream",
+                search: "  ",
+                page: "-2",
+                size: "30",
+            }),
         ).toEqual({
             ...openIssues,
             types: ["bug"],
@@ -65,6 +78,7 @@ describe("isIssueListFiltered", () => {
         ["other statuses", { statuses: ["done"] }],
         ["all statuses", { statuses: [] }],
         ["a type", { types: ["bug"] }],
+        ["a label", { labels: [labelId] }],
         ["a search", { search: "header" }],
         ["a later page", { page: 2 }],
     ])("is filtered with %s", (_, change) => {
@@ -83,6 +97,7 @@ describe("toIssueFilter", () => {
             types: null,
             priorities: ["high"],
             epicIds: null,
+            labelIds: null,
             search: null,
         });
     });
@@ -109,6 +124,7 @@ describe("issueListHref", () => {
             types: ["bug"],
             priorities: ["high", "low"],
             epics: [epicId],
+            labels: [labelId],
             search: "a,b",
             page: 2,
             pageSize: 100,

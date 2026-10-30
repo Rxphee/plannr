@@ -16,6 +16,7 @@ export interface IssueListParams extends Pagination {
     types: GQLIssueType[];
     priorities: GQLIssuePriority[];
     epics: string[];
+    labels: string[];
     search?: string;
 }
 
@@ -26,6 +27,11 @@ const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0
 function readParam(searchParams: SearchParams, name: string): string | undefined {
     const value = searchParams[name];
     return Array.isArray(value) ? value[0] : value;
+}
+
+// "id,id" becomes the IDs among them, e.g. of epics or labels
+function readIds(searchParams: SearchParams, name: string): string[] {
+    return (readParam(searchParams, name)?.split(",") ?? []).filter((id) => UUID_PATTERN.test(id));
 }
 
 // "todo,done" becomes the known values among them, in the order of the options
@@ -63,7 +69,8 @@ export function parseIssueListParams(searchParams: SearchParams): IssueListParam
             "priority",
             issuePriorityOptions.map(({ value }) => value),
         ),
-        epics: (readParam(searchParams, "epic")?.split(",") ?? []).filter((epic) => UUID_PATTERN.test(epic)),
+        epics: readIds(searchParams, "epic"),
+        labels: readIds(searchParams, "label"),
         search: parseSearch(searchParams),
         ...parsePagination(searchParams),
     };
@@ -74,11 +81,19 @@ function hasDefaultStatuses(statuses: GQLIssueStatus[]): boolean {
 }
 
 // Whether anything differs from the plain list of open issues; the page size is no filter
-export function isIssueListFiltered({ statuses, types, priorities, epics, search, page }: IssueListParams): boolean {
-    return !hasDefaultStatuses(statuses) || types.length > 0 || priorities.length > 0 || epics.length > 0 || Boolean(search) || page > 1;
+export function isIssueListFiltered({ statuses, types, priorities, epics, labels, search, page }: IssueListParams): boolean {
+    return (
+        !hasDefaultStatuses(statuses) ||
+        types.length > 0 ||
+        priorities.length > 0 ||
+        epics.length > 0 ||
+        labels.length > 0 ||
+        Boolean(search) ||
+        page > 1
+    );
 }
 
-export function toIssueFilter({ statuses, types, priorities, epics, search }: IssueListParams): GQLIssueFilter {
+export function toIssueFilter({ statuses, types, priorities, epics, labels, search }: IssueListParams): GQLIssueFilter {
     const listOrNull = <Value>(values: Value[]) => (values.length > 0 ? values : null);
 
     return {
@@ -86,12 +101,13 @@ export function toIssueFilter({ statuses, types, priorities, epics, search }: Is
         types: listOrNull(types),
         priorities: listOrNull(priorities),
         epicIds: listOrNull(epics),
+        labelIds: listOrNull(labels),
         search: search ?? null,
     };
 }
 
 // Leaves out the defaults, so the plain list keeps its plain URL
-export function issueListHref(path: string, { statuses, types, priorities, epics, search, ...pagination }: IssueListParams): string {
+export function issueListHref(path: string, { statuses, types, priorities, epics, labels, search, ...pagination }: IssueListParams): string {
     const searchParams = new URLSearchParams();
     if (!hasDefaultStatuses(statuses)) {
         searchParams.set("status", statuses.length > 0 ? statuses.join(",") : ALL_STATUSES);
@@ -100,6 +116,7 @@ export function issueListHref(path: string, { statuses, types, priorities, epics
         ["type", types],
         ["priority", priorities],
         ["epic", epics],
+        ["label", labels],
     ] as const) {
         if (values.length > 0) {
             searchParams.set(name, values.join(","));

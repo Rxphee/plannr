@@ -22,6 +22,11 @@ export const issuePageQuery = gql`
                 id
                 name
             }
+            labels {
+                id
+                name
+                color
+            }
             links {
                 id
                 url

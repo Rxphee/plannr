@@ -1,8 +1,10 @@
 "use client";
 
+import { toLabelSelectOptions } from "@src/app/labels/labelSelectOptions";
 import { FilterMenu } from "@src/components/FilterMenu";
 import { ResetButton } from "@src/components/ResetButton";
 import { SearchInput } from "@src/components/SearchInput";
+import type { GQLLabelColor } from "@src/graphql.generated";
 import { useDebouncedSearch } from "@src/hooks/useDebouncedSearch";
 import { cn } from "@src/lib/utils";
 import { useRouter } from "next/navigation";
@@ -16,9 +18,11 @@ interface IssueFiltersProps {
     params: IssueListParams;
     // Without epics the epic filter is hidden, e.g. on the page of an epic
     epics?: { id: string; name: string }[];
+    // Without labels the label filter is hidden
+    labels: { id: string; name: string; color: GQLLabelColor }[];
 }
 
-export function IssueFilters({ path, params, epics }: IssueFiltersProps) {
+export function IssueFilters({ path, params, epics, labels }: IssueFiltersProps) {
     const router = useRouter();
     const [pending, startTransition] = useTransition();
 
@@ -70,6 +74,14 @@ export function IssueFilters({ path, params, epics }: IssueFiltersProps) {
                     options={toEpicSelectOptions(epics)}
                     selected={params.epics}
                     onChange={(selected) => applyFilter({ epics: selected })}
+                />
+            )}
+            {labels.length > 0 && (
+                <FilterMenu
+                    label="Label"
+                    options={toLabelSelectOptions(labels)}
+                    selected={params.labels}
+                    onChange={(selected) => applyFilter({ labels: selected })}
                 />
             )}
             {isIssueListFiltered({ ...params, page: 1 }) && <ResetButton onClick={reset} />}

@@ -1,3 +1,4 @@
+import { fetchLabelOptions } from "@src/app/labels/fetchLabelOptions";
 import { PageContent } from "@src/components/layout/PageContent";
 import { PageHeader } from "@src/components/layout/PageHeader";
 import { PageIntro } from "@src/components/layout/PageIntro";
@@ -17,10 +18,11 @@ export default async function IssuesPage({ params, searchParams }: PageProps<"/p
     if (!data.project) {
         notFound();
     }
-    const project = { ...data.project, epics: await fetchEpicOptions(data.project.id) };
+    const [epics, labels] = await Promise.all([fetchEpicOptions(data.project.id), fetchLabelOptions()]);
+    const project = { ...data.project, epics };
 
     const defaultEpic = project.epics.find((epic) => epic.isDefault);
-    const createAction = project.canContribute && defaultEpic && <CreateIssueDialog project={project} epicId={defaultEpic.id} />;
+    const createAction = project.canContribute && defaultEpic && <CreateIssueDialog project={project} epicId={defaultEpic.id} labels={labels} />;
 
     return (
         <>
@@ -35,6 +37,7 @@ export default async function IssuesPage({ params, searchParams }: PageProps<"/p
             <PageContent>
                 <IssueListView
                     project={project}
+                    labels={labels}
                     path={`/projects/${project.key}/issues`}
                     params={parseIssueListParams(await searchParams)}
                     createAction={createAction}

@@ -1,8 +1,9 @@
 "use client";
 
+import { LabelBadge } from "@src/app/labels/LabelBadge";
 import { DatePicker } from "@src/components/DatePicker";
 import { OptionSelect } from "@src/components/OptionSelect";
-import type { GQLIssuePriority, GQLIssueStatus, GQLIssueType, GQLUpdateIssueInput } from "@src/graphql.generated";
+import type { GQLIssuePriority, GQLIssueStatus, GQLIssueType, GQLLabelColor, GQLUpdateIssueInput } from "@src/graphql.generated";
 import Link from "next/link";
 import { type ReactNode, useState, useTransition } from "react";
 
@@ -13,6 +14,9 @@ import { IssuePriorityIcon } from "../IssuePriorityIcon";
 import { issuePrioritySelectOptions, issueStatusSelectOptions, issueTypeSelectOptions, toEpicSelectOptions } from "../issueSelectOptions";
 import { IssueStatusBadge } from "../IssueStatusBadge";
 import { IssueTypeIcon } from "../IssueTypeIcon";
+import { IssueLabelsSelect } from "./IssueLabelsSelect";
+
+type Label = { id: string; name: string; color: GQLLabelColor };
 
 interface IssuePropertiesProps {
     issue: {
@@ -22,12 +26,15 @@ interface IssuePropertiesProps {
         type: GQLIssueType;
         dueDate: string | null;
         epic: { id: string; name: string };
+        labels: Label[];
     };
     project: { key: string; canContribute: boolean; epics: { id: string; name: string }[] };
+    // All labels to choose from
+    labels: Label[];
 }
 
 // Each property saves on its own as soon as it changes
-export function IssueProperties({ issue, project }: IssuePropertiesProps) {
+export function IssueProperties({ issue, project, labels }: IssuePropertiesProps) {
     const [error, setError] = useState<string>();
     const [pending, startTransition] = useTransition();
 
@@ -65,6 +72,17 @@ export function IssueProperties({ issue, project }: IssuePropertiesProps) {
                     </Link>
                 </Property>
                 <Property label="Due date">{issue.dueDate ? formatDueDate(issue.dueDate) : "None"}</Property>
+                <Property label="Labels">
+                    {issue.labels.length > 0 ? (
+                        <span className="flex flex-wrap gap-1">
+                            {issue.labels.map((label) => (
+                                <LabelBadge key={label.id} label={label} />
+                            ))}
+                        </span>
+                    ) : (
+                        "None"
+                    )}
+                </Property>
             </dl>
         );
     }
@@ -122,6 +140,11 @@ export function IssueProperties({ issue, project }: IssuePropertiesProps) {
                         onChange={(dueDate) => save({ dueDate })}
                     />
                 </Property>
+                {labels.length > 0 && (
+                    <Property label="Labels">
+                        <IssueLabelsSelect labels={labels} selected={issue.labels} disabled={pending} onChange={(labelIds) => save({ labelIds })} />
+                    </Property>
+                )}
             </dl>
             {error && (
                 <p className="text-destructive text-sm" aria-live="polite">
