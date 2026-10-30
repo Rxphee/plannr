@@ -1,6 +1,7 @@
-import { EntityManager } from "@mikro-orm/postgresql";
 import { Injectable } from "@nestjs/common";
-import { Label, LabelColor } from "@src/labels/entities/label.entity.js";
+import { type Label, LabelColor } from "@src/labels/entities/label.entity.js";
+import { LabelsService } from "@src/labels/labels.service.js";
+import type { User } from "@src/users/user.entity.js";
 
 export type FixtureLabels = Record<"upstream" | "design" | "frontend" | "backend" | "customer" | "documentation", Label>;
 
@@ -15,14 +16,14 @@ const labelColors: Record<keyof FixtureLabels, LabelColor> = {
 
 @Injectable()
 export class LabelsFixtureService {
-    constructor(private readonly entityManager: EntityManager) {}
+    constructor(private readonly labelsService: LabelsService) {}
 
-    // Created without LabelsService, which only lets admins create labels, and the fixtures have no admin
-    async generateLabels(): Promise<FixtureLabels> {
-        const labels = Object.fromEntries(
-            Object.entries(labelColors).map(([name, color]) => [name, this.entityManager.create(Label, { name, color })]),
-        ) as FixtureLabels;
-        await this.entityManager.flush();
-        return labels;
+    // Only admins manage labels
+    async generateLabels(admin: User): Promise<FixtureLabels> {
+        const labels: Partial<FixtureLabels> = {};
+        for (const [name, color] of Object.entries(labelColors) as [keyof FixtureLabels, LabelColor][]) {
+            labels[name] = await this.labelsService.create({ name, color }, admin);
+        }
+        return labels as FixtureLabels;
     }
 }

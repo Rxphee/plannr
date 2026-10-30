@@ -14,7 +14,7 @@ export class User {
     @Field(() => ID)
     id: string = randomUUID();
 
-    // The "sub" claim of Zitadel, the account ID that never changes (unlike the email). Users are created on their first login.
+    // The "sub" claim of the identity provider, the account ID that never changes (unlike the email). Users are created on their first login.
     @Property({ unique: true })
     @IsString()
     @IsNotEmpty()

@@ -57,7 +57,7 @@ export class FixturesService {
         const epics = await this.epicsFixtureService.generateEpics(projects, users.developmentUser);
 
         this.logger.log("Generate labels...");
-        const labels = await this.labelsFixtureService.generateLabels();
+        const labels = await this.labelsFixtureService.generateLabels(users.admin);
 
         this.logger.log("Generate issues...");
         await this.issuesFixtureService.generateIssues(epics, users, labels);

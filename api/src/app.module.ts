@@ -22,7 +22,7 @@ export class AppModule {
             module: AppModule,
             imports: [
                 DbModule,
-                AuthModule,
+                AuthModule.forRoot(config),
                 GraphQLModule.forRoot<ApolloDriverConfig>({
                     driver: ApolloDriver,
                     // Serve GraphQL under /api/graphql like the REST routes

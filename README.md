@@ -32,6 +32,18 @@ A lean, self-hosted issue tracker: projects, epics and issues with clear default
     // open GraphiQL and the web app
     npm run browser
 
+### Login
+
+Plannr logs in through OpenID Connect. In development a local Keycloak (started with `npm run dev`) stands in for the identity provider, with three users who all have the password `plannr`:
+
+| Login   | Name             | Role in the demo data               |
+| ------- | ---------------- | ----------------------------------- |
+| `admin` | Ada Admin        | admin, sees all projects            |
+| `max`   | Max Mustermann   | owns most projects                  |
+| `erika` | Erika Mustermann | member of one project, owns another |
+
+Run the fixtures (below) once, so they find their projects. Switch users with "Sign out" in the user menu.
+
 ### Database
 
     // run pending migrations

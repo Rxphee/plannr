@@ -396,6 +396,9 @@ type Query {
   """Whether the current user can create, edit and delete labels"""
   canManageLabels: Boolean!
 
+  """The logged-in user"""
+  currentUser: User!
+
   """The epic, if the current user can see its project"""
   epic(id: ID!): Epic
 
