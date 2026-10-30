@@ -1,13 +1,14 @@
+import type { EntityManager } from "@mikro-orm/postgresql";
 import { BadRequestException, NotFoundException } from "@nestjs/common";
 import { Epic } from "@src/epics/entities/epic.entity.js";
 import type { EpicsService } from "@src/epics/epics.service.js";
 import { Issue, IssuePriority, IssueStatus, IssueType } from "@src/issues/entities/issue.entity.js";
 import { IssueView } from "@src/issues/issue-views.js";
-import type { IssuesService } from "@src/issues/issues.service.js";
+import { IssuesService } from "@src/issues/issues.service.js";
 import { Label } from "@src/labels/entities/label.entity.js";
 import type { LabelsService } from "@src/labels/labels.service.js";
 import { Project, ProjectStatus } from "@src/projects/entities/project.entity.js";
-import type { ProjectsService } from "@src/projects/projects.service.js";
+import { ProjectsService } from "@src/projects/projects.service.js";
 import { User } from "@src/users/user.entity.js";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -219,5 +220,29 @@ describe("McpToolsService", () => {
             await expect(tools.updateIssue({ key: "WEB-12", status: IssueStatus.done, ...changes }, user)).rejects.toThrow(BadRequestException);
             expect(issuesService.update).not.toHaveBeenCalled();
         });
+    });
+});
+
+describe("McpToolsService with the real permission checks", () => {
+    it("refuses to create an issue in an archived project, also for admins", async () => {
+        const archivedProject = Object.assign(new Project(), {
+            id: project.id,
+            key: "HOL",
+            name: "Holiday Planning",
+            status: ProjectStatus.archived,
+        });
+        const entityManager = {
+            findOne: vi.fn(async () => archivedProject),
+            transactional: vi.fn(async (work: () => Promise<unknown>) => work()),
+            create: vi.fn(),
+        };
+        const projectsService = new ProjectsService(entityManager as unknown as EntityManager);
+        const issuesService = new IssuesService(entityManager as unknown as EntityManager, projectsService, {} as EpicsService, {} as LabelsService);
+        const tools = new McpToolsService(projectsService, {} as EpicsService, issuesService, {} as LabelsService);
+
+        await expect(tools.createIssue({ project: "HOL", title: "Book the train" }, Object.assign(new User(), { isAdmin: true }))).rejects.toThrow(
+            "The project is archived. Set it back to active to change it",
+        );
+        expect(entityManager.create).not.toHaveBeenCalled();
     });
 });
