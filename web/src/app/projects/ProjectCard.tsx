@@ -1,3 +1,4 @@
+import { markdownToPlainText } from "@src/components/richText/markdownToPlainText";
 import { AvatarGroup, AvatarGroupCount } from "@src/components/ui/Avatar";
 import { UserAvatar } from "@src/components/UserAvatar";
 import type { GQLProjectStatus } from "@src/graphql.generated";
@@ -36,7 +37,9 @@ export function ProjectCard({ project }: ProjectCardProps) {
                 </div>
                 <ProjectStatusBadge status={project.status} />
             </div>
-            <p className="text-muted-foreground line-clamp-2 min-h-10 text-sm">{project.description || "No description yet."}</p>
+            <p className="text-muted-foreground line-clamp-2 min-h-10 text-sm">
+                {project.description ? markdownToPlainText(project.description) : "No description yet."}
+            </p>
             <div className="mt-auto flex items-center justify-between gap-3 border-t pt-4">
                 <AvatarGroup className="-space-x-1.5">
                     {project.members.nodes.map(({ user }) => (

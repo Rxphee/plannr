@@ -1,6 +1,7 @@
 import { PageContent } from "@src/components/layout/PageContent";
 import { PageHeader } from "@src/components/layout/PageHeader";
 import { PageIntro } from "@src/components/layout/PageIntro";
+import { RichTextEditor } from "@src/components/richText/RichTextEditor";
 import { Button } from "@src/components/ui/Button";
 import { Card, CardAction, CardContent, CardHeader, CardTitle } from "@src/components/ui/Card";
 import { fetchAllPages } from "@src/util/fetchAllPages";
@@ -67,7 +68,7 @@ export default async function ProjectPage({ params }: PageProps<"/projects/[key]
                     </CardHeader>
                     <CardContent>
                         {project.description ? (
-                            <p className="text-base whitespace-pre-line">{project.description}</p>
+                            <RichTextEditor value={project.description} readOnly />
                         ) : (
                             <p className="text-muted-foreground">
                                 No description yet. Describe the goal of the project, so everyone knows what it is about.

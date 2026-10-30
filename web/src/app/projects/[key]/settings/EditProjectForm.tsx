@@ -2,6 +2,7 @@
 
 import { FinalForm } from "@src/components/form/FinalForm";
 import { FormSubmitError } from "@src/components/form/FormSubmitError";
+import { RichTextField } from "@src/components/form/RichTextField";
 import { TextField } from "@src/components/form/TextField";
 import { Button } from "@src/components/ui/Button";
 import { Input } from "@src/components/ui/Input";
@@ -57,7 +58,7 @@ export function EditProjectForm({ project }: EditProjectFormProps) {
                         </p>
                     </div>
                     <TextField name="name" label="Name" required maxLength={PROJECT_NAME_MAX_LENGTH} />
-                    <TextField name="description" label="Description" multiline rows={4} />
+                    <RichTextField name="description" label="Description" placeholder="What is the goal of the project?" />
                     <FormSubmitError />
                     <div>
                         <Button type="submit" disabled={pristine || submitting}>
