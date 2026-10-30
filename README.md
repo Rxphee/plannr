@@ -43,6 +43,12 @@ A lean, self-hosted issue tracker: projects, epics and issues with clear default
     // drop all tables and fill the database with demo data (development only)
     npm --prefix api run fixtures
 
+### MCP
+
+The API serves an MCP interface at `/api/mcp`, so AI agents like Claude Code can read and change projects, epics and issues. Create a personal API token on the page "API tokens" and add the server, e.g. for the local API:
+
+    claude mcp add --transport http plannr http://localhost:4000/api/mcp --header "Authorization: Bearer plannr_…"
+
 ### Lint
 
     npm run lint
