@@ -112,7 +112,7 @@ npm --prefix web run gql:types   # Generate TypeScript types for the GraphQL doc
 - `api/src/console.ts` - Console commands (`migrate`, `fixtures`)
 - `web/src/app/` - Next.js App Router pages, Server Actions and their GraphQL documents
 - `web/src/components/layout/` - parts of the app shell: `PageHeader`, `PageIntro`, `PageContent`, `ViewTabs`, `SidebarNavLink`
-- `web/src/components/richText/` - the Markdown editor (`RichTextEditor`) and its Tiptap extensions
+- `web/src/components/richText/` - the Markdown editor (`RichTextEditor`), its Tiptap extensions and `markdownToPlainText` for previews
 - `web/src/components/ui/` - shadcn/ui components
 - `web/src/util/` - `gql` tag and `graphQLFetch`
 
@@ -223,7 +223,7 @@ Fields validate themselves while typing: `required` (a value of only spaces coun
 
 ### Rich Text
 
-Descriptions of epics and issues are Markdown (GFM with task lists), stored as plain text. The API does not parse them. The web app edits and shows them with `RichTextEditor` (Tiptap with `@tiptap/markdown`, `readOnly` for display), in forms through `RichTextField`. Only formatting that Markdown can express is offered: bold, italic, code, headings 1 to 3, lists and checklists, which replace sub-tasks. The editor starts on the client (`immediatelyRender: false`), and the styles of the rendered text are the `.rich-text` class in `globals.css`.
+Descriptions of projects, epics and issues are Markdown (GFM with task lists), stored as plain text. The API does not parse them. The web app edits and shows them with `RichTextEditor` (Tiptap with `@tiptap/markdown`, `readOnly` for display), in forms through `RichTextField`. Previews of a line or two, like the description on a project card, use `markdownToPlainText`, so they show no Markdown syntax. Only formatting that Markdown can express is offered: bold, italic, code, headings 1 to 3, lists and checklists, which replace sub-tasks. The editor starts on the client (`immediatelyRender: false`), and the styles of the rendered text are the `.rich-text` class in `globals.css`.
 
 ### File Naming
 

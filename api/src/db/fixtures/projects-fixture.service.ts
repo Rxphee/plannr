@@ -22,7 +22,8 @@ export class ProjectsFixtureService {
         const website = await this.createProject(developmentUser, {
             name: "Website Relaunch",
             key: "WEB",
-            description: "New design and content for the company website.",
+            description:
+                "New design and content for the company website.\n\n## Goals\n\n- A **calm design** that works on phones first\n- Texts that answer the questions of our customers\n- Launch before the *trade fair* in spring",
         });
         await this.addMembers(website, developmentUser, [
             [otherUser, ProjectMemberRole.member],

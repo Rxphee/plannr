@@ -3,7 +3,7 @@
     "extends": ["config:recommended"],
     "timezone": "Europe/Vienna",
     "constraints": {
-        "npm": "^12.0.0"
+        "npm": "^11"
     },
     "prHourlyLimit": 0,
     "lockFileMaintenance": {
@@ -54,6 +54,13 @@
             "matchPackageNames": ["node", "@types/node"],
             "matchUpdateTypes": ["major"],
             "dependencyDashboardApproval": true
+        },
+        {
+            "description": "npm 12 refuses registry packages with bundleDependencies in lockfile updates (npm/cli#9800), so the npm constraint stays on 11 until that is fixed",
+            "matchManagers": ["renovate-config"],
+            "matchDepTypes": ["tool-constraint"],
+            "matchPackageNames": ["npm"],
+            "allowedVersions": "<12"
         },
         {
             "description": "The local development setup follows major tags, pinning digests there only adds pull requests",

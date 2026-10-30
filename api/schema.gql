@@ -37,6 +37,7 @@ input CreateLabelInput {
 }
 
 input CreateProjectInput {
+  """Markdown"""
   description: String! = ""
 
   """2 to 5 uppercase letters, fixed after creation"""
@@ -278,6 +279,8 @@ type Project {
   """
   canManage: Boolean!
   createdAt: DateTime!
+
+  """Markdown"""
   description: String!
   id: ID!
   key: String!
@@ -402,6 +405,7 @@ input UpdateLabelInput {
 }
 
 input UpdateProjectInput {
+  """Markdown"""
   description: String! = ""
   name: String!
 }
