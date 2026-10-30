@@ -1,5 +1,8 @@
 import "server-only";
 
+import { getSession } from "@src/auth/getSession";
+import { redirect } from "next/navigation";
+
 type GraphQLResponse<TData> = { data?: TData; errors?: { message: string; extensions?: { code?: string } }[] };
 
 export class GraphQLFetchError extends Error {
@@ -23,9 +26,15 @@ export async function graphQLFetch<TData, TVariables extends Record<string, unkn
         throw new Error("API_URL is not set");
     }
 
+    // The proxy sends every request without a session to the login, so this only happens if the cookie vanished in between
+    const session = await getSession();
+    if (!session) {
+        redirect("/auth/login");
+    }
+
     const response = await fetch(`${apiUrl}/graphql`, {
         method: "POST",
-        headers: { "content-type": "application/json" },
+        headers: { "content-type": "application/json", authorization: `Bearer ${session.accessToken}` },
         body: JSON.stringify({ query, variables }),
         cache: "no-store",
     });
