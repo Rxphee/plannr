@@ -1,5 +1,6 @@
 import type { GQLIssueFilter, GQLIssuePriority, GQLIssueStatus, GQLIssueType } from "@src/graphql.generated";
 import { type Pagination, parsePagination, writePagination } from "@src/util/pagination";
+import { parseSearch } from "@src/util/search";
 
 import { issuePriorityOptions, issueStatusOptions, issueTypeOptions } from "./issueOptions";
 
@@ -63,7 +64,7 @@ export function parseIssueListParams(searchParams: SearchParams): IssueListParam
             issuePriorityOptions.map(({ value }) => value),
         ),
         epics: (readParam(searchParams, "epic")?.split(",") ?? []).filter((epic) => UUID_PATTERN.test(epic)),
-        search: readParam(searchParams, "search")?.trim() || undefined,
+        search: parseSearch(searchParams),
         ...parsePagination(searchParams),
     };
 }
