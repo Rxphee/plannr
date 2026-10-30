@@ -1,0 +1,82 @@
+{
+    "realm": "plannr",
+    "displayName": "Plannr (development)",
+    "enabled": true,
+    "registrationAllowed": false,
+    "resetPasswordAllowed": false,
+    "rememberMe": false,
+    "loginWithEmailAllowed": true,
+    "accessTokenLifespan": 300,
+    "clients": [
+        {
+            "clientId": "${OIDC_CLIENT_ID}",
+            "name": "Plannr",
+            "protocol": "openid-connect",
+            "publicClient": false,
+            "clientAuthenticatorType": "client-secret",
+            "secret": "${OIDC_CLIENT_SECRET}",
+            "standardFlowEnabled": true,
+            "directAccessGrantsEnabled": false,
+            "implicitFlowEnabled": false,
+            "serviceAccountsEnabled": false,
+            "consentRequired": false,
+            "frontchannelLogout": false,
+            "redirectUris": ["${WEB_URL}/auth/callback"],
+            "webOrigins": [],
+            "attributes": {
+                "pkce.code.challenge.method": "S256",
+                "post.logout.redirect.uris": "${WEB_URL}/"
+            },
+            "defaultClientScopes": ["basic", "profile", "email"],
+            "optionalClientScopes": ["offline_access"],
+            "protocolMappers": [
+                {
+                    "name": "api audience",
+                    "protocol": "openid-connect",
+                    "protocolMapper": "oidc-audience-mapper",
+                    "config": {
+                        "included.custom.audience": "${OIDC_AUDIENCE}",
+                        "access.token.claim": "true",
+                        "id.token.claim": "false",
+                        "introspection.token.claim": "true"
+                    }
+                }
+            ]
+        }
+    ],
+    "users": [
+        {
+            "id": "5d0c8a8e-2f4b-4c47-9a53-7c1e0a3b9f01",
+            "username": "admin",
+            "email": "admin@plannr.localhost",
+            "emailVerified": true,
+            "firstName": "Ada",
+            "lastName": "Admin",
+            "enabled": true,
+            "realmRoles": ["default-roles-plannr"],
+            "credentials": [{ "type": "password", "value": "plannr", "temporary": false }]
+        },
+        {
+            "id": "8f3e2b1a-6c5d-4e7f-8a9b-0c1d2e3f4a02",
+            "username": "max",
+            "email": "max@plannr.localhost",
+            "emailVerified": true,
+            "firstName": "Max",
+            "lastName": "Mustermann",
+            "enabled": true,
+            "realmRoles": ["default-roles-plannr"],
+            "credentials": [{ "type": "password", "value": "plannr", "temporary": false }]
+        },
+        {
+            "id": "2a7b9c4d-1e3f-4a5b-9c6d-7e8f9a0b1c03",
+            "username": "erika",
+            "email": "erika@plannr.localhost",
+            "emailVerified": true,
+            "firstName": "Erika",
+            "lastName": "Mustermann",
+            "enabled": true,
+            "realmRoles": ["default-roles-plannr"],
+            "credentials": [{ "type": "password", "value": "plannr", "temporary": false }]
+        }
+    ]
+}

@@ -2,6 +2,7 @@ import { Module } from "@nestjs/common";
 import { ApiTokensModule } from "@src/api-tokens/api-tokens.module.js";
 import { EpicsModule } from "@src/epics/epics.module.js";
 import { IssuesModule } from "@src/issues/issues.module.js";
+import { LabelsModule } from "@src/labels/labels.module.js";
 import { ProjectsModule } from "@src/projects/projects.module.js";
 import { UsersModule } from "@src/users/users.module.js";
 
@@ -14,7 +15,7 @@ import { ProjectsFixtureService } from "./projects-fixture.service.js";
 import { UsersFixtureService } from "./users-fixture.service.js";
 
 @Module({
-    imports: [UsersModule, ProjectsModule, EpicsModule, IssuesModule, ApiTokensModule],
+    imports: [UsersModule, ProjectsModule, EpicsModule, IssuesModule, ApiTokensModule, LabelsModule],
     providers: [
         FixturesService,
         UsersFixtureService,

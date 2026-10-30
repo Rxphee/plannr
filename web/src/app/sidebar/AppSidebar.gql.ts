@@ -14,3 +14,14 @@ export const sidebarProjectsQuery = gql`
         }
     }
 `;
+
+export const sidebarCurrentUserQuery = gql`
+    query SidebarCurrentUser {
+        currentUser {
+            id
+            firstName
+            lastName
+            email
+        }
+    }
+`;

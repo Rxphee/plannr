@@ -14,6 +14,10 @@ export function createConfig(processEnv: NodeJS.ProcessEnv) {
         serverHost: envVars.SERVER_HOST ?? "localhost",
         apiPort: envVars.API_PORT,
         corsAllowedOrigin: new RegExp(envVars.CORS_ALLOWED_ORIGIN),
+        oidc: {
+            issuer: envVars.OIDC_ISSUER,
+            audience: envVars.OIDC_AUDIENCE,
+        },
     };
 }
 
