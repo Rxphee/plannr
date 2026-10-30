@@ -333,6 +333,9 @@ type Query {
   """The API tokens of the current user that are not revoked, newest first"""
   apiTokens(limit: Int! = 25, offset: Int! = 0): PaginatedApiTokens!
 
+  """The logged-in user"""
+  currentUser: User!
+
   """The epic, if the current user can see its project"""
   epic(id: ID!): Epic
 
