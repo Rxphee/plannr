@@ -14,21 +14,25 @@ import {
 } from "@src/components/ui/Sidebar";
 import { fetchAllPages } from "@src/util/fetchAllPages";
 import { graphQLFetch } from "@src/util/graphQLFetch";
-import { KeyRoundIcon, LayoutGridIcon } from "lucide-react";
+import { LayoutGridIcon } from "lucide-react";
 
-import { sidebarProjectsQuery } from "./AppSidebar.gql";
-import type { GQLSidebarProjectsQuery, GQLSidebarProjectsQueryVariables } from "./AppSidebar.gql.generated";
+import { sidebarCurrentUserQuery, sidebarProjectsQuery } from "./AppSidebar.gql";
+import type { GQLSidebarCurrentUserQuery, GQLSidebarProjectsQuery, GQLSidebarProjectsQueryVariables } from "./AppSidebar.gql.generated";
 import { ProjectNavigation } from "./ProjectNavigation";
 import { ProjectSwitcher } from "./ProjectSwitcher";
+import { UserMenu } from "./UserMenu";
 
 export type SidebarProject = GQLSidebarProjectsQuery["projects"]["nodes"][number];
 
 export async function AppSidebar({ theme }: { theme: Theme }) {
-    // All of them, so that the sidebar finds the open project by its key
-    const projects = await fetchAllPages(async (pagination) => {
-        const data = await graphQLFetch<GQLSidebarProjectsQuery, GQLSidebarProjectsQueryVariables>(sidebarProjectsQuery, pagination);
-        return data.projects;
-    });
+    const [projects, { currentUser }] = await Promise.all([
+        // All of them, so that the sidebar finds the open project by its key
+        fetchAllPages(async (pagination) => {
+            const data = await graphQLFetch<GQLSidebarProjectsQuery, GQLSidebarProjectsQueryVariables>(sidebarProjectsQuery, pagination);
+            return data.projects;
+        }),
+        graphQLFetch<GQLSidebarCurrentUserQuery>(sidebarCurrentUserQuery),
+    ]);
 
     return (
         <Sidebar variant="inset" collapsible="icon">
@@ -52,13 +56,10 @@ export async function AppSidebar({ theme }: { theme: Theme }) {
             <SidebarFooter>
                 <SidebarMenu>
                     <SidebarMenuItem>
-                        <SidebarNavLink href="/settings/api-tokens" tooltip="API tokens" className="h-9">
-                            <KeyRoundIcon />
-                            <span>API tokens</span>
-                        </SidebarNavLink>
+                        <ThemeSwitcher initialTheme={theme} />
                     </SidebarMenuItem>
                     <SidebarMenuItem>
-                        <ThemeSwitcher initialTheme={theme} />
+                        <UserMenu user={currentUser} />
                     </SidebarMenuItem>
                 </SidebarMenu>
             </SidebarFooter>
