@@ -1,6 +1,5 @@
 "use client";
 
-import { ResetButton } from "@src/components/ResetButton";
 import { SearchInput } from "@src/components/SearchInput";
 import { useDebouncedSearch } from "@src/hooks/useDebouncedSearch";
 import { cn } from "@src/lib/utils";
@@ -36,15 +35,19 @@ export function ListSearch({ placeholder, label }: ListSearchProps) {
 
     const { search, changeSearch, clearSearch } = useDebouncedSearch(searchParams.get("search") ?? "", replaceSearch);
 
-    const reset = () => {
+    const clear = () => {
         clearSearch();
         replaceSearch();
     };
 
     return (
-        <div className={cn("flex flex-wrap items-center gap-2 transition-opacity duration-100", pending && "opacity-60")}>
-            <SearchInput value={search} onChange={changeSearch} placeholder={placeholder} label={label} />
-            {searchParams.has("search") && <ResetButton onClick={reset} />}
-        </div>
+        <SearchInput
+            value={search}
+            onChange={changeSearch}
+            onClear={clear}
+            placeholder={placeholder}
+            label={label}
+            className={cn("transition-opacity duration-100", pending && "opacity-60")}
+        />
     );
 }
