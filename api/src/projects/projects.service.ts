@@ -5,6 +5,7 @@ import { Epic } from "@src/epics/entities/epic.entity.js";
 import { DEFAULT_EPIC_NAME } from "@src/epics/epic-constraints.js";
 import { User } from "@src/users/user.entity.js";
 
+import type { AddProjectMembersInput } from "./dto/add-project-members.input.js";
 import type { CreateProjectInput } from "./dto/create-project.input.js";
 import type { PaginatedProjectMembers } from "./dto/paginated-project-members.js";
 import type { PaginatedProjects } from "./dto/paginated-projects.js";
@@ -139,16 +140,20 @@ export class ProjectsService {
         await this.entityManager.remove(project).flush();
     }
 
-    async addMember({ projectId, userId, role }: ProjectMemberInput, user: User): Promise<ProjectMember> {
+    // All or none, so a failed request leaves the members as they were
+    async addMembers({ projectId, userIds, role }: AddProjectMembersInput, user: User): Promise<ProjectMember[]> {
         return this.changeMembers(projectId, user, async (project) => {
-            const newMember = await this.entityManager.findOne(User, userId);
-            if (!newMember) {
-                throw new BadRequestException("The user does not exist");
+            const newMembers = await this.entityManager.find(User, { id: { $in: userIds } });
+            if (newMembers.length !== userIds.length) {
+                throw new BadRequestException("A user does not exist");
             }
-            if ((await this.entityManager.count(ProjectMember, { project, user: newMember })) > 0) {
-                throw new BadRequestException(`${newMember.firstName} ${newMember.lastName} is already a member of the project`);
+            const existingMemberships = await this.entityManager.find(ProjectMember, { project, user: { $in: userIds } });
+            if (existingMemberships.length > 0) {
+                const existingUserIds = new Set(existingMemberships.map((membership) => membership.user.id));
+                const names = newMembers.filter(({ id }) => existingUserIds.has(id)).map(({ firstName, lastName }) => `${firstName} ${lastName}`);
+                throw new BadRequestException(`${names.join(", ")} ${names.length === 1 ? "is" : "are"} already a member of the project`);
             }
-            return this.entityManager.create(ProjectMember, { project, user: newMember, role });
+            return newMembers.map((newMember) => this.entityManager.create(ProjectMember, { project, user: newMember, role }));
         });
     }
 

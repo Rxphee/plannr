@@ -22,9 +22,9 @@ export const deleteProjectMutation = gql`
     }
 `;
 
-export const addProjectMemberMutation = gql`
-    mutation AddProjectMember($input: ProjectMemberInput!) {
-        addProjectMember(input: $input) {
+export const addProjectMembersMutation = gql`
+    mutation AddProjectMembers($input: AddProjectMembersInput!) {
+        addProjectMembers(input: $input) {
             role
         }
     }

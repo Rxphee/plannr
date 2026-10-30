@@ -53,7 +53,7 @@ export class ProjectsFixtureService {
 
     private async addMembers(project: Project, owner: User, members: [User, ProjectMemberRole][]): Promise<void> {
         for (const [user, role] of members) {
-            await this.projectsService.addMember({ projectId: project.id, userId: user.id, role }, owner);
+            await this.projectsService.addMembers({ projectId: project.id, userIds: [user.id], role }, owner);
         }
     }
 
