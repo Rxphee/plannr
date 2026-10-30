@@ -14,7 +14,7 @@ import {
 } from "@src/components/ui/Sidebar";
 import { fetchAllPages } from "@src/util/fetchAllPages";
 import { graphQLFetch } from "@src/util/graphQLFetch";
-import { LayoutGridIcon } from "lucide-react";
+import { KeyRoundIcon, LayoutGridIcon } from "lucide-react";
 
 import { SidebarSearchButton } from "../commandMenu/SidebarSearchButton";
 import { sidebarProjectsQuery } from "./AppSidebar.gql";
@@ -55,6 +55,12 @@ export async function AppSidebar({ theme }: { theme: Theme }) {
             </SidebarContent>
             <SidebarFooter>
                 <SidebarMenu>
+                    <SidebarMenuItem>
+                        <SidebarNavLink href="/settings/api-tokens" tooltip="API tokens" className="h-9">
+                            <KeyRoundIcon />
+                            <span>API tokens</span>
+                        </SidebarNavLink>
+                    </SidebarMenuItem>
                     <SidebarMenuItem>
                         <ThemeSwitcher initialTheme={theme} />
                     </SidebarMenuItem>
