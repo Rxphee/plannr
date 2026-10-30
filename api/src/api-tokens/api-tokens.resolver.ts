@@ -1,4 +1,4 @@
-import { ParseUUIDPipe } from "@nestjs/common";
+import { ParseUUIDPipe, UseGuards } from "@nestjs/common";
 import { Args, ID, Mutation, Parent, Query, ResolveField, Resolver } from "@nestjs/graphql";
 import { CurrentUser } from "@src/auth/current-user.decorator.js";
 import { PaginationArgs } from "@src/common/pagination.args.js";
@@ -10,8 +10,10 @@ import { CreateApiTokenInput } from "./dto/create-api-token.input.js";
 import { CreatedApiToken } from "./dto/created-api-token.js";
 import { PaginatedApiTokens } from "./dto/paginated-api-tokens.js";
 import { ApiToken } from "./entities/api-token.entity.js";
+import { RejectApiTokenGuard } from "./reject-api-token.guard.js";
 
 @Resolver(() => ApiToken)
+@UseGuards(RejectApiTokenGuard)
 export class ApiTokensResolver {
     constructor(private readonly apiTokensService: ApiTokensService) {}
 
