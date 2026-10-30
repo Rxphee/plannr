@@ -1,6 +1,5 @@
 import { EntityManager, type FilterQuery, LockMode, UniqueConstraintViolationException } from "@mikro-orm/postgresql";
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
-import type { PaginationArgs } from "@src/common/pagination.args.js";
 import { containsPattern } from "@src/db/contains-pattern.js";
 import { Epic } from "@src/epics/entities/epic.entity.js";
 import { DEFAULT_EPIC_NAME } from "@src/epics/epic-constraints.js";
@@ -10,6 +9,7 @@ import type { CreateProjectInput } from "./dto/create-project.input.js";
 import type { PaginatedProjectMembers } from "./dto/paginated-project-members.js";
 import type { PaginatedProjects } from "./dto/paginated-projects.js";
 import type { ProjectMemberInput } from "./dto/project-member.input.js";
+import type { ProjectMembersArgs } from "./dto/project-members.args.js";
 import type { ProjectsArgs } from "./dto/projects.args.js";
 import type { UpdateProjectInput } from "./dto/update-project.input.js";
 import { Project, ProjectStatus } from "./entities/project.entity.js";
@@ -49,11 +49,27 @@ export class ProjectsService {
     }
 
     // Sorted by name, then by ID, so that two members with the same name keep their order across pages
-    async findMembers(project: Project, { offset, limit }: PaginationArgs): Promise<PaginatedProjectMembers> {
+    async findMembers(project: Project, { search, offset, limit }: ProjectMembersArgs): Promise<PaginatedProjectMembers> {
+        // Each word on its own, so "Anna Pichler" finds the member although first and last name are separate columns
+        const wordConditions = (search?.split(/\s+/) ?? []).map((word): FilterQuery<ProjectMember> => {
+            const pattern = containsPattern(word);
+            return {
+                $or: [
+                    { user: { firstName: { $ilike: pattern } } },
+                    { user: { lastName: { $ilike: pattern } } },
+                    { user: { email: { $ilike: pattern } } },
+                ],
+            };
+        });
         const [nodes, totalCount] = await this.entityManager.findAndCount(
             ProjectMember,
-            { project },
-            { populate: ["user"], orderBy: { user: { firstName: "asc", lastName: "asc", id: "asc" } }, offset, limit },
+            { $and: [{ project }, ...wordConditions] },
+            {
+                populate: ["user"],
+                orderBy: { user: { firstName: "asc", lastName: "asc", id: "asc" } },
+                offset,
+                limit,
+            },
         );
         return { nodes, totalCount };
     }

@@ -227,7 +227,15 @@ type Project {
   key: String!
 
   """Sorted by name"""
-  members(limit: Int! = 25, offset: Int! = 0): PaginatedProjectMembers!
+  members(
+    limit: Int! = 25
+    offset: Int! = 0
+
+    """
+    Words that each appear in the first name, last name or email, e.g. a full name
+    """
+    search: String
+  ): PaginatedProjectMembers!
   name: String!
   status: ProjectStatus!
   updatedAt: DateTime!
