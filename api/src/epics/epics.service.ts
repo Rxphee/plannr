@@ -1,5 +1,6 @@
-import { EntityManager } from "@mikro-orm/postgresql";
+import { EntityManager, type FilterQuery } from "@mikro-orm/postgresql";
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
+import { containsPattern } from "@src/db/contains-pattern.js";
 import { Issue } from "@src/issues/entities/issue.entity.js";
 import type { Project } from "@src/projects/entities/project.entity.js";
 import { ProjectsService } from "@src/projects/projects.service.js";
@@ -19,13 +20,17 @@ export class EpicsService {
     ) {}
 
     // General first, then by name and ID, so that two epics with the same name keep their order across pages
-    async findAll({ projectId, offset, limit }: EpicsArgs, user: User): Promise<PaginatedEpics> {
+    async findAll({ projectId, search, offset, limit }: EpicsArgs, user: User): Promise<PaginatedEpics> {
         const project = await this.projectsService.findOneVisibleById(projectId, user);
-        const [nodes, totalCount] = await this.entityManager.findAndCount(
-            Epic,
-            { project },
-            { orderBy: { isDefault: "desc", name: "asc", id: "asc" }, offset, limit },
-        );
+        const where: FilterQuery<Epic> = { project };
+        if (search) {
+            where.name = { $ilike: containsPattern(search) };
+        }
+        const [nodes, totalCount] = await this.entityManager.findAndCount(Epic, where, {
+            orderBy: { isDefault: "desc", name: "asc", id: "asc" },
+            offset,
+            limit,
+        });
         return { nodes, totalCount };
     }
 

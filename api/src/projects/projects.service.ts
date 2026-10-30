@@ -1,6 +1,7 @@
 import { EntityManager, type FilterQuery, LockMode, UniqueConstraintViolationException } from "@mikro-orm/postgresql";
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
 import type { PaginationArgs } from "@src/common/pagination.args.js";
+import { containsPattern } from "@src/db/contains-pattern.js";
 import { Epic } from "@src/epics/entities/epic.entity.js";
 import { DEFAULT_EPIC_NAME } from "@src/epics/epic-constraints.js";
 import { User } from "@src/users/user.entity.js";
@@ -19,10 +20,13 @@ export class ProjectsService {
     constructor(private readonly entityManager: EntityManager) {}
 
     // Sorted by name, then by ID, so that two projects with the same name keep their order across pages
-    async findAllVisibleTo({ statuses, offset, limit }: ProjectsArgs, user: User): Promise<PaginatedProjects> {
+    async findAllVisibleTo({ statuses, search, offset, limit }: ProjectsArgs, user: User): Promise<PaginatedProjects> {
         const where: FilterQuery<Project> = user.isAdmin ? {} : { members: { user } };
         if (statuses?.length) {
             where.status = { $in: statuses };
+        }
+        if (search) {
+            where.$or = [{ name: { $ilike: containsPattern(search) } }, { key: { $ilike: containsPattern(search) } }];
         }
         const [nodes, totalCount] = await this.entityManager.findAndCount(Project, where, {
             orderBy: { name: "asc", id: "asc" },
