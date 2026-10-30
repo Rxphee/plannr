@@ -1,35 +1,57 @@
 "use client";
 
+import { Combobox as ComboboxPrimitive } from "@base-ui/react/combobox";
 import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuGroup,
-    DropdownMenuItem,
-    DropdownMenuLabel,
-    DropdownMenuSeparator,
-    DropdownMenuTrigger,
-} from "@src/components/ui/DropdownMenu";
+    Combobox,
+    ComboboxCollection,
+    ComboboxContent,
+    ComboboxEmpty,
+    ComboboxGroup,
+    ComboboxInput,
+    ComboboxItem,
+    ComboboxLabel,
+    ComboboxList,
+    ComboboxSeparator,
+} from "@src/components/ui/Combobox";
+import { InputGroupAddon } from "@src/components/ui/InputGroup";
 import { SidebarMenu, SidebarMenuButton, SidebarMenuItem } from "@src/components/ui/Sidebar";
-import { CheckIcon, ChevronsUpDownIcon, LayoutGridIcon } from "lucide-react";
+import { ChevronsUpDownIcon, LayoutGridIcon, SearchIcon } from "lucide-react";
 import Link from "next/link";
+import { useState } from "react";
 
 import { ProjectIcon } from "../projects/ProjectIcon";
 import type { SidebarProject } from "./AppSidebar";
 import { useCurrentProject } from "./useCurrentProject";
 
-// Shows where the user is and switches to another project
+interface ProjectGroup {
+    label: string;
+    items: SidebarProject[];
+}
+
+// Shows where the user is and switches to another project, found by name or key
 export function ProjectSwitcher({ projects }: { projects: SidebarProject[] }) {
     const currentProject = useCurrentProject(projects);
-    const groups = [
-        { label: "Active", projects: projects.filter((project) => project.status === "active") },
-        { label: "Paused", projects: projects.filter((project) => project.status === "paused") },
-    ].filter((group) => group.projects.length > 0);
+    const [isOpen, setIsOpen] = useState(false);
+    const { contains } = ComboboxPrimitive.useFilter();
+    const groups: ProjectGroup[] = [
+        { label: "Active", items: projects.filter((project) => project.status === "active") },
+        { label: "Paused", items: projects.filter((project) => project.status === "paused") },
+    ].filter((group) => group.items.length > 0);
 
     return (
         <SidebarMenu>
             <SidebarMenuItem>
-                <DropdownMenu>
-                    <SidebarMenuButton size="lg" tooltip={currentProject?.name ?? "Choose a project"} render={<DropdownMenuTrigger />}>
+                <Combobox
+                    items={groups}
+                    value={currentProject ?? null}
+                    open={isOpen}
+                    onOpenChange={setIsOpen}
+                    autoHighlight
+                    itemToStringLabel={(project) => project.name}
+                    isItemEqualToValue={(project, value) => project.id === value.id}
+                    filter={(project, query) => contains(project, query, ({ name }) => name) || contains(project, query, ({ key }) => key)}
+                >
+                    <SidebarMenuButton size="lg" tooltip={currentProject?.name ?? "Choose a project"} render={<ComboboxPrimitive.Trigger />}>
                         {currentProject ? (
                             <ProjectIcon projectKey={currentProject.key} size="md" />
                         ) : (
@@ -45,26 +67,47 @@ export function ProjectSwitcher({ projects }: { projects: SidebarProject[] }) {
                         </span>
                         <ChevronsUpDownIcon className="text-sidebar-foreground/60" />
                     </SidebarMenuButton>
-                    <DropdownMenuContent className="w-(--anchor-width) min-w-60">
-                        {groups.map((group) => (
-                            <DropdownMenuGroup key={group.label}>
-                                <DropdownMenuLabel>{group.label}</DropdownMenuLabel>
-                                {group.projects.map((project) => (
-                                    <DropdownMenuItem key={project.id} render={<Link href={`/projects/${project.key}`} />}>
-                                        <ProjectIcon projectKey={project.key} />
-                                        <span className="flex-1 truncate">{project.name}</span>
-                                        {project.id === currentProject?.id && <CheckIcon />}
-                                    </DropdownMenuItem>
-                                ))}
-                            </DropdownMenuGroup>
-                        ))}
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem render={<Link href="/projects" />}>
-                            <LayoutGridIcon />
-                            All projects
-                        </DropdownMenuItem>
-                    </DropdownMenuContent>
-                </DropdownMenu>
+                    <ComboboxContent className="min-w-60">
+                        <ComboboxInput placeholder="Search projects" showTrigger={false}>
+                            <InputGroupAddon>
+                                <SearchIcon />
+                            </InputGroupAddon>
+                        </ComboboxInput>
+                        <ComboboxEmpty>No projects found</ComboboxEmpty>
+                        <ComboboxList>
+                            {(group: ProjectGroup) => (
+                                <ComboboxGroup key={group.label} items={group.items}>
+                                    <ComboboxLabel>{group.label}</ComboboxLabel>
+                                    <ComboboxCollection>
+                                        {(project: SidebarProject) => (
+                                            <ComboboxItem
+                                                key={project.id}
+                                                value={project}
+                                                render={<Link href={`/projects/${project.key}`} />}
+                                                // The value follows the path, so choosing a project alone does not close the popup
+                                                onClick={() => setIsOpen(false)}
+                                            >
+                                                <ProjectIcon projectKey={project.key} />
+                                                <span className="flex-1 truncate">{project.name}</span>
+                                            </ComboboxItem>
+                                        )}
+                                    </ComboboxCollection>
+                                </ComboboxGroup>
+                            )}
+                        </ComboboxList>
+                        <ComboboxSeparator className="mx-0 mt-0" />
+                        <div className="p-1 pt-0">
+                            <Link
+                                href="/projects"
+                                onClick={() => setIsOpen(false)}
+                                className="hover:bg-accent hover:text-accent-foreground flex items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-hidden [&_svg]:size-4"
+                            >
+                                <LayoutGridIcon />
+                                All projects
+                            </Link>
+                        </div>
+                    </ComboboxContent>
+                </Combobox>
             </SidebarMenuItem>
         </SidebarMenu>
     );
