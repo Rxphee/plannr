@@ -17,8 +17,13 @@ describe("UpdateIssueInput", () => {
         expect(validate({ dueDate: null })).toEqual([]);
     });
 
+    it("accepts an empty list to remove all labels", () => {
+        expect(validate({ labelIds: [] })).toEqual([]);
+    });
+
     it.each([
         ["title", { title: " " }],
+        ["labelIds", { labelIds: ["42"] }],
         ["status", { status: "blocked" }],
         ["dueDate", { dueDate: "tomorrow" }],
     ])("rejects an invalid %s", (property, data) => {

@@ -38,6 +38,10 @@ export class CreateIssueInput {
     @Field(() => LocalDateResolver, { nullable: true })
     dueDate?: string | null;
 
+    @IsUUID("4", { each: true })
+    @Field(() => [ID], { defaultValue: [] })
+    labelIds: string[];
+
     @Transform(trim)
     @IsString()
     @Field({ defaultValue: "", description: "Markdown" })

@@ -1,5 +1,6 @@
 import { ListPagination } from "@src/components/ListPagination";
 import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@src/components/ui/Empty";
+import type { GQLLabelColor } from "@src/graphql.generated";
 import { graphQLFetch } from "@src/util/graphQLFetch";
 import { toOffsetAndLimit } from "@src/util/pagination";
 import { ListTodoIcon } from "lucide-react";
@@ -14,6 +15,8 @@ import { issueViews } from "./issueViews";
 
 interface IssueListViewProps {
     project: { id: string; key: string; epics: { id: string; name: string }[] };
+    // All labels, for the label filter
+    labels: { id: string; name: string; color: GQLLabelColor }[];
     // The page the filters link to
     path: string;
     params: IssueListParams;
@@ -24,7 +27,7 @@ interface IssueListViewProps {
 }
 
 // The filters, the issues of the current page and the pagination, shared by the issue list and the page of an epic
-export async function IssueListView({ project, path, params, epicId, createAction }: IssueListViewProps) {
+export async function IssueListView({ project, labels, path, params, epicId, createAction }: IssueListViewProps) {
     const { issues } = await graphQLFetch<GQLIssueListQuery, GQLIssueListQueryVariables>(issueListQuery, {
         projectId: project.id,
         view: params.view ?? null,
@@ -36,7 +39,7 @@ export async function IssueListView({ project, path, params, epicId, createActio
 
     return (
         <div className="grid gap-4">
-            <IssueFilters path={path} params={params} epics={epicId ? undefined : project.epics} />
+            <IssueFilters path={path} params={params} epics={epicId ? undefined : project.epics} labels={labels} />
             {issues.nodes.length > 0 ? (
                 <>
                     <IssueList projectKey={project.key} issues={issues.nodes} hideEpic={Boolean(epicId)} />
