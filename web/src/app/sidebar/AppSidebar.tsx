@@ -16,6 +16,7 @@ import { fetchAllPages } from "@src/util/fetchAllPages";
 import { graphQLFetch } from "@src/util/graphQLFetch";
 import { LayoutGridIcon } from "lucide-react";
 
+import { SidebarSearchButton } from "../commandMenu/SidebarSearchButton";
 import { sidebarCurrentUserQuery, sidebarProjectsQuery } from "./AppSidebar.gql";
 import type { GQLSidebarCurrentUserQuery, GQLSidebarProjectsQuery, GQLSidebarProjectsQueryVariables } from "./AppSidebar.gql.generated";
 import { ProjectNavigation } from "./ProjectNavigation";
@@ -44,6 +45,9 @@ export async function AppSidebar({ theme }: { theme: Theme }) {
                 <SidebarGroup>
                     <SidebarGroupLabel>Workspace</SidebarGroupLabel>
                     <SidebarMenu>
+                        <SidebarMenuItem>
+                            <SidebarSearchButton />
+                        </SidebarMenuItem>
                         <SidebarMenuItem>
                             <SidebarNavLink href="/projects" tooltip="All projects" exact className="h-9">
                                 <LayoutGridIcon />
