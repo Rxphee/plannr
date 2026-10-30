@@ -1,11 +1,10 @@
 "use client";
 
 import { FilterMenu } from "@src/components/FilterMenu";
+import { ResetButton } from "@src/components/ResetButton";
 import { SearchInput } from "@src/components/SearchInput";
-import { Button } from "@src/components/ui/Button";
 import { useDebouncedSearch } from "@src/hooks/useDebouncedSearch";
 import { cn } from "@src/lib/utils";
-import { XIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useTransition } from "react";
 
@@ -64,12 +63,7 @@ export function IssueFilters({ path, params, epics }: IssueFiltersProps) {
                     onChange={(selected) => applyFilter({ epics: selected })}
                 />
             )}
-            {isIssueListFiltered({ ...params, page: 1 }) && (
-                <Button variant="ghost" onClick={reset}>
-                    Reset
-                    <XIcon />
-                </Button>
-            )}
+            {isIssueListFiltered({ ...params, page: 1 }) && <ResetButton onClick={reset} />}
         </div>
     );
 }
