@@ -17,6 +17,11 @@ export const issueListQuery = gql`
                     id
                     name
                 }
+                labels {
+                    id
+                    name
+                    color
+                }
                 links {
                     kind
                 }

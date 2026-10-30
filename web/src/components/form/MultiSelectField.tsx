@@ -1,6 +1,6 @@
 "use client";
 
-import type { SelectOption } from "@src/components/OptionSelect";
+import { OptionLabel, type SelectOption } from "@src/components/OptionSelect";
 import {
     Combobox,
     ComboboxChip,
@@ -59,7 +59,9 @@ export function MultiSelectField({ name, label, options, required, placeholder, 
                                     {(selected: SelectOption[]) => (
                                         <>
                                             {selected.map((option) => (
-                                                <ComboboxChip key={option.value}>{option.label}</ComboboxChip>
+                                                <ComboboxChip key={option.value}>
+                                                    <OptionLabel option={option} />
+                                                </ComboboxChip>
                                             ))}
                                             <ComboboxChipsInput
                                                 id={id}
@@ -83,7 +85,7 @@ export function MultiSelectField({ name, label, options, required, placeholder, 
                                 <ComboboxList>
                                     {(option: SelectOption) => (
                                         <ComboboxItem key={option.value} value={option}>
-                                            {option.label}
+                                            <OptionLabel option={option} />
                                         </ComboboxItem>
                                     )}
                                 </ComboboxList>

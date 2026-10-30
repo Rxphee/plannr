@@ -14,7 +14,7 @@ import {
 } from "@src/components/ui/Sidebar";
 import { fetchAllPages } from "@src/util/fetchAllPages";
 import { graphQLFetch } from "@src/util/graphQLFetch";
-import { KeyRoundIcon, LayoutGridIcon } from "lucide-react";
+import { KeyRoundIcon, LayoutGridIcon, TagIcon } from "lucide-react";
 
 import { SidebarSearchButton } from "../commandMenu/SidebarSearchButton";
 import { sidebarProjectsQuery } from "./AppSidebar.gql";
@@ -48,6 +48,12 @@ export async function AppSidebar({ theme }: { theme: Theme }) {
                             <SidebarNavLink href="/projects" tooltip="All projects" exact className="h-9">
                                 <LayoutGridIcon />
                                 <span>All projects</span>
+                            </SidebarNavLink>
+                        </SidebarMenuItem>
+                        <SidebarMenuItem>
+                            <SidebarNavLink href="/labels" tooltip="Labels" className="h-9">
+                                <TagIcon />
+                                <span>Labels</span>
                             </SidebarNavLink>
                         </SidebarMenuItem>
                     </SidebarMenu>

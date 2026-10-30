@@ -1,9 +1,10 @@
 import { randomUUID } from "node:crypto";
 
-import { Entity, Enum, ManyToOne, OneToMany, PrimaryKey, Property, Unique } from "@mikro-orm/decorators/legacy";
+import { Entity, Enum, ManyToMany, ManyToOne, OneToMany, PrimaryKey, Property, Unique } from "@mikro-orm/decorators/legacy";
 import { Collection, OptionalProps, type Ref } from "@mikro-orm/postgresql";
 import { Field, ID, Int, ObjectType, registerEnumType } from "@nestjs/graphql";
 import { Epic } from "@src/epics/entities/epic.entity.js";
+import { Label } from "@src/labels/entities/label.entity.js";
 import { Project } from "@src/projects/entities/project.entity.js";
 import { User } from "@src/users/user.entity.js";
 import { IsEnum, IsInt, IsNotEmpty, IsOptional, IsString, Matches, MaxLength, Min } from "class-validator";
@@ -94,6 +95,9 @@ export class Issue {
 
     @OneToMany(() => IssueLink, (link) => link.issue, { orderBy: { createdAt: "asc" } })
     links = new Collection<IssueLink>(this);
+
+    @ManyToMany(() => Label, undefined, { pivotTable: "IssueLabel", joinColumn: "issue", inverseJoinColumn: "label", orderBy: { name: "asc" } })
+    labels = new Collection<Label>(this);
 
     @ManyToOne(() => User, { ref: true })
     createdBy: Ref<User>;

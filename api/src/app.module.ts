@@ -11,6 +11,7 @@ import { FixturesModule } from "./db/fixtures/fixtures.module.js";
 import { EpicsModule } from "./epics/epics.module.js";
 import { HealthcheckModule } from "./healthcheck/healthcheck.module.js";
 import { IssuesModule } from "./issues/issues.module.js";
+import { LabelsModule } from "./labels/labels.module.js";
 import { ProjectsModule } from "./projects/projects.module.js";
 
 @Module({})
@@ -42,6 +43,7 @@ export class AppModule {
                 ProjectsModule,
                 EpicsModule,
                 IssuesModule,
+                LabelsModule,
                 ApiTokensModule,
                 FixturesModule,
             ],

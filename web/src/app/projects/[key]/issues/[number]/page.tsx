@@ -1,3 +1,4 @@
+import { fetchLabelOptions } from "@src/app/labels/fetchLabelOptions";
 import { PageContent } from "@src/components/layout/PageContent";
 import { PageHeader } from "@src/components/layout/PageHeader";
 import { PageIntro } from "@src/components/layout/PageIntro";
@@ -30,7 +31,8 @@ export default async function IssuePage({ params }: PageProps<"/projects/[key]/i
         notFound();
     }
 
-    const project = { ...issue.project, epics: await fetchEpicOptions(issue.project.id) };
+    const [epics, labels] = await Promise.all([fetchEpicOptions(issue.project.id), fetchLabelOptions()]);
+    const project = { ...issue.project, epics };
 
     return (
         <>
@@ -89,7 +91,7 @@ export default async function IssuePage({ params }: PageProps<"/projects/[key]/i
                             <CardTitle>Details</CardTitle>
                         </CardHeader>
                         <CardContent>
-                            <IssueProperties issue={issue} project={project} />
+                            <IssueProperties issue={issue} project={project} labels={labels} />
                         </CardContent>
                     </Card>
                     <Card>
