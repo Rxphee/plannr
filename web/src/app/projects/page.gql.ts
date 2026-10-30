@@ -1,8 +1,8 @@
 import { gql } from "@src/util/gql";
 
 export const projectsQuery = gql`
-    query Projects($statuses: [ProjectStatus!]!, $offset: Int!, $limit: Int!) {
-        projects(statuses: $statuses, offset: $offset, limit: $limit) {
+    query Projects($statuses: [ProjectStatus!]!, $search: String, $offset: Int!, $limit: Int!) {
+        projects(statuses: $statuses, search: $search, offset: $offset, limit: $limit) {
             totalCount
             nodes {
                 id
@@ -24,14 +24,14 @@ export const projectsQuery = gql`
                 }
             }
         }
-        # Only the counts for the view tabs
-        open: projects(statuses: [active, paused], limit: 1) {
+        # Only the counts for the view tabs, with the same search
+        open: projects(statuses: [active, paused], search: $search, limit: 1) {
             totalCount
         }
-        archived: projects(statuses: [archived], limit: 1) {
+        archived: projects(statuses: [archived], search: $search, limit: 1) {
             totalCount
         }
-        all: projects(limit: 1) {
+        all: projects(search: $search, limit: 1) {
             totalCount
         }
     }

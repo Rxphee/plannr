@@ -12,8 +12,8 @@ export const epicsPageQuery = gql`
 `;
 
 export const epicCardsQuery = gql`
-    query EpicCards($projectId: ID!, $offset: Int!, $limit: Int!) {
-        epics(projectId: $projectId, offset: $offset, limit: $limit) {
+    query EpicCards($projectId: ID!, $search: String, $offset: Int!, $limit: Int!) {
+        epics(projectId: $projectId, search: $search, offset: $offset, limit: $limit) {
             totalCount
             nodes {
                 id
