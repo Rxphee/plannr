@@ -1,6 +1,7 @@
 "use client";
 
 import { Combobox as ComboboxPrimitive } from "@base-ui/react/combobox";
+import { ClearButton } from "@src/components/ClearButton";
 import {
     Combobox,
     ComboboxCollection,
@@ -17,7 +18,7 @@ import { InputGroupAddon } from "@src/components/ui/InputGroup";
 import { SidebarMenu, SidebarMenuButton, SidebarMenuItem } from "@src/components/ui/Sidebar";
 import { ChevronsUpDownIcon, LayoutGridIcon, SearchIcon } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 import { ProjectIcon } from "../projects/ProjectIcon";
 import type { SidebarProject } from "./AppSidebar";
@@ -32,6 +33,8 @@ interface ProjectGroup {
 export function ProjectSwitcher({ projects }: { projects: SidebarProject[] }) {
     const currentProject = useCurrentProject(projects);
     const [isOpen, setIsOpen] = useState(false);
+    const [query, setQuery] = useState("");
+    const searchInputRef = useRef<HTMLInputElement>(null);
     const { contains } = ComboboxPrimitive.useFilter();
     const groups: ProjectGroup[] = [
         { label: "Active", items: projects.filter((project) => project.status === "active") },
@@ -46,6 +49,8 @@ export function ProjectSwitcher({ projects }: { projects: SidebarProject[] }) {
                     value={currentProject ?? null}
                     open={isOpen}
                     onOpenChange={setIsOpen}
+                    inputValue={query}
+                    onInputValueChange={setQuery}
                     autoHighlight
                     itemToStringLabel={(project) => project.name}
                     isItemEqualToValue={(project, value) => project.id === value.id}
@@ -68,10 +73,21 @@ export function ProjectSwitcher({ projects }: { projects: SidebarProject[] }) {
                         <ChevronsUpDownIcon className="text-sidebar-foreground/60" />
                     </SidebarMenuButton>
                     <ComboboxContent className="min-w-60">
-                        <ComboboxInput placeholder="Search projects" showTrigger={false}>
+                        <ComboboxInput ref={searchInputRef} placeholder="Search projects" showTrigger={false}>
                             <InputGroupAddon>
                                 <SearchIcon />
                             </InputGroupAddon>
+                            {/* Combobox.Clear would clear the chosen project, not the search */}
+                            {query && (
+                                <InputGroupAddon align="inline-end">
+                                    <ClearButton
+                                        onClick={() => {
+                                            setQuery("");
+                                            searchInputRef.current?.focus();
+                                        }}
+                                    />
+                                </InputGroupAddon>
+                            )}
                         </ComboboxInput>
                         <ComboboxEmpty>No projects found</ComboboxEmpty>
                         <ComboboxList>
