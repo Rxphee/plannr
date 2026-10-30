@@ -62,6 +62,9 @@ export class FixturesService {
         this.logger.log("Generate issues...");
         await this.issuesFixtureService.generateIssues(epics, users, labels);
 
+        this.logger.log("Archive projects...");
+        await this.projectsFixtureService.archiveProjects(projects, users.developmentUser);
+
         this.logger.log("Generate API tokens...");
         await this.apiTokensFixtureService.generateApiTokens(users.developmentUser);
     }

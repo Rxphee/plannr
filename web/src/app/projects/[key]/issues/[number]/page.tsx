@@ -64,10 +64,12 @@ export default async function IssuePage({ params }: PageProps<"/projects/[key]/i
                     </>
                 }
                 actions={
-                    <>
-                        {project.canContribute && <EditIssueTitleDialog issue={issue} />}
-                        {project.canManage && <DeleteIssueDialog projectKey={project.key} issue={issue} />}
-                    </>
+                    project.canContribute && (
+                        <>
+                            <EditIssueTitleDialog issue={issue} />
+                            {project.canManage && <DeleteIssueDialog projectKey={project.key} issue={issue} />}
+                        </>
+                    )
                 }
             />
             <PageContent className="grid items-start gap-4 lg:grid-cols-[1fr_20rem]">

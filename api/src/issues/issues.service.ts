@@ -114,7 +114,7 @@ export class IssuesService {
 
     // Members cancel an issue instead, so only owners and admins delete it
     async delete(id: string, user: User): Promise<void> {
-        const issue = await this.findOneOrFail(id, user);
+        const issue = await this.findOneContributableBy(id, user);
         if (!(await this.projectsService.canManage(await issue.project.loadOrFail(), user))) {
             throw new ForbiddenException("Only owners and admins can delete issues, cancel the issue instead");
         }
