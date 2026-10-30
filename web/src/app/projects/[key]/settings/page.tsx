@@ -9,7 +9,7 @@ import { pageCountOf, type Pagination, paginationHref, parsePagination, toOffset
 import { parseSearch } from "@src/util/search";
 import { notFound, redirect } from "next/navigation";
 
-import { AddProjectMemberDialog } from "./AddProjectMemberDialog";
+import { AddProjectMembersDialog } from "./AddProjectMembersDialog";
 import { DeleteProjectDialog } from "./DeleteProjectDialog";
 import { EditProjectForm } from "./EditProjectForm";
 import { projectMemberIdsQuery, projectSettingsQuery, projectSettingsUsersQuery } from "./page.gql";
@@ -85,7 +85,7 @@ export default async function ProjectSettingsPage({ params, searchParams }: Page
                             {/* Above the list, so adding someone does not mean scrolling past all members */}
                             <div className="flex flex-wrap items-center justify-between gap-2">
                                 <ListSearch placeholder="Search name or email" label="Search members" />
-                                <AddProjectMemberDialog projectId={project.id} users={usersToAdd} />
+                                <AddProjectMembersDialog projectId={project.id} users={usersToAdd} />
                             </div>
                             {project.members.totalCount > 0 ? (
                                 <>

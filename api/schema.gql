@@ -2,6 +2,12 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
+input AddProjectMembersInput {
+  projectId: ID!
+  role: ProjectMemberRole!
+  userIds: [ID!]!
+}
+
 input CreateEpicInput {
   """Markdown"""
   description: String! = ""
@@ -148,7 +154,11 @@ scalar LocalDate
 
 type Mutation {
   addIssueLink(input: IssueLinkInput!): IssueLink!
-  addProjectMember(input: ProjectMemberInput!): ProjectMember!
+
+  """
+  Adds all users with the same role, or none if one of them cannot be added
+  """
+  addProjectMembers(input: AddProjectMembersInput!): [ProjectMember!]!
 
   """Fails if the project would lose its last owner"""
   changeProjectMemberRole(input: ProjectMemberInput!): ProjectMember!

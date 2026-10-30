@@ -1,13 +1,13 @@
 "use server";
 
-import type { GQLProjectMemberInput, GQLProjectStatus, GQLUpdateProjectInput } from "@src/graphql.generated";
+import type { GQLAddProjectMembersInput, GQLProjectMemberInput, GQLProjectStatus, GQLUpdateProjectInput } from "@src/graphql.generated";
 import { graphQLFetch } from "@src/util/graphQLFetch";
 import { runMutation } from "@src/util/runMutation";
 import { refresh } from "next/cache";
 import { redirect } from "next/navigation";
 
 import {
-    addProjectMemberMutation,
+    addProjectMembersMutation,
     changeProjectMemberRoleMutation,
     changeProjectStatusMutation,
     deleteProjectMutation,
@@ -16,8 +16,8 @@ import {
     updateProjectMutation,
 } from "./actions.gql";
 import type {
-    GQLAddProjectMemberMutation,
-    GQLAddProjectMemberMutationVariables,
+    GQLAddProjectMembersMutation,
+    GQLAddProjectMembersMutationVariables,
     GQLChangeProjectMemberRoleMutation,
     GQLChangeProjectMemberRoleMutationVariables,
     GQLChangeProjectStatusMutation,
@@ -52,10 +52,13 @@ export async function deleteProject(id: string): Promise<{ error?: string }> {
     });
 }
 
-export async function addProjectMember(input: GQLProjectMemberInput): Promise<{ error?: string }> {
-    return runMutation(() => graphQLFetch<GQLAddProjectMemberMutation, GQLAddProjectMemberMutationVariables>(addProjectMemberMutation, { input }), {
-        errorMessage: "The member could not be added.",
-    });
+export async function addProjectMembers(input: GQLAddProjectMembersInput): Promise<{ error?: string }> {
+    return runMutation(
+        () => graphQLFetch<GQLAddProjectMembersMutation, GQLAddProjectMembersMutationVariables>(addProjectMembersMutation, { input }),
+        {
+            errorMessage: "The members could not be added.",
+        },
+    );
 }
 
 export async function changeProjectMemberRole(projectKey: string, input: GQLProjectMemberInput): Promise<{ error?: string }> {

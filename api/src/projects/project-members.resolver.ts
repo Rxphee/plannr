@@ -3,6 +3,7 @@ import { Args, ID, Mutation, Parent, ResolveField, Resolver } from "@nestjs/grap
 import { CurrentUser } from "@src/auth/current-user.decorator.js";
 import { User } from "@src/users/user.entity.js";
 
+import { AddProjectMembersInput } from "./dto/add-project-members.input.js";
 import { ProjectMemberInput } from "./dto/project-member.input.js";
 import { Project } from "./entities/project.entity.js";
 import { ProjectMember } from "./entities/project-member.entity.js";
@@ -12,9 +13,9 @@ import { ProjectsService } from "./projects.service.js";
 export class ProjectMembersResolver {
     constructor(private readonly projectsService: ProjectsService) {}
 
-    @Mutation(() => ProjectMember)
-    async addProjectMember(@Args("input") input: ProjectMemberInput, @CurrentUser() user: User): Promise<ProjectMember> {
-        return this.projectsService.addMember(input, user);
+    @Mutation(() => [ProjectMember], { description: "Adds all users with the same role, or none if one of them cannot be added" })
+    async addProjectMembers(@Args("input") input: AddProjectMembersInput, @CurrentUser() user: User): Promise<ProjectMember[]> {
+        return this.projectsService.addMembers(input, user);
     }
 
     @Mutation(() => ProjectMember, { description: "Fails if the project would lose its last owner" })
