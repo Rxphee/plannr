@@ -2,9 +2,11 @@ import { Injectable } from "@nestjs/common";
 import type { Epic } from "@src/epics/entities/epic.entity.js";
 import { type Issue, IssuePriority, IssueStatus, IssueType } from "@src/issues/entities/issue.entity.js";
 import { IssuesService } from "@src/issues/issues.service.js";
+import type { Label } from "@src/labels/entities/label.entity.js";
 import type { User } from "@src/users/user.entity.js";
 
 import type { FixtureEpics } from "./epics-fixture.service.js";
+import type { FixtureLabels } from "./labels-fixture.service.js";
 import type { FixtureUsers } from "./users-fixture.service.js";
 
 interface FixtureIssue {
@@ -16,6 +18,7 @@ interface FixtureIssue {
     // Relative to today, negative for overdue issues
     dueInDays?: number;
     description?: string;
+    labels?: Label[];
     links?: string[];
 }
 
@@ -33,13 +36,18 @@ function daysFromToday(days: number): string {
 export class IssuesFixtureService {
     constructor(private readonly issuesService: IssuesService) {}
 
-    async generateIssues(epics: FixtureEpics, { developmentUser, team }: FixtureUsers): Promise<void> {
+    async generateIssues(epics: FixtureEpics, { developmentUser, team }: FixtureUsers, labels: FixtureLabels): Promise<void> {
         const { design, content, launch, general } = epics.website;
 
         // Enough issues for more than one page of the issue list
         const pageIssues = websitePages.flatMap((page, index): FixtureIssue[] => [
-            { epic: design, title: `Design the ${page} page`, status: statusCycle[index % statusCycle.length] },
-            { epic: content, title: `Write the copy for the ${page} page`, priority: priorityCycle[index % priorityCycle.length] },
+            { epic: design, title: `Design the ${page} page`, status: statusCycle[index % statusCycle.length], labels: [labels.design] },
+            {
+                epic: content,
+                title: `Write the copy for the ${page} page`,
+                priority: priorityCycle[index % priorityCycle.length],
+                labels: [labels.customer],
+            },
             { epic: content, title: `Review the ${page} page with marketing`, status: index < 4 ? IssueStatus.done : IssueStatus.todo },
             { epic: launch, title: `Set up redirects from the old ${page} page`, priority: IssuePriority.low },
         ]);
@@ -50,6 +58,7 @@ export class IssuesFixtureService {
                 epic: design,
                 title: "Define the color palette and typography",
                 status: IssueStatus.done,
+                labels: [labels.design, labels.documentation],
                 description: "Colors and fonts for the design system.\n\n- [x] Primary and neutral colors\n- [x] Font pairing\n- [ ] Dark mode",
                 links: ["https://github.com/Rxphee/plannr/pull/11"],
             },
@@ -60,16 +69,24 @@ export class IssuesFixtureService {
                 status: IssueStatus.inProgress,
                 priority: IssuePriority.high,
                 dueInDays: 2,
+                labels: [labels.frontend, labels.upstream],
                 description:
                     "Between 768 and 900 pixels the menu items wrap into two lines.\n\n**Steps**\n\n1. Open the home page on an iPad in portrait\n2. Look at the header",
                 links: ["https://github.com/Rxphee/plannr/pull/12", "obsidian://open?vault=SecondBrain&file=Website%20Relaunch"],
             },
             { epic: content, title: "Collect photos of the team", dueInDays: -3, priority: IssuePriority.high },
-            { epic: content, title: "Contact form sends no confirmation mail", type: IssueType.bug, dueInDays: -1, priority: IssuePriority.high },
+            {
+                epic: content,
+                title: "Contact form sends no confirmation mail",
+                type: IssueType.bug,
+                dueInDays: -1,
+                priority: IssuePriority.high,
+                labels: [labels.backend, labels.customer],
+            },
             { epic: launch, title: "Plan the launch date with the client", priority: IssuePriority.high, dueInDays: 14 },
             { epic: launch, title: "Move the DNS records to the new server", dueInDays: 21 },
             { epic: general, title: "Ask for the new logo files" },
-            { epic: general, title: "Footer links point to the staging site", type: IssueType.bug },
+            { epic: general, title: "Footer links point to the staging site", type: IssueType.bug, labels: [labels.frontend] },
         ];
         await this.createIssues(websiteIssues, [developmentUser, team[0], team[1], team[2]]);
 
@@ -83,7 +100,13 @@ export class IssuesFixtureService {
                     description: "Use a local queue and send it once the app is online again.",
                 },
                 { epic: offline, title: "Resolve conflicts after syncing", priority: IssuePriority.high },
-                { epic: offline, title: "App crashes when the connection drops during upload", type: IssueType.bug, priority: IssuePriority.high },
+                {
+                    epic: offline,
+                    title: "App crashes when the connection drops during upload",
+                    type: IssueType.bug,
+                    priority: IssuePriority.high,
+                    labels: [labels.upstream],
+                },
                 { epic: onboarding, title: "Write the welcome screens", status: IssueStatus.done },
                 { epic: onboarding, title: "Ask for notification permission at the right moment" },
             ],
@@ -101,7 +124,17 @@ export class IssuesFixtureService {
     }
 
     private async createIssue(
-        { epic, title, type = IssueType.task, status, priority = IssuePriority.normal, dueInDays, description = "", links = [] }: FixtureIssue,
+        {
+            epic,
+            title,
+            type = IssueType.task,
+            status,
+            priority = IssuePriority.normal,
+            dueInDays,
+            description = "",
+            labels = [],
+            links = [],
+        }: FixtureIssue,
         user: User,
     ): Promise<Issue> {
         const issue = await this.issuesService.create(
@@ -113,6 +146,7 @@ export class IssuesFixtureService {
                 priority,
                 dueDate: dueInDays === undefined ? null : daysFromToday(dueInDays),
                 description,
+                labelIds: labels.map((label) => label.id),
             },
             user,
         );

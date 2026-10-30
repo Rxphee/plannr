@@ -30,6 +30,11 @@ export class IssueFilter {
     priorities?: IssuePriority[];
 
     @IsOptional()
+    @IsUUID("4", { each: true })
+    @Field(() => [ID], { nullable: true, description: "Issues with any of the labels" })
+    labelIds?: string[];
+
+    @IsOptional()
     @Transform(trim)
     @IsString()
     @Field({ nullable: true, description: "Part of the title, or the number or key of an issue like 42 or KEY-42" })

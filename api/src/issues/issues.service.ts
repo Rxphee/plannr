@@ -2,6 +2,7 @@ import { EntityManager, type FilterQuery, LockMode, ref } from "@mikro-orm/postg
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
 import { containsPattern } from "@src/db/contains-pattern.js";
 import { EpicsService } from "@src/epics/epics.service.js";
+import { LabelsService } from "@src/labels/labels.service.js";
 import { Project } from "@src/projects/entities/project.entity.js";
 import { ProjectsService } from "@src/projects/projects.service.js";
 import type { User } from "@src/users/user.entity.js";
@@ -21,12 +22,13 @@ export class IssuesService {
         private readonly entityManager: EntityManager,
         private readonly projectsService: ProjectsService,
         private readonly epicsService: EpicsService,
+        private readonly labelsService: LabelsService,
     ) {}
 
     // Newest first
     async findAll({ projectId, filter = {}, offset, limit }: IssuesArgs, user: User): Promise<PaginatedIssues> {
         const project = await this.projectsService.findOneVisibleById(projectId, user);
-        const { epicIds, statuses, types, priorities, search } = filter;
+        const { epicIds, statuses, types, priorities, labelIds, search } = filter;
 
         const where: FilterQuery<Issue> = { project };
         if (epicIds?.length) {
@@ -41,13 +43,16 @@ export class IssuesService {
         if (priorities?.length) {
             where.priority = { $in: priorities };
         }
+        if (labelIds?.length) {
+            where.labels = { $some: { id: { $in: labelIds } } };
+        }
         if (search) {
             const number = findIssueNumberIn(search);
             where.$or = [{ title: { $ilike: containsPattern(search) } }, ...(number ? [{ number }] : [])];
         }
 
         const [nodes, totalCount] = await this.entityManager.findAndCount(Issue, where, {
-            populate: ["epic", "links"],
+            populate: ["epic", "links", "labels"],
             orderBy: { number: "desc" },
             offset,
             limit,
@@ -67,21 +72,22 @@ export class IssuesService {
         });
     }
 
-    async create({ projectId, epicId, ...input }: CreateIssueInput, user: User): Promise<Issue> {
+    async create({ projectId, epicId, labelIds, ...input }: CreateIssueInput, user: User): Promise<Issue> {
         return this.entityManager.transactional(async () => {
             const project = await this.projectsService.findOneVisibleById(projectId, user);
             await this.projectsService.assertCanContribute(project, user);
             const epic = epicId ? await this.epicsService.findOneInProject(epicId, project) : await this.epicsService.findDefault(project);
+            const labels = await this.labelsService.findByIds(labelIds);
 
             // Locks the project until the transaction ends and reads its current counter, so two new issues never get the same number
             await this.entityManager.findOneOrFail(Project, project.id, { lockMode: LockMode.PESSIMISTIC_WRITE, refresh: true });
             project.issueCounter += 1;
 
-            return this.entityManager.create(Issue, { ...input, project, epic, number: project.issueCounter, createdBy: user });
+            return this.entityManager.create(Issue, { ...input, project, epic, labels, number: project.issueCounter, createdBy: user });
         });
     }
 
-    async update(id: string, { epicId, status, dueDate, ...fields }: UpdateIssueInput, user: User): Promise<Issue> {
+    async update(id: string, { epicId, status, dueDate, labelIds, ...fields }: UpdateIssueInput, user: User): Promise<Issue> {
         const issue = await this.findOneContributableBy(id, user);
 
         // Fields that are not given stay as they are
@@ -94,6 +100,9 @@ export class IssuesService {
         }
         if (dueDate !== undefined) {
             issue.dueDate = dueDate;
+        }
+        if (labelIds) {
+            issue.labels.set(await this.labelsService.findByIds(labelIds));
         }
 
         await this.entityManager.flush();

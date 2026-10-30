@@ -7,11 +7,12 @@ import { UsersModule } from "@src/users/users.module.js";
 import { EpicsFixtureService } from "./epics-fixture.service.js";
 import { FixturesService } from "./fixtures.service.js";
 import { IssuesFixtureService } from "./issues-fixture.service.js";
+import { LabelsFixtureService } from "./labels-fixture.service.js";
 import { ProjectsFixtureService } from "./projects-fixture.service.js";
 import { UsersFixtureService } from "./users-fixture.service.js";
 
 @Module({
     imports: [UsersModule, ProjectsModule, EpicsModule, IssuesModule],
-    providers: [FixturesService, UsersFixtureService, ProjectsFixtureService, EpicsFixtureService, IssuesFixtureService],
+    providers: [FixturesService, UsersFixtureService, ProjectsFixtureService, EpicsFixtureService, LabelsFixtureService, IssuesFixtureService],
 })
 export class FixturesModule {}

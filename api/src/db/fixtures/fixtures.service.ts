@@ -4,6 +4,7 @@ import { Injectable, Logger } from "@nestjs/common";
 
 import { EpicsFixtureService } from "./epics-fixture.service.js";
 import { IssuesFixtureService } from "./issues-fixture.service.js";
+import { LabelsFixtureService } from "./labels-fixture.service.js";
 import { ProjectsFixtureService } from "./projects-fixture.service.js";
 import { UsersFixtureService } from "./users-fixture.service.js";
 
@@ -16,6 +17,7 @@ export class FixturesService {
         private readonly usersFixtureService: UsersFixtureService,
         private readonly projectsFixtureService: ProjectsFixtureService,
         private readonly epicsFixtureService: EpicsFixtureService,
+        private readonly labelsFixtureService: LabelsFixtureService,
         private readonly issuesFixtureService: IssuesFixtureService,
     ) {}
 
@@ -52,7 +54,10 @@ export class FixturesService {
         this.logger.log("Generate epics...");
         const epics = await this.epicsFixtureService.generateEpics(projects, users.developmentUser);
 
+        this.logger.log("Generate labels...");
+        const labels = await this.labelsFixtureService.generateLabels();
+
         this.logger.log("Generate issues...");
-        await this.issuesFixtureService.generateIssues(epics, users);
+        await this.issuesFixtureService.generateIssues(epics, users, labels);
     }
 }

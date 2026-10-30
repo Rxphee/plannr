@@ -2,6 +2,7 @@ import { ParseUUIDPipe } from "@nestjs/common";
 import { Args, ID, Mutation, Parent, Query, ResolveField, Resolver } from "@nestjs/graphql";
 import { CurrentUser } from "@src/auth/current-user.decorator.js";
 import { Epic } from "@src/epics/entities/epic.entity.js";
+import { Label } from "@src/labels/entities/label.entity.js";
 import { Project } from "@src/projects/entities/project.entity.js";
 import { User } from "@src/users/user.entity.js";
 
@@ -66,6 +67,11 @@ export class IssuesResolver {
     @ResolveField(() => User)
     async createdBy(@Parent() issue: Issue): Promise<User> {
         return issue.createdBy.loadOrFail();
+    }
+
+    @ResolveField(() => [Label], { description: "Sorted by name" })
+    async labels(@Parent() issue: Issue): Promise<Label[]> {
+        return issue.labels.loadItems();
     }
 
     @ResolveField(() => [IssueLink], { description: "Oldest first" })

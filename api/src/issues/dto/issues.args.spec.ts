@@ -18,6 +18,7 @@ describe("IssuesArgs", () => {
                     types: ["bug"],
                     priorities: ["high", "normal"],
                     epicIds: ["6e2d9c41-8a3b-4b7f-a1e5-3c9d7f2b8e60"],
+                    labelIds: ["9c4e2a71-3b5d-4f8e-a6c2-1d7b9e3f5a80"],
                     search: "header",
                 },
             }).invalidProperties,
@@ -34,6 +35,7 @@ describe("IssuesArgs", () => {
         ["filter", { filter: { types: ["story"] } }],
         ["filter", { filter: { priorities: ["urgent"] } }],
         ["filter", { filter: { epicIds: ["42"] } }],
+        ["filter", { filter: { labelIds: ["42"] } }],
     ])("rejects an invalid %s", (property, data) => {
         expect(validate(data).invalidProperties).toEqual([property]);
     });

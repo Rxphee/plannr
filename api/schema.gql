@@ -22,10 +22,18 @@ input CreateIssueInput {
 
   """Defaults to the epic General"""
   epicId: ID
+  labelIds: [ID!]! = []
   priority: IssuePriority! = normal
   projectId: ID!
   title: String!
   type: IssueType! = task
+}
+
+input CreateLabelInput {
+  color: LabelColor! = gray
+
+  """Unique regardless of upper and lower case"""
+  name: String!
 }
 
 input CreateProjectInput {
@@ -76,6 +84,9 @@ type Issue {
   """The key of the project and the number, e.g. KEY-42"""
   key: String!
 
+  """Sorted by name"""
+  labels: [Label!]!
+
   """Oldest first"""
   links: [IssueLink!]!
 
@@ -94,6 +105,9 @@ type Issue {
 input IssueFilter {
   """Issues in any of the epics"""
   epicIds: [ID!]
+
+  """Issues with any of the labels"""
+  labelIds: [ID!]
 
   """Issues with any of the priorities"""
   priorities: [IssuePriority!]
@@ -147,6 +161,26 @@ enum IssueType {
   task
 }
 
+type Label {
+  color: LabelColor!
+  createdAt: DateTime!
+  id: ID!
+  name: String!
+  updatedAt: DateTime!
+}
+
+enum LabelColor {
+  amber
+  blue
+  gray
+  green
+  orange
+  pink
+  red
+  teal
+  violet
+}
+
 """
 A local date string (i.e., with no associated timezone) in `YYYY-MM-DD` format, e.g. `2020-01-01`.
 """
@@ -165,6 +199,7 @@ type Mutation {
   changeProjectStatus(id: ID!, status: ProjectStatus!): Project!
   createEpic(input: CreateEpicInput!): Epic!
   createIssue(input: CreateIssueInput!): Issue!
+  createLabel(input: CreateLabelInput!): Label!
   createProject(input: CreateProjectInput!): Project!
 
   """
@@ -172,6 +207,9 @@ type Mutation {
   """
   deleteEpic(id: ID!, moveIssuesToEpicId: ID): Boolean!
   deleteIssue(id: ID!): Boolean!
+
+  """Deletes the label and removes it from all issues"""
+  deleteLabel(id: ID!): Boolean!
 
   """Deletes an archived project with everything in it"""
   deleteProject(id: ID!): Boolean!
@@ -181,6 +219,7 @@ type Mutation {
   removeProjectMember(projectId: ID!, userId: ID!): Boolean!
   updateEpic(id: ID!, input: UpdateEpicInput!): Epic!
   updateIssue(id: ID!, input: UpdateIssueInput!): Issue!
+  updateLabel(id: ID!, input: UpdateLabelInput!): Label!
   updateProject(id: ID!, input: UpdateProjectInput!): Project!
 }
 
@@ -193,6 +232,13 @@ type PaginatedEpics {
 
 type PaginatedIssues {
   nodes: [Issue!]!
+
+  """All entries that match, not only the ones on this page"""
+  totalCount: Int!
+}
+
+type PaginatedLabels {
+  nodes: [Label!]!
 
   """All entries that match, not only the ones on this page"""
   totalCount: Int!
@@ -278,6 +324,9 @@ enum ProjectStatus {
 }
 
 type Query {
+  """Whether the current user can create, edit and delete labels"""
+  canManageLabels: Boolean!
+
   """The epic, if the current user can see its project"""
   epic(id: ID!): Epic
 
@@ -298,6 +347,9 @@ type Query {
 
   """Issues of a project, newest first"""
   issues(filter: IssueFilter, limit: Int! = 25, offset: Int! = 0, projectId: ID!): PaginatedIssues!
+
+  """The labels of the instance, sorted by name"""
+  labels(limit: Int! = 25, offset: Int! = 0): PaginatedLabels!
 
   """The project with the key, if the current user can see it"""
   project(key: String!): Project
@@ -333,10 +385,20 @@ input UpdateIssueInput {
 
   """Another epic of the same project"""
   epicId: ID
+
+  """Replaces the labels of the issue, an empty list removes all of them"""
+  labelIds: [ID!]
   priority: IssuePriority
   status: IssueStatus
   title: String
   type: IssueType
+}
+
+input UpdateLabelInput {
+  color: LabelColor
+
+  """Unique regardless of upper and lower case"""
+  name: String
 }
 
 input UpdateProjectInput {
