@@ -2,6 +2,7 @@ import { CreateRequestContext } from "@mikro-orm/decorators/legacy";
 import { MikroORM } from "@mikro-orm/postgresql";
 import { Injectable, Logger } from "@nestjs/common";
 
+import { ApiTokensFixtureService } from "./api-tokens-fixture.service.js";
 import { EpicsFixtureService } from "./epics-fixture.service.js";
 import { IssuesFixtureService } from "./issues-fixture.service.js";
 import { ProjectsFixtureService } from "./projects-fixture.service.js";
@@ -17,6 +18,7 @@ export class FixturesService {
         private readonly projectsFixtureService: ProjectsFixtureService,
         private readonly epicsFixtureService: EpicsFixtureService,
         private readonly issuesFixtureService: IssuesFixtureService,
+        private readonly apiTokensFixtureService: ApiTokensFixtureService,
     ) {}
 
     // Resets the database and fills it with demo data for development
@@ -54,5 +56,8 @@ export class FixturesService {
 
         this.logger.log("Generate issues...");
         await this.issuesFixtureService.generateIssues(epics, users);
+
+        this.logger.log("Generate API tokens...");
+        await this.apiTokensFixtureService.generateApiTokens(users.developmentUser);
     }
 }
