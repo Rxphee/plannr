@@ -1,12 +1,12 @@
 import { ParseUUIDPipe } from "@nestjs/common";
 import { Args, ID, Mutation, Parent, Query, ResolveField, Resolver } from "@nestjs/graphql";
 import { CurrentUser } from "@src/auth/current-user.decorator.js";
-import { PaginationArgs } from "@src/common/pagination.args.js";
 import type { User } from "@src/users/user.entity.js";
 
 import { CreateProjectInput } from "./dto/create-project.input.js";
 import { PaginatedProjectMembers } from "./dto/paginated-project-members.js";
 import { PaginatedProjects } from "./dto/paginated-projects.js";
+import { ProjectMembersArgs } from "./dto/project-members.args.js";
 import { ProjectsArgs } from "./dto/projects.args.js";
 import { UpdateProjectInput } from "./dto/update-project.input.js";
 import { Project, ProjectStatus } from "./entities/project.entity.js";
@@ -59,7 +59,7 @@ export class ProjectsResolver {
     }
 
     @ResolveField(() => PaginatedProjectMembers, { description: "Sorted by name" })
-    async members(@Parent() project: Project, @Args() args: PaginationArgs): Promise<PaginatedProjectMembers> {
+    async members(@Parent() project: Project, @Args() args: ProjectMembersArgs): Promise<PaginatedProjectMembers> {
         return this.projectsService.findMembers(project, args);
     }
 

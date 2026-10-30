@@ -1,7 +1,7 @@
 import { gql } from "@src/util/gql";
 
 export const projectSettingsQuery = gql`
-    query ProjectSettings($key: String!, $memberOffset: Int!, $memberLimit: Int!) {
+    query ProjectSettings($key: String!, $memberSearch: String, $memberOffset: Int!, $memberLimit: Int!) {
         project(key: $key) {
             id
             key
@@ -9,7 +9,7 @@ export const projectSettingsQuery = gql`
             description
             status
             canManage
-            members(offset: $memberOffset, limit: $memberLimit) {
+            members(search: $memberSearch, offset: $memberOffset, limit: $memberLimit) {
                 totalCount
                 nodes {
                     role
