@@ -55,7 +55,8 @@ export function OptionSelect<Value extends string>({
                     }}
                 </SelectValue>
             </SelectTrigger>
-            <SelectContent>
+            {/* At least as wide as the trigger, wider for long labels such as a person with the hint that they join as member */}
+            <SelectContent className="w-max max-w-(--available-width) min-w-(--anchor-width)">
                 {options.map((option) => (
                     <SelectItem key={option.value} value={option.value}>
                         <OptionLabel option={option} />

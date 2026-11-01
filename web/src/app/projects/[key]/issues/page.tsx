@@ -8,6 +8,7 @@ import { getTranslations } from "next-intl/server";
 
 import { fetchEpicOptions } from "../epics/fetchEpicOptions";
 import { CreateIssueDialog } from "./CreateIssueDialog";
+import { fetchAssigneeOptions } from "./fetchAssigneeOptions";
 import { parseIssueListParams } from "./issueListParams";
 import { IssueListView } from "./IssueListView";
 import { IssueViewTabs } from "./IssueViewTabs";
@@ -20,9 +21,11 @@ export default async function IssuesPage({ params, searchParams }: PageProps<"/p
     if (!data.project) {
         notFound();
     }
-    const [epics, labels, t, tCommon] = await Promise.all([
+    const [epics, labels, assignees, t, tCommon] = await Promise.all([
         fetchEpicOptions(data.project.id),
         fetchLabelOptions(),
+        // Only needed to create issues
+        data.project.canContribute ? fetchAssigneeOptions(data.project.key) : [],
         getTranslations("issues"),
         getTranslations("common"),
     ]);
@@ -31,7 +34,9 @@ export default async function IssuesPage({ params, searchParams }: PageProps<"/p
     const listParams = parseIssueListParams(await searchParams);
 
     const defaultEpic = project.epics.find((epic) => epic.isDefault);
-    const createAction = project.canContribute && defaultEpic && <CreateIssueDialog project={project} epicId={defaultEpic.id} labels={labels} />;
+    const createAction = project.canContribute && defaultEpic && (
+        <CreateIssueDialog project={project} epicId={defaultEpic.id} labels={labels} assignees={assignees} />
+    );
 
     return (
         <>

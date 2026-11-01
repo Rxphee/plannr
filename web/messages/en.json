@@ -11,6 +11,7 @@
     },
     "apiErrors": {
         "alreadyMembers": "{count, plural, one {{names} is already a member of the project.} other {{names} are already members of the project.}}",
+        "assigneeNotAMember": "Only members of the project can be assigned.",
         "defaultEpicNotDeletable": "The epic {epic} cannot be deleted, every project keeps it for the issues without another epic.",
         "epicNotInProject": "The epic does not exist in the project.",
         "issueLinkExists": "The issue already has this link.",
@@ -195,9 +196,11 @@
     },
     "issueFields": {
         "addLabels": "Add labels",
+        "assignee": "Assignee",
         "description": "Description",
         "dueDate": "Due date",
         "epic": "Epic",
+        "joinsAsMember": "{name} (joins as member)",
         "label": "Label",
         "labels": "Labels",
         "noDueDate": "No due date",
@@ -206,7 +209,8 @@
         "priority": "Priority",
         "status": "Status",
         "title": "Title",
-        "type": "Type"
+        "type": "Type",
+        "unassigned": "Unassigned"
     },
     "issuePriority": {
         "high": "High",
@@ -225,6 +229,11 @@
         "task": "Task"
     },
     "issueViews": {
+        "assignedToMe": {
+            "emptyDescription": "Open issues assigned to you show up here.",
+            "emptyTitle": "Nothing assigned to you",
+            "label": "Assigned to me"
+        },
         "bugs": {
             "emptyDescription": "Open issues of the type bug show up here.",
             "emptyTitle": "No open bugs",

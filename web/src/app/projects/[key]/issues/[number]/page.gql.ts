@@ -22,6 +22,11 @@ export const issuePageQuery = gql`
                 id
                 name
             }
+            assignee {
+                id
+                firstName
+                lastName
+            }
             labels {
                 id
                 name

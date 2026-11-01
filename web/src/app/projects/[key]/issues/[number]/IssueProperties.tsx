@@ -9,6 +9,8 @@ import { useFormatter, useTranslations } from "next-intl";
 import { type ReactNode, useState, useTransition } from "react";
 
 import { updateIssue } from "../actions";
+import { toAssigneeId, UNASSIGNED, useAssigneeSelectOptions } from "../assigneeSelectOptions";
+import type { Assignee } from "../fetchAssigneeOptions";
 import { IssuePriorityIcon } from "../IssuePriorityIcon";
 import { toEpicSelectOptions, useIssueSelectOptions } from "../issueSelectOptions";
 import { IssueStatusBadge } from "../IssueStatusBadge";
@@ -25,21 +27,25 @@ interface IssuePropertiesProps {
         type: GQLIssueType;
         dueDate: string | null;
         epic: { id: string; name: string };
+        assignee: { id: string; firstName: string; lastName: string } | null;
         labels: Label[];
     };
     project: { key: string; canContribute: boolean; epics: { id: string; name: string }[] };
     // All labels to choose from
     labels: Label[];
+    // Everyone the issue can be assigned to, only needed to change it
+    assignees: Assignee[];
 }
 
 // Each property saves on its own as soon as it changes
-export function IssueProperties({ issue, project, labels }: IssuePropertiesProps) {
+export function IssueProperties({ issue, project, labels, assignees }: IssuePropertiesProps) {
     const t = useTranslations("issueFields");
     const tCommon = useTranslations("common");
     const tType = useTranslations("issueType");
     const tPriority = useTranslations("issuePriority");
     const format = useFormatter();
     const { statusOptions, typeOptions, priorityOptions } = useIssueSelectOptions();
+    const assigneeOptions = useAssigneeSelectOptions(assignees);
     const [error, setError] = useState<string>();
     const [pending, startTransition] = useTransition();
 
@@ -55,6 +61,9 @@ export function IssueProperties({ issue, project, labels }: IssuePropertiesProps
             <dl className="grid gap-3 text-sm">
                 <Property label={t("status")}>
                     <IssueStatusBadge status={issue.status} />
+                </Property>
+                <Property label={t("assignee")}>
+                    {issue.assignee ? `${issue.assignee.firstName} ${issue.assignee.lastName}` : t("unassigned")}
                 </Property>
                 <Property label={t("priority")}>
                     <span className="flex items-center gap-1.5">
@@ -103,6 +112,16 @@ export function IssueProperties({ issue, project, labels }: IssuePropertiesProps
                         value={issue.status}
                         disabled={pending}
                         onChange={(status) => save({ status })}
+                    />
+                </Property>
+                <Property label={t("assignee")}>
+                    <OptionSelect
+                        size="sm"
+                        aria-label={t("assignee")}
+                        options={assigneeOptions}
+                        value={issue.assignee?.id ?? UNASSIGNED}
+                        disabled={pending}
+                        onChange={(value) => save({ assigneeId: toAssigneeId(value) })}
                     />
                 </Property>
                 <Property label={t("priority")}>

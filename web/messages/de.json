@@ -11,6 +11,7 @@
     },
     "apiErrors": {
         "alreadyMembers": "{count, plural, one {{names} ist schon Mitglied des Projekts.} other {{names} sind schon Mitglieder des Projekts.}}",
+        "assigneeNotAMember": "Zuweisen lassen sich nur Mitglieder des Projekts.",
         "defaultEpicNotDeletable": "Das Epic {epic} lässt sich nicht löschen, jedes Projekt behält es für die Issues ohne anderes Epic.",
         "epicNotInProject": "Das Epic gibt es in diesem Projekt nicht.",
         "issueLinkExists": "Das Issue hat diesen Link schon.",
@@ -195,9 +196,11 @@
     },
     "issueFields": {
         "addLabels": "Labels hinzufügen",
+        "assignee": "Zugewiesen",
         "description": "Beschreibung",
         "dueDate": "Fällig am",
         "epic": "Epic",
+        "joinsAsMember": "{name} (wird Mitglied)",
         "label": "Label",
         "labels": "Labels",
         "noDueDate": "Kein Datum",
@@ -206,7 +209,8 @@
         "priority": "Priorität",
         "status": "Status",
         "title": "Titel",
-        "type": "Typ"
+        "type": "Typ",
+        "unassigned": "Niemand"
     },
     "issuePriority": {
         "high": "Hoch",
@@ -225,6 +229,11 @@
         "task": "Aufgabe"
     },
     "issueViews": {
+        "assignedToMe": {
+            "emptyDescription": "Hier erscheinen offene Issues, die dir zugewiesen sind.",
+            "emptyTitle": "Dir ist nichts zugewiesen",
+            "label": "Mir zugewiesen"
+        },
         "bugs": {
             "emptyDescription": "Hier erscheinen offene Issues vom Typ Bug.",
             "emptyTitle": "Keine offenen Bugs",

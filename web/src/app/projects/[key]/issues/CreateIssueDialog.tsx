@@ -17,6 +17,8 @@ import { useTranslations } from "next-intl";
 import { useState } from "react";
 
 import { createIssue } from "./actions";
+import { toAssigneeId, UNASSIGNED, useAssigneeSelectOptions } from "./assigneeSelectOptions";
+import type { Assignee } from "./fetchAssigneeOptions";
 import { ISSUE_TITLE_MAX_LENGTH } from "./issueOptions";
 import { toEpicSelectOptions, useIssueSelectOptions } from "./issueSelectOptions";
 
@@ -26,6 +28,7 @@ interface CreateIssueDialogProps {
     epicId: string;
     // Without labels the label field is hidden
     labels: { id: string; name: string; color: GQLLabelColor }[];
+    assignees: Assignee[];
 }
 
 interface CreateIssueFormValues {
@@ -33,12 +36,13 @@ interface CreateIssueFormValues {
     type: GQLIssueType;
     priority: GQLIssuePriority;
     epicId: string;
+    assigneeId: string;
     dueDate?: string | null;
     labelIds?: string[];
     description?: string;
 }
 
-export function CreateIssueDialog({ project, epicId, labels }: CreateIssueDialogProps) {
+export function CreateIssueDialog({ project, epicId, labels, assignees }: CreateIssueDialogProps) {
     const t = useTranslations("createIssue");
     const [open, setOpen] = useState(false);
 
@@ -49,18 +53,26 @@ export function CreateIssueDialog({ project, epicId, labels }: CreateIssueDialog
                 {t("trigger")}
             </DialogTrigger>
             <DialogContent className="sm:max-w-2xl">
-                <CreateIssueForm project={project} epicId={epicId} labels={labels} onCreated={() => setOpen(false)} />
+                <CreateIssueForm project={project} epicId={epicId} labels={labels} assignees={assignees} onCreated={() => setOpen(false)} />
             </DialogContent>
         </Dialog>
     );
 }
 
-function CreateIssueForm({ project, epicId, labels, onCreated }: CreateIssueDialogProps & { onCreated: () => void }) {
+function CreateIssueForm({ project, epicId, labels, assignees, onCreated }: CreateIssueDialogProps & { onCreated: () => void }) {
     const t = useTranslations("createIssue");
     const tFields = useTranslations("issueFields");
     const { typeOptions, priorityOptions } = useIssueSelectOptions();
-    const handleSubmit = async ({ dueDate, labelIds = [], description = "", ...values }: CreateIssueFormValues) => {
-        const { error } = await createIssue({ ...values, projectId: project.id, dueDate: dueDate || null, labelIds, description });
+    const assigneeOptions = useAssigneeSelectOptions(assignees);
+    const handleSubmit = async ({ assigneeId, dueDate, labelIds = [], description = "", ...values }: CreateIssueFormValues) => {
+        const { error } = await createIssue({
+            ...values,
+            projectId: project.id,
+            assigneeId: toAssigneeId(assigneeId),
+            dueDate: dueDate || null,
+            labelIds,
+            description,
+        });
         if (error) {
             return { [FORM_ERROR]: error };
         }
@@ -68,7 +80,11 @@ function CreateIssueForm({ project, epicId, labels, onCreated }: CreateIssueDial
     };
 
     return (
-        <FinalForm<CreateIssueFormValues> onSubmit={handleSubmit} initialValues={{ type: "task", priority: "normal", epicId }} className="grid gap-4">
+        <FinalForm<CreateIssueFormValues>
+            onSubmit={handleSubmit}
+            initialValues={{ type: "task", priority: "normal", epicId, assigneeId: UNASSIGNED }}
+            className="grid gap-4"
+        >
             {({ submitting }) => (
                 <>
                     <DialogHeader>
@@ -80,6 +96,7 @@ function CreateIssueForm({ project, epicId, labels, onCreated }: CreateIssueDial
                         <SelectField name="type" label={tFields("type")} required options={typeOptions} />
                         <SelectField name="priority" label={tFields("priority")} required options={priorityOptions} />
                         <SelectField name="epicId" label={tFields("epic")} required options={toEpicSelectOptions(project.epics)} />
+                        <SelectField name="assigneeId" label={tFields("assignee")} options={assigneeOptions} />
                         <DateField name="dueDate" label={tFields("dueDate")} placeholder={tFields("noDueDate")} />
                     </div>
                     {labels.length > 0 && (
