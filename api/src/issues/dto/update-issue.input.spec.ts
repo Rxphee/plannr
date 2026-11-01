@@ -17,6 +17,10 @@ describe("UpdateIssueInput", () => {
         expect(validate({ dueDate: null })).toEqual([]);
     });
 
+    it("accepts null to unassign the issue", () => {
+        expect(validate({ assigneeId: null })).toEqual([]);
+    });
+
     it("accepts an empty list to remove all labels", () => {
         expect(validate({ labelIds: [] })).toEqual([]);
     });
@@ -24,6 +28,7 @@ describe("UpdateIssueInput", () => {
     it.each([
         ["title", { title: " " }],
         ["labelIds", { labelIds: ["42"] }],
+        ["assigneeId", { assigneeId: "max@plannr.localhost" }],
         ["status", { status: "blocked" }],
         ["dueDate", { dueDate: "tomorrow" }],
     ])("rejects an invalid %s", (property, data) => {

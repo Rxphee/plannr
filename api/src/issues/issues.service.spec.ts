@@ -1,4 +1,4 @@
-import type { EntityManager } from "@mikro-orm/postgresql";
+import { type EntityManager, ref } from "@mikro-orm/postgresql";
 import type { EpicsService } from "@src/epics/epics.service.js";
 import { InstanceRolesService } from "@src/instance-roles/instance-roles.service.js";
 import type { LabelsService } from "@src/labels/labels.service.js";
@@ -8,7 +8,7 @@ import { User } from "@src/users/user.entity.js";
 import { describe, expect, it, vi } from "vitest";
 
 import type { IssuesArgs } from "./dto/issues.args.js";
-import { IssuePriority, IssueStatus, IssueType } from "./entities/issue.entity.js";
+import { Issue, IssuePriority, IssueStatus, IssueType } from "./entities/issue.entity.js";
 import { IssueLinkKind } from "./entities/issue-link.entity.js";
 import { IssueView } from "./issue-views.js";
 import { IssuesService } from "./issues.service.js";
@@ -56,6 +56,12 @@ describe("IssuesService.findAll", () => {
         expect(where).toEqual({
             $and: [{ project, status: { $in: [IssueStatus.inProgress] } }, { $and: [openStatuses, viewCondition] }],
         });
+    });
+
+    it("shows the open issues assigned to the user in the view assignedToMe", async () => {
+        const { where, project, user } = await findAll({ projectId: "0b7f3a52-5c1e-4f0e-9d39-2f4a8e6b1c7d", view: IssueView.assignedToMe });
+
+        expect(where).toEqual({ $and: [{ project }, { $and: [openStatuses, { assignee: user.id }] }] });
     });
 
     it("shows the issues with any of the labels on top of the view", async () => {
@@ -119,5 +125,48 @@ describe("IssuesService.delete", () => {
             "The project is archived. Set it back to active to change it",
         );
         expect(entityManager.remove).not.toHaveBeenCalled();
+    });
+});
+
+describe("IssuesService.update", () => {
+    const project = Object.assign(new Project(), { key: "WEB", status: ProjectStatus.active });
+    const max = Object.assign(new User(), { firstName: "Max" });
+    const erika = Object.assign(new User(), { firstName: "Erika" });
+
+    function createService(issue: Issue) {
+        const projectsService = { assertCanContribute: vi.fn(), prepareAssignee: vi.fn(async () => erika) };
+        const entityManager = { findOne: vi.fn(async () => issue), assign: vi.fn(), flush: vi.fn() };
+        const service = new IssuesService(
+            entityManager as unknown as EntityManager,
+            projectsService as unknown as ProjectsService,
+            {} as EpicsService,
+            {} as LabelsService,
+            new InstanceRolesService([]),
+        );
+        return { service, projectsService };
+    }
+
+    function createIssue(): Issue {
+        return Object.assign(new Issue(), { project: { loadOrFail: async () => project }, assignee: ref(max) });
+    }
+
+    it("assigns the issue to a member, through the rules of the project", async () => {
+        const issue = createIssue();
+        const { service, projectsService } = createService(issue);
+
+        await service.update(issue.id, { assigneeId: erika.id }, max);
+
+        expect(projectsService.prepareAssignee).toHaveBeenCalledWith(project, erika.id);
+        expect(issue.assignee?.unwrap()).toBe(erika);
+    });
+
+    it("unassigns the issue with null and keeps the assignee without it", async () => {
+        const unassignedIssue = createIssue();
+        await createService(unassignedIssue).service.update(unassignedIssue.id, { assigneeId: null }, max);
+        expect(unassignedIssue.assignee).toBeNull();
+
+        const untouchedIssue = createIssue();
+        await createService(untouchedIssue).service.update(untouchedIssue.id, { title: "New title" }, max);
+        expect(untouchedIssue.assignee?.unwrap()).toBe(max);
     });
 });

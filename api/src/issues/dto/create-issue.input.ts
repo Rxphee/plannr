@@ -38,6 +38,11 @@ export class CreateIssueInput {
     @Field(() => LocalDateResolver, { nullable: true })
     dueDate?: string | null;
 
+    @IsOptional()
+    @IsUUID("4")
+    @Field(() => ID, { nullable: true, description: "A member of the project, or an admin, who becomes a member" })
+    assigneeId?: string | null;
+
     @IsUUID("4", { each: true })
     @Field(() => [ID], { defaultValue: [] })
     labelIds: string[];

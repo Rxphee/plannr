@@ -66,6 +66,11 @@ export class IssuesResolver {
         return issue.epic.loadOrFail();
     }
 
+    @ResolveField(() => User, { nullable: true })
+    async assignee(@Parent() issue: Issue): Promise<User | null> {
+        return issue.assignee ? issue.assignee.loadOrFail() : null;
+    }
+
     @ResolveField(() => User)
     async createdBy(@Parent() issue: Issue): Promise<User> {
         return issue.createdBy.loadOrFail();

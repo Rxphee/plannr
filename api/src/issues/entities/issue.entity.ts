@@ -40,7 +40,7 @@ const closedStatuses = new Set([IssueStatus.done, IssueStatus.canceled]);
 @ObjectType()
 @Unique({ properties: ["project", "number"] })
 export class Issue {
-    [OptionalProps]?: "type" | "status" | "priority" | "dueDate" | "description" | "createdAt" | "updatedAt" | "completedAt";
+    [OptionalProps]?: "type" | "status" | "priority" | "dueDate" | "description" | "assignee" | "createdAt" | "updatedAt" | "completedAt";
 
     @PrimaryKey({ type: "uuid" })
     @Field(() => ID)
@@ -98,6 +98,10 @@ export class Issue {
 
     @ManyToMany(() => Label, undefined, { pivotTable: "IssueLabel", joinColumn: "issue", inverseJoinColumn: "label", orderBy: { name: "asc" } })
     labels = new Collection<Label>(this);
+
+    // Always a member of the project. Removing the member from the project unassigns their issues.
+    @ManyToOne(() => User, { ref: true, nullable: true, index: true, deleteRule: "set null" })
+    assignee: Ref<User> | null = null;
 
     @ManyToOne(() => User, { ref: true })
     createdBy: Ref<User>;
