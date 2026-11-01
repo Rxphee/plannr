@@ -1,6 +1,8 @@
 import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 import { MAX_PAGE_SIZE } from "@src/common/pagination.args.js";
+import { CreateEpicInput } from "@src/epics/dto/create-epic.input.js";
 import { EpicsArgs } from "@src/epics/dto/epics.args.js";
+import { UpdateEpicInput } from "@src/epics/dto/update-epic.input.js";
 import type { Epic } from "@src/epics/entities/epic.entity.js";
 import { EpicsService } from "@src/epics/epics.service.js";
 import { CreateIssueInput } from "@src/issues/dto/create-issue.input.js";
@@ -38,6 +40,20 @@ interface ListProjectsArgs extends PageArgs {
 interface ListEpicsArgs extends PageArgs {
     project: string;
     search?: string;
+}
+
+interface CreateEpicArgs {
+    project: string;
+    name: string;
+    description?: string;
+}
+
+interface UpdateEpicArgs {
+    project: string;
+    // Name or ID
+    epic: string;
+    name?: string;
+    description?: string;
 }
 
 interface ListIssuesArgs extends PageArgs {
@@ -114,6 +130,22 @@ export class McpToolsService {
         const args = validateInput(EpicsArgs, { projectId: project.id, search, offset, limit });
         const { nodes, totalCount } = await this.epicsService.findAll(args, user);
         return formatPage({ noun: "epics", offset, lines: nodes.map(formatEpicLine), totalCount });
+    }
+
+    async createEpic({ project: projectKey, name, description = "" }: CreateEpicArgs, user: User): Promise<string> {
+        const project = await this.findProject(projectKey, user);
+        const input = validateInput(CreateEpicInput, { projectId: project.id, name, description });
+        const epic = await this.epicsService.create(input, user);
+        return `Created ${formatEpicLine(epic)}`;
+    }
+
+    async updateEpic({ project: projectKey, epic: nameOrId, name, description }: UpdateEpicArgs, user: User): Promise<string> {
+        const project = await this.findProject(projectKey, user);
+        const epic = await this.findEpic(project, nameOrId, user);
+        // The API takes name and description together, so a field that is not given keeps its value
+        const input = validateInput(UpdateEpicInput, { name: name ?? epic.name, description: description ?? epic.description });
+        const updatedEpic = await this.epicsService.update(epic.id, input, user);
+        return `Updated ${formatEpicLine(updatedEpic)}`;
     }
 
     async listIssues(
