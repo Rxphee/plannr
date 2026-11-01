@@ -1,5 +1,6 @@
 import { EntityManager, type FilterQuery, LockMode, UniqueConstraintViolationException } from "@mikro-orm/postgresql";
-import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
+import { ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
+import { UserError } from "@src/common/user-error.js";
 import { containsPattern } from "@src/db/contains-pattern.js";
 import { Epic } from "@src/epics/entities/epic.entity.js";
 import { DEFAULT_EPIC_NAME } from "@src/epics/epic-constraints.js";
@@ -130,7 +131,7 @@ export class ProjectsService {
             await this.entityManager.flush();
         } catch (error) {
             if (error instanceof UniqueConstraintViolationException) {
-                throw new BadRequestException(`The key ${input.key} is already taken by another project`);
+                throw new UserError("projectKeyTaken", `The key ${input.key} is already taken by another project`, { key: input.key });
             }
             throw error;
         }
@@ -158,7 +159,7 @@ export class ProjectsService {
     async delete(id: string, user: User): Promise<void> {
         const project = await this.findOneManageableBy(id, user);
         if (project.status !== ProjectStatus.archived) {
-            throw new BadRequestException("Only archived projects can be deleted");
+            throw new UserError("projectNotArchived", "Only archived projects can be deleted");
         }
         await this.entityManager.remove(project).flush();
     }
@@ -168,13 +169,16 @@ export class ProjectsService {
         return this.changeMembers(projectId, user, async (project) => {
             const newMembers = await this.entityManager.find(User, { id: { $in: userIds } });
             if (newMembers.length !== userIds.length) {
-                throw new BadRequestException("A user does not exist");
+                throw new UserError("userNotFound", "A user does not exist");
             }
             const existingMemberships = await this.entityManager.find(ProjectMember, { project, user: { $in: userIds } });
             if (existingMemberships.length > 0) {
                 const existingUserIds = new Set(existingMemberships.map((membership) => membership.user.id));
                 const names = newMembers.filter(({ id }) => existingUserIds.has(id)).map(({ firstName, lastName }) => `${firstName} ${lastName}`);
-                throw new BadRequestException(`${names.join(", ")} ${names.length === 1 ? "is" : "are"} already a member of the project`);
+                throw new UserError("alreadyMembers", `${names.join(", ")} ${names.length === 1 ? "is" : "are"} already a member of the project`, {
+                    names,
+                    count: names.length,
+                });
             }
             return newMembers.map((newMember) => this.entityManager.create(ProjectMember, { project, user: newMember, role }));
         });
@@ -225,7 +229,7 @@ export class ProjectsService {
     private async findMember(project: Project, userId: string): Promise<ProjectMember> {
         const member = await this.entityManager.findOne(ProjectMember, { project, user: userId });
         if (!member) {
-            throw new BadRequestException("The user is not a member of the project");
+            throw new UserError("notAMember", "The user is not a member of the project");
         }
         return member;
     }
@@ -236,7 +240,7 @@ export class ProjectsService {
         }
         const ownerCount = await this.entityManager.count(ProjectMember, { project, role: ProjectMemberRole.owner });
         if (ownerCount <= 1) {
-            throw new BadRequestException("A project needs at least one owner. Make another member an owner first.");
+            throw new UserError("lastOwner", "A project needs at least one owner. Make another member an owner first.");
         }
     }
 }

@@ -1,6 +1,7 @@
 import { EntityManager, UniqueConstraintViolationException } from "@mikro-orm/postgresql";
-import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
+import { ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
 import type { PaginationArgs } from "@src/common/pagination.args.js";
+import { UserError } from "@src/common/user-error.js";
 import { InstanceRolesService } from "@src/instance-roles/instance-roles.service.js";
 import type { User } from "@src/users/user.entity.js";
 
@@ -27,7 +28,7 @@ export class LabelsService {
         const uniqueIds = [...new Set(ids)];
         const labels = await this.entityManager.find(Label, { id: { $in: uniqueIds } });
         if (labels.length !== uniqueIds.length) {
-            throw new BadRequestException("A label does not exist");
+            throw new UserError("labelNotFound", "A label does not exist");
         }
         return labels;
     }
@@ -83,7 +84,7 @@ export class LabelsService {
             await this.entityManager.flush();
         } catch (error) {
             if (error instanceof UniqueConstraintViolationException) {
-                throw new BadRequestException(`The label ${name} already exists`);
+                throw new UserError("labelNameTaken", `The label ${name} already exists`, { name });
             }
             throw error;
         }

@@ -1,5 +1,6 @@
 import { EntityManager, type FilterQuery, LockMode, type QueryOrderMap, ref } from "@mikro-orm/postgresql";
-import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
+import { ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
+import { UserError } from "@src/common/user-error.js";
 import { containsPattern } from "@src/db/contains-pattern.js";
 import { EpicsService } from "@src/epics/epics.service.js";
 import { InstanceRolesService } from "@src/instance-roles/instance-roles.service.js";
@@ -126,7 +127,7 @@ export class IssuesService {
     async addLink({ issueId, url }: IssueLinkInput, user: User): Promise<IssueLink> {
         const issue = await this.findOneContributableBy(issueId, user);
         if ((await this.entityManager.count(IssueLink, { issue, url })) > 0) {
-            throw new BadRequestException("The issue already has this link");
+            throw new UserError("issueLinkExists", "The issue already has this link");
         }
 
         const link = this.entityManager.create(IssueLink, { issue, url, kind: detectIssueLinkKind(url) });

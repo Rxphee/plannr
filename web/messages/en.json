@@ -9,6 +9,21 @@
         "title": "Add members",
         "trigger": "Add members"
     },
+    "apiErrors": {
+        "alreadyMembers": "{count, plural, one {{names} is already a member of the project.} other {{names} are already members of the project.}}",
+        "defaultEpicNotDeletable": "The epic {epic} cannot be deleted, every project keeps it for the issues without another epic.",
+        "epicNotInProject": "The epic does not exist in the project.",
+        "issueLinkExists": "The issue already has this link.",
+        "labelNameTaken": "The label {name} already exists.",
+        "labelNotFound": "A label does not exist.",
+        "lastOwner": "A project needs at least one owner. Make another member an owner first.",
+        "moveIssuesToOtherEpic": "Choose another epic to move the issues to.",
+        "notAMember": "The user is not a member of the project.",
+        "projectKeyTaken": "The key {key} is already taken by another project.",
+        "projectNotArchived": "Only archived projects can be deleted.",
+        "superAdminAlwaysAdmin": "{name} is super-admin through SUPER_ADMIN_EMAILS and always has admin rights.",
+        "userNotFound": "A user does not exist."
+    },
     "apiTokens": {
         "copied": "Copied",
         "copy": "Copy token",
