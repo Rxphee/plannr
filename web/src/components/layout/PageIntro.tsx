@@ -19,15 +19,17 @@ export function PageIntro({ title, description, icon, badge, meta, actions, tabs
     return (
         <div className="border-b">
             <div className={cn("mx-auto grid w-full max-w-6xl gap-5 px-4 pt-8 md:px-8", !tabs && "pb-6")}>
-                <div className="flex items-start gap-4">
-                    {icon}
-                    <div className="grid min-w-0 flex-1 gap-1">
-                        <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-                            <h1 className="font-heading truncate text-2xl font-semibold tracking-tight">{title}</h1>
-                            {badge}
+                <div className="flex min-w-0 flex-col gap-4 md:flex-row md:items-start">
+                    <div className="flex min-w-0 flex-1 items-start gap-4">
+                        {icon}
+                        <div className="grid min-w-0 flex-1 gap-1">
+                            <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1">
+                                <h1 className="font-heading truncate text-2xl font-semibold tracking-tight">{title}</h1>
+                                {badge}
+                            </div>
+                            {meta && <div className="text-muted-foreground flex flex-wrap items-center gap-x-3 text-sm">{meta}</div>}
+                            {description && <p className="text-muted-foreground max-w-2xl text-sm">{description}</p>}
                         </div>
-                        {meta && <div className="text-muted-foreground flex flex-wrap items-center gap-x-3 text-sm">{meta}</div>}
-                        {description && <p className="text-muted-foreground max-w-2xl text-sm">{description}</p>}
                     </div>
                     {actions && <div className="flex shrink-0 items-center gap-2">{actions}</div>}
                 </div>
