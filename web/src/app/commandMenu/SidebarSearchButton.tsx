@@ -3,20 +3,12 @@
 import { Kbd } from "@src/components/ui/Kbd";
 import { SidebarMenuButton } from "@src/components/ui/Sidebar";
 import { SearchIcon } from "lucide-react";
-import { useSyncExternalStore } from "react";
 
 import { useCommandMenu } from "./CommandMenuProvider";
 
-const subscribeToNothing = () => () => {};
-
-// Opens the command menu and shows its shortcut, ⌘K on Apple devices and Ctrl K elsewhere
-export function SidebarSearchButton() {
+// Opens the command menu and shows its shortcut. The server decides isApple from the user agent, so the first paint already shows the right one.
+export function SidebarSearchButton({ isApple }: { isApple?: boolean }) {
     const { openCommandMenu } = useCommandMenu();
-    const isApple = useSyncExternalStore(
-        subscribeToNothing,
-        () => /Mac|iPhone|iPad/.test(navigator.userAgent),
-        () => true,
-    );
 
     return (
         <SidebarMenuButton tooltip="Search" className="h-9" onClick={openCommandMenu}>

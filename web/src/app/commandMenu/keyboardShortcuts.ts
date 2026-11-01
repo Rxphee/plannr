@@ -10,6 +10,11 @@ export function isCommandMenuShortcut(event: ShortcutEvent): boolean {
     return (event.metaKey || event.ctrlKey) && !event.altKey && !event.shiftKey && event.key.toLowerCase() === "k";
 }
 
+// Apple devices show the shortcut as ⌘K, all others as Ctrl K; iPads with a desktop user agent report "Macintosh"
+export function isAppleUserAgent(userAgent: string | null): boolean {
+    return userAgent !== null && /Mac|iPhone|iPad/.test(userAgent);
+}
+
 // C like in Linear, only outside text fields, dialogs and menus and without modifiers, so it never clashes with the browser
 export function isQuickCaptureShortcut(event: ShortcutEvent): boolean {
     if (event.metaKey || event.ctrlKey || event.altKey || event.shiftKey || event.repeat || event.isComposing || event.key !== "c") {
