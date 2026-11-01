@@ -1,7 +1,7 @@
 import { ParseUUIDPipe } from "@nestjs/common";
 import { Args, ID, Mutation, Parent, Query, ResolveField, Resolver } from "@nestjs/graphql";
 import { CurrentUser } from "@src/auth/current-user.decorator.js";
-import type { User } from "@src/users/user.entity.js";
+import { User } from "@src/users/user.entity.js";
 
 import { CreateProjectInput } from "./dto/create-project.input.js";
 import { PaginatedProjectMembers } from "./dto/paginated-project-members.js";
@@ -61,6 +61,13 @@ export class ProjectsResolver {
     @ResolveField(() => PaginatedProjectMembers, { description: "Sorted by name" })
     async members(@Parent() project: Project, @Args() args: ProjectMembersArgs): Promise<PaginatedProjectMembers> {
         return this.projectsService.findMembers(project, args);
+    }
+
+    @ResolveField(() => [User], {
+        description: "Admins and the super-admin who are not a member but see and change the project through their instance role, sorted by name",
+    })
+    async adminsWithoutMembership(@Parent() project: Project): Promise<User[]> {
+        return this.projectsService.findAdminsWithoutMembership(project);
     }
 
     @ResolveField(() => Boolean, { description: "Whether the current user can change the settings, status and members of the project" })

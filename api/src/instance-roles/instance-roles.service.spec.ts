@@ -50,4 +50,10 @@ describe("InstanceRolesService", () => {
         expect(instanceRoles.canAppointAdmins(createUser({ email: "max@plannr.localhost", isAdmin: true }))).toBe(false);
         expect(instanceRoles.canAppointAdmins(createUser({ email: "erika@plannr.localhost" }))).toBe(false);
     });
+
+    it("finds the admins and the super-admin with their verified email address in lower case", () => {
+        expect(instanceRoles.usersWithAdminRights()).toEqual({
+            $or: [{ isAdmin: true }, { email: { $in: ["ada@plannr.localhost"] }, isEmailVerified: true }],
+        });
+    });
 });

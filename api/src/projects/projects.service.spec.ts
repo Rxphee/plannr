@@ -83,6 +83,17 @@ describe("ProjectsService.findAllVisibleTo", () => {
     });
 });
 
+describe("ProjectsService.findAdminsWithoutMembership", () => {
+    it("leaves out the admins who are a member of the project", async () => {
+        const memberAdmin = Object.assign(new User(), { firstName: "Lukas", lastName: "Berger", isAdmin: true });
+        const membership = Object.assign(new ProjectMember(), { user: memberAdmin });
+        const find = vi.fn().mockResolvedValueOnce([admin, memberAdmin, superAdmin]).mockResolvedValueOnce([membership]);
+        const service = new ProjectsService({ find } as unknown as EntityManager, instanceRoles);
+
+        await expect(service.findAdminsWithoutMembership(createProject(ProjectStatus.active))).resolves.toEqual([admin, superAdmin]);
+    });
+});
+
 describe("ProjectsService.assertCanContribute", () => {
     it("allows changes to a paused project", async () => {
         await expect(createService(ProjectMemberRole.member).assertCanContribute(createProject(ProjectStatus.paused), user)).resolves.toBeUndefined();
