@@ -16,6 +16,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { McpToolsService } from "./mcp-tools.service.js";
 
 const user = new User();
+const erika = Object.assign(new User(), { firstName: "Erika", lastName: "Mustermann", email: "erika@plannr.localhost" });
+const lukas = Object.assign(new User(), { firstName: "Lukas", lastName: "Berger", email: "lukas@plannr.localhost" });
 const project = Object.assign(new Project(), {
     id: "8a3c5f1e-2b4d-4c6e-8f0a-1b2c3d4e5f60",
     key: "WEB",
@@ -44,7 +46,7 @@ const issue = Object.assign(new Issue(), {
 });
 
 describe("McpToolsService", () => {
-    const projectsService = { findAllVisibleTo: vi.fn(), findOneVisibleTo: vi.fn() };
+    const projectsService = { findAllVisibleTo: vi.fn(), findOneVisibleTo: vi.fn(), findAssignableUsers: vi.fn() };
     const epicsService = { findAll: vi.fn(), findOneInProject: vi.fn() };
     const issuesService = {
         findAll: vi.fn(),
@@ -69,6 +71,7 @@ describe("McpToolsService", () => {
         epicsService.findAll.mockResolvedValue({ nodes: [designEpic], totalCount: 1 });
         issuesService.findAll.mockResolvedValue({ nodes: [issue], totalCount: 1 });
         labelsService.findAll.mockResolvedValue({ nodes: [frontendLabel, upstreamLabel], totalCount: 2 });
+        projectsService.findAssignableUsers.mockResolvedValue([erika, lukas]);
     });
 
     describe("listProjects", () => {
@@ -173,6 +176,49 @@ describe("McpToolsService", () => {
                 "Created WEB-57 · task · normal · todo · Try MCP · #upstream",
             );
             expect(issuesService.create).toHaveBeenCalledWith(expect.objectContaining({ labelIds: [upstreamLabel.id] }), user);
+        });
+    });
+
+    describe("assignee", () => {
+        it("assigns a new issue to the user with me", async () => {
+            issuesService.create.mockResolvedValue(
+                Object.assign(new Issue(), { number: 57, title: "Try MCP", labels: labelsOf([]), assignee: { getEntity: () => erika } }),
+            );
+
+            await expect(tools.createIssue({ project: "WEB", title: "Try MCP", assignee: "me" }, user)).resolves.toBe(
+                "Created WEB-57 · task · normal · todo · Try MCP · @Erika Mustermann",
+            );
+            expect(issuesService.create).toHaveBeenCalledWith(expect.objectContaining({ assigneeId: user.id }), user);
+        });
+
+        it.each(["erika@plannr.localhost", "ERIKA MUSTERMANN"])("finds the assignee %s by email or full name in any case", async (assignee) => {
+            issuesService.update.mockResolvedValue(issue);
+
+            await tools.updateIssue({ key: "WEB-12", assignee }, user);
+            expect(issuesService.update).toHaveBeenCalledWith(issue.id, expect.objectContaining({ assigneeId: erika.id }), user);
+        });
+
+        it("unassigns the issue with null", async () => {
+            issuesService.update.mockResolvedValue(issue);
+
+            await tools.updateIssue({ key: "WEB-12", assignee: null }, user);
+            expect(issuesService.update).toHaveBeenCalledWith(issue.id, expect.objectContaining({ assigneeId: null }), user);
+        });
+
+        it("names the members for a wrong assignee and changes nothing", async () => {
+            await expect(tools.updateIssue({ key: "WEB-12", status: IssueStatus.done, assignee: "Anna" }, user)).rejects.toThrow(
+                'Issues of WEB cannot be assigned to "Anna". Members: Erika Mustermann <erika@plannr.localhost>, Lukas Berger <lukas@plannr.localhost>',
+            );
+            expect(issuesService.update).not.toHaveBeenCalled();
+        });
+
+        it("asks for the email if several members have the name", async () => {
+            const otherErika = Object.assign(new User(), { firstName: "Erika", lastName: "Mustermann", email: "erika.m@plannr.localhost" });
+            projectsService.findAssignableUsers.mockResolvedValue([erika, otherErika]);
+
+            await expect(tools.updateIssue({ key: "WEB-12", assignee: "Erika Mustermann" }, user)).rejects.toThrow(
+                'Several members are named "Erika Mustermann", pass the email instead',
+            );
         });
     });
 

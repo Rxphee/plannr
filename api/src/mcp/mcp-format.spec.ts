@@ -3,6 +3,7 @@ import { Issue, IssuePriority, IssueStatus, IssueType } from "@src/issues/entiti
 import { IssueLink, IssueLinkKind } from "@src/issues/entities/issue-link.entity.js";
 import { Label } from "@src/labels/entities/label.entity.js";
 import { ProjectStatus } from "@src/projects/entities/project.entity.js";
+import { User } from "@src/users/user.entity.js";
 import { describe, expect, it } from "vitest";
 
 import { formatEpicLine, formatIssueDetails, formatIssueLine, formatPage, formatProjectLine } from "./mcp-format.js";
@@ -54,18 +55,37 @@ describe("formatIssueLine with labels", () => {
     });
 });
 
+describe("formatIssueLine with an assignee", () => {
+    it("names the assignee before the labels", () => {
+        const labels = [Object.assign(new Label(), { name: "upstream" })];
+        const assignee = Object.assign(new User(), { firstName: "Erika", lastName: "Mustermann" });
+        const issue = createIssue({
+            assignee: { getEntity: () => assignee } as unknown as Issue["assignee"],
+            labels: { getItems: () => labels } as unknown as Issue["labels"],
+        });
+
+        expect(formatIssueLine("WEB", issue)).toBe("WEB-12 · bug · high · todo · Navigation collapses too late · @Erika Mustermann · #upstream");
+    });
+});
+
 describe("formatIssueDetails", () => {
-    it("adds epic, dates, links and the description", () => {
+    it("adds epic, assignee, dates, links and the description", () => {
         const links = [
             Object.assign(new IssueLink(), { url: "https://github.com/Rxphee/plannr/pull/12", kind: IssueLinkKind.pullRequest }),
             Object.assign(new IssueLink(), { url: "obsidian://open?vault=SecondBrain", kind: IssueLinkKind.other }),
         ];
-        const issue = createIssue({ description: "**Steps**", completedAt: new Date("2026-10-30T10:00:00Z") });
+        const assignee = Object.assign(new User(), { firstName: "Erika", lastName: "Mustermann", email: "erika@plannr.localhost" });
+        const issue = createIssue({
+            description: "**Steps**",
+            completedAt: new Date("2026-10-30T10:00:00Z"),
+            assignee: { getEntity: () => assignee } as unknown as Issue["assignee"],
+        });
 
         expect(formatIssueDetails({ projectKey: "WEB", issue, epicName: "Design", links })).toBe(
             [
-                "WEB-12 · bug · high · todo · Navigation collapses too late",
+                "WEB-12 · bug · high · todo · Navigation collapses too late · @Erika Mustermann",
                 "Epic: Design",
+                "Assignee: Erika Mustermann <erika@plannr.localhost>",
                 "Created 2026-10-29, updated 2026-10-30, closed 2026-10-30",
                 "Links:",
                 "- PR https://github.com/Rxphee/plannr/pull/12",

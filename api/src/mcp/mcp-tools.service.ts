@@ -18,7 +18,7 @@ import { ProjectsService } from "@src/projects/projects.service.js";
 import type { User } from "@src/users/user.entity.js";
 import { isUUID } from "class-validator";
 
-import { formatEpicLine, formatIssueDetails, formatIssueLine, formatPage, formatProjectLine } from "./mcp-format.js";
+import { formatEpicLine, formatIssueDetails, formatIssueLine, formatPage, formatProjectLine, formatUser } from "./mcp-format.js";
 import { validateInput } from "./validate-input.js";
 
 const DEFAULT_TOOL_PAGE_SIZE = 25;
@@ -57,6 +57,8 @@ interface CreateIssueArgs {
     project: string;
     title: string;
     epic?: string;
+    // "me", an email or a full name
+    assignee?: string | null;
     type?: IssueType;
     priority?: IssuePriority;
     dueDate?: string | null;
@@ -68,6 +70,8 @@ interface UpdateIssueArgs {
     key: string;
     title?: string;
     epic?: string;
+    // "me", an email or a full name, null unassigns the issue
+    assignee?: string | null;
     type?: IssueType;
     status?: IssueStatus;
     priority?: IssuePriority;
@@ -153,15 +157,17 @@ export class McpToolsService {
         const epic = await issue.epic.loadOrFail();
         const links = await issue.links.loadItems();
         await issue.labels.loadItems();
+        await issue.assignee?.load();
         return formatIssueDetails({ projectKey: project.key, issue, epicName: epic.name, links });
     }
 
     async createIssue(
-        { project: projectKey, epic, title, type, priority, dueDate, description, labels = [] }: CreateIssueArgs,
+        { project: projectKey, epic, assignee, title, type, priority, dueDate, description, labels = [] }: CreateIssueArgs,
         user: User,
     ): Promise<string> {
         const project = await this.findProject(projectKey, user);
         const epicId = epic ? (await this.findEpic(project, epic, user)).id : undefined;
+        const assigneeId = assignee ? (await this.findAssignee(project, assignee, user)).id : undefined;
         const labelIds = (await this.findLabels(labels)).map(({ id }) => id);
         const input = validateInput(CreateIssueInput, {
             projectId: project.id,
@@ -172,13 +178,14 @@ export class McpToolsService {
             dueDate: dueDate ?? null,
             description: description ?? "",
             labelIds,
+            assigneeId,
         });
         const issue = await this.issuesService.create(input, user);
         return `Created ${formatIssueLine(project.key, issue)}`;
     }
 
     async updateIssue(
-        { key, epic, addLinks = [], removeLinks = [], addLabels = [], removeLabels = [], ...fields }: UpdateIssueArgs,
+        { key, epic, assignee, addLinks = [], removeLinks = [], addLabels = [], removeLabels = [], ...fields }: UpdateIssueArgs,
         user: User,
     ): Promise<string> {
         const issue = await this.findIssue(key, user);
@@ -186,9 +193,10 @@ export class McpToolsService {
 
         // Everything is checked before the first change, so a wrong argument changes nothing
         const epicId = epic ? (await this.findEpic(project, epic, user)).id : undefined;
+        const assigneeId = assignee ? (await this.findAssignee(project, assignee, user)).id : assignee;
         const labelIds =
             addLabels.length > 0 || removeLabels.length > 0 ? await this.changeLabelIds({ key, issue, addLabels, removeLabels }) : undefined;
-        const input = validateInput(UpdateIssueInput, { ...fields, epicId, labelIds });
+        const input = validateInput(UpdateIssueInput, { ...fields, epicId, assigneeId, labelIds });
         const linksToAdd = addLinks.map((url) => validateInput(IssueLinkInput, { issueId: issue.id, url }));
         const existingLinks = await issue.links.loadItems();
         const linksToRemove = removeLinks.map((url) => {
@@ -207,6 +215,7 @@ export class McpToolsService {
             await this.issuesService.addLink(link, user);
         }
         await updatedIssue.labels.loadItems();
+        await updatedIssue.assignee?.load();
         return `Updated ${formatIssueLine(project.key, updatedIssue)}`;
     }
 
@@ -278,6 +287,26 @@ export class McpToolsService {
             throw new NotFoundException(`The issue ${key} does not exist`);
         }
         return issue;
+    }
+
+    // "me", an email or a full name in any case. A wrong one answers with the people the issue can be assigned to, so agents need no tool to list them.
+    private async findAssignee(project: Project, nameOrEmail: string, user: User): Promise<User> {
+        const search = nameOrEmail.trim().toLowerCase();
+        if (search === "me") {
+            return user;
+        }
+        const assignableUsers = await this.projectsService.findAssignableUsers(project);
+        const matches = assignableUsers.filter(
+            ({ firstName, lastName, email }) => email.toLowerCase() === search || `${firstName} ${lastName}`.toLowerCase() === search,
+        );
+        if (matches.length === 0) {
+            const people = assignableUsers.map(formatUser).join(", ");
+            throw new BadRequestException(`Issues of ${project.key} cannot be assigned to "${nameOrEmail}". Members: ${people}`);
+        }
+        if (matches.length > 1) {
+            throw new BadRequestException(`Several members are named "${nameOrEmail}", pass the email instead`);
+        }
+        return matches[0];
     }
 
     // By ID or by name, since agents know epics by name. Names are not unique, so an ambiguous name asks for the ID.
