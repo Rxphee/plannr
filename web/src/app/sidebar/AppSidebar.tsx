@@ -15,7 +15,9 @@ import {
 import { fetchAllPages } from "@src/util/fetchAllPages";
 import { graphQLFetch } from "@src/util/graphQLFetch";
 import { LayoutGridIcon, TagIcon, UsersIcon } from "lucide-react";
+import { headers } from "next/headers";
 
+import { isAppleUserAgent } from "../commandMenu/keyboardShortcuts";
 import { SidebarSearchButton } from "../commandMenu/SidebarSearchButton";
 import { sidebarCurrentUserQuery, sidebarProjectsQuery } from "./AppSidebar.gql";
 import type { GQLSidebarCurrentUserQuery, GQLSidebarProjectsQuery, GQLSidebarProjectsQueryVariables } from "./AppSidebar.gql.generated";
@@ -26,13 +28,14 @@ import { UserMenu } from "./UserMenu";
 export type SidebarProject = GQLSidebarProjectsQuery["projects"]["nodes"][number];
 
 export async function AppSidebar({ theme }: { theme: Theme }) {
-    const [projects, { currentUser, canAppointAdmins }] = await Promise.all([
+    const [projects, { currentUser, canAppointAdmins }, requestHeaders] = await Promise.all([
         // All of them, so that the sidebar finds the open project by its key
         fetchAllPages(async (pagination) => {
             const data = await graphQLFetch<GQLSidebarProjectsQuery, GQLSidebarProjectsQueryVariables>(sidebarProjectsQuery, pagination);
             return data.projects;
         }),
         graphQLFetch<GQLSidebarCurrentUserQuery>(sidebarCurrentUserQuery),
+        headers(),
     ]);
 
     return (
@@ -46,7 +49,7 @@ export async function AppSidebar({ theme }: { theme: Theme }) {
                     <SidebarGroupLabel>Workspace</SidebarGroupLabel>
                     <SidebarMenu>
                         <SidebarMenuItem>
-                            <SidebarSearchButton />
+                            <SidebarSearchButton isApple={isAppleUserAgent(requestHeaders.get("user-agent"))} />
                         </SidebarMenuItem>
                         <SidebarMenuItem>
                             <SidebarNavLink href="/projects" tooltip="All projects" exact className="h-9">

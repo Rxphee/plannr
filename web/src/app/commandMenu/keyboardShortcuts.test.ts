@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { isCommandMenuShortcut, isQuickCaptureShortcut } from "./keyboardShortcuts";
+import { isAppleUserAgent, isCommandMenuShortcut, isQuickCaptureShortcut } from "./keyboardShortcuts";
 
 // An element that matches the selectors it is inside of
 function elementInside(...selectors: string[]): EventTarget {
@@ -57,5 +57,26 @@ describe("isQuickCaptureShortcut", () => {
         ["C in a menu", keyEvent("c", { target: elementInside("[role='menu']") })],
     ])("ignores %s", (_, event) => {
         expect(isQuickCaptureShortcut(event)).toBe(false);
+    });
+});
+
+describe("isAppleUserAgent", () => {
+    it.each([
+        ["macOS", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.0 Safari/605.1.15"],
+        [
+            "an iPhone",
+            "Mozilla/5.0 (iPhone; CPU iPhone OS 26_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.0 Mobile/15E148 Safari/604.1",
+        ],
+        ["an iPad", "Mozilla/5.0 (iPad; CPU OS 26_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.0 Mobile/15E148 Safari/604.1"],
+    ])("recognizes %s", (_, userAgent) => {
+        expect(isAppleUserAgent(userAgent)).toBe(true);
+    });
+
+    it.each([
+        ["Windows", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36"],
+        ["Linux", "Mozilla/5.0 (X11; Linux x86_64; rv:145.0) Gecko/20100101 Firefox/145.0"],
+        ["a request without user agent", null],
+    ])("does not count %s", (_, userAgent) => {
+        expect(isAppleUserAgent(userAgent)).toBe(false);
     });
 });
