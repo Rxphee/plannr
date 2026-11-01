@@ -6,7 +6,7 @@ import { MultiSelectField } from "@src/components/form/MultiSelectField";
 import { SelectField } from "@src/components/form/SelectField";
 import { Button } from "@src/components/ui/Button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@src/components/ui/Dialog";
-import type { GQLProjectMemberRole } from "@src/graphql.generated";
+import type { GQLInstanceRole, GQLProjectMemberRole } from "@src/graphql.generated";
 import { FORM_ERROR } from "final-form";
 import { UserPlusIcon } from "lucide-react";
 import { useState } from "react";
@@ -17,7 +17,7 @@ import { addProjectMembers } from "./actions";
 interface AddProjectMembersDialogProps {
     projectId: string;
     // Users who are not a member yet
-    users: { id: string; firstName: string; lastName: string }[];
+    users: { id: string; firstName: string; lastName: string; instanceRole: GQLInstanceRole }[];
 }
 
 export function AddProjectMembersDialog({ projectId, users }: AddProjectMembersDialogProps) {
@@ -66,7 +66,7 @@ function AddProjectMembersForm({ projectId, users, onAdded }: AddProjectMembersD
                         required
                         placeholder="Search by name"
                         emptyText="No one found"
-                        options={users.map((user) => ({ value: user.id, label: `${user.firstName} ${user.lastName}` }))}
+                        options={users.map((user) => ({ value: user.id, label: memberOptionLabel(user) }))}
                     />
                     <SelectField name="role" label="Role" required options={projectMemberRoleOptions} />
                     <FormSubmitError />
@@ -79,4 +79,13 @@ function AddProjectMembersForm({ projectId, users, onAdded }: AddProjectMembersD
             )}
         </FinalForm>
     );
+}
+
+const instanceRoleLabels: Record<GQLInstanceRole, string | undefined> = { superAdmin: "Super-admin", admin: "Admin", user: undefined };
+
+// Admins can be added, their role takes effect once their admin rights end
+function memberOptionLabel({ firstName, lastName, instanceRole }: AddProjectMembersDialogProps["users"][number]): string {
+    const name = `${firstName} ${lastName}`;
+    const roleLabel = instanceRoleLabels[instanceRole];
+    return roleLabel ? `${name} (${roleLabel})` : name;
 }

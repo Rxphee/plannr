@@ -1,3 +1,4 @@
+import type { FilterQuery } from "@mikro-orm/postgresql";
 import { registerEnumType } from "@nestjs/graphql";
 import type { User } from "@src/users/user.entity.js";
 
@@ -25,6 +26,11 @@ export class InstanceRolesService {
     // Admins see and manage all projects, users and labels
     hasAdminRights(user: User): boolean {
         return user.isAdmin || this.isSuperAdmin(user);
+    }
+
+    // The same rule as hasAdminRights, as a query; emails are stored in lower case
+    usersWithAdminRights(): FilterQuery<User> {
+        return { $or: [{ isAdmin: true }, { email: { $in: [...this.superAdminEmails] }, isEmailVerified: true }] };
     }
 
     canAppointAdmins(user: User): boolean {

@@ -79,6 +79,16 @@ export class ProjectsService {
         return { nodes, totalCount };
     }
 
+    // Admins and the super-admin see and change every project through their instance role, so they need no membership
+    async findAdminsWithoutMembership(project: Project): Promise<User[]> {
+        const admins = await this.entityManager.find(User, this.instanceRoles.usersWithAdminRights(), {
+            orderBy: { firstName: "asc", lastName: "asc", id: "asc" },
+        });
+        const memberships = await this.entityManager.find(ProjectMember, { project, user: { $in: admins } });
+        const memberIds = new Set(memberships.map((membership) => membership.user.id));
+        return admins.filter((admin) => !memberIds.has(admin.id));
+    }
+
     // Settings, status, deletion and members are up to the owners of a project and the admins
     async canManage(project: Project, user: User): Promise<boolean> {
         if (this.instanceRoles.hasAdminRights(user)) {

@@ -339,6 +339,10 @@ type PaginatedUsers {
 }
 
 type Project {
+  """
+  Admins and the super-admin who are not a member but see and change the project through their instance role, sorted by name
+  """
+  adminsWithoutMembership: [User!]!
   archivedAt: DateTime
 
   """

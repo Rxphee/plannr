@@ -1,9 +1,10 @@
 "use client";
 
+import { InstanceRoleBadge } from "@src/app/users/InstanceRoleBadge";
 import { Button } from "@src/components/ui/Button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@src/components/ui/Select";
 import { UserAvatar } from "@src/components/UserAvatar";
-import type { GQLProjectMemberRole } from "@src/graphql.generated";
+import type { GQLInstanceRole, GQLProjectMemberRole } from "@src/graphql.generated";
 import { XIcon } from "lucide-react";
 import { useState, useTransition } from "react";
 
@@ -14,7 +15,10 @@ interface ProjectMemberListProps {
     project: {
         id: string;
         key: string;
-        members: { role: GQLProjectMemberRole; user: { id: string; firstName: string; lastName: string; email: string } }[];
+        members: {
+            role: GQLProjectMemberRole;
+            user: { id: string; firstName: string; lastName: string; email: string; instanceRole: GQLInstanceRole };
+        }[];
     };
 }
 
@@ -40,7 +44,10 @@ export function ProjectMemberList({ project }: ProjectMemberListProps) {
                         <li key={user.id} className="flex items-center gap-3 px-3 py-2.5">
                             <UserAvatar user={user} />
                             <div className="grid min-w-0 flex-1">
-                                <span className="truncate text-sm font-medium">{name}</span>
+                                <span className="flex min-w-0 items-center gap-2">
+                                    <span className="truncate text-sm font-medium">{name}</span>
+                                    <InstanceRoleBadge role={user.instanceRole} />
+                                </span>
                                 <span className="text-muted-foreground truncate text-sm">{user.email}</span>
                             </div>
                             <Select
