@@ -1,23 +1,24 @@
 "use client";
 
 import { InstanceRoleBadge } from "@src/app/users/InstanceRoleBadge";
-import { Button } from "@src/components/ui/Button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@src/components/ui/Select";
 import { UserAvatar } from "@src/components/UserAvatar";
 import type { GQLInstanceRole, GQLProjectMemberRole } from "@src/graphql.generated";
-import { XIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useState, useTransition } from "react";
 
 import { PROJECT_MEMBER_ROLES } from "../projectMemberRoles";
-import { changeProjectMemberRole, removeProjectMember } from "./actions";
+import { changeProjectMemberRole } from "./actions";
+import { RemoveProjectMemberDialog } from "./RemoveProjectMemberDialog";
 
 interface ProjectMemberListProps {
     project: {
         id: string;
         key: string;
+        name: string;
         members: {
             role: GQLProjectMemberRole;
+            assignedIssueCount: number;
             user: { id: string; firstName: string; lastName: string; email: string; instanceRole: GQLInstanceRole };
         }[];
     };
@@ -40,7 +41,7 @@ export function ProjectMemberList({ project }: ProjectMemberListProps) {
     return (
         <div className="grid gap-2">
             <ul className="divide-y rounded-lg border">
-                {project.members.map(({ role, user }) => {
+                {project.members.map(({ role, assignedIssueCount, user }) => {
                     const name = `${user.firstName} ${user.lastName}`;
                     const member = { projectId: project.id, userId: user.id };
 
@@ -75,15 +76,7 @@ export function ProjectMemberList({ project }: ProjectMemberListProps) {
                                     ))}
                                 </SelectContent>
                             </Select>
-                            <Button
-                                variant="ghost"
-                                size="icon"
-                                disabled={pending}
-                                aria-label={t("remove", { name })}
-                                onClick={() => run(() => removeProjectMember(project.key, member))}
-                            >
-                                <XIcon />
-                            </Button>
+                            <RemoveProjectMemberDialog project={project} member={{ assignedIssueCount, user }} />
                         </li>
                     );
                 })}

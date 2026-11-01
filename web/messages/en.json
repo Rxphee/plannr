@@ -400,6 +400,12 @@
         "submit": "Create issue",
         "title": "Capture issue"
     },
+    "removeProjectMember": {
+        "assignedIssues": "{count, plural, one {One issue is assigned to {name}. It will be assigned to nobody afterwards.} other {# issues are assigned to {name}. They will be assigned to nobody afterwards.}}",
+        "noAssignedIssues": "No issue of the project is assigned to {name}.",
+        "submit": "Remove member",
+        "title": "Remove {name} from {project}?"
+    },
     "richText": {
         "bold": "Bold",
         "bulletList": "Bulleted list",

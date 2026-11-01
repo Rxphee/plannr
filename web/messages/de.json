@@ -400,6 +400,12 @@
         "submit": "Issue erstellen",
         "title": "Issue erfassen"
     },
+    "removeProjectMember": {
+        "assignedIssues": "{count, plural, one {Ein Issue ist {name} zugewiesen. Es ist danach niemandem mehr zugewiesen.} other {# Issues sind {name} zugewiesen. Sie sind danach niemandem mehr zugewiesen.}}",
+        "noAssignedIssues": "{name} ist keinem Issue des Projekts zugewiesen.",
+        "submit": "Mitglied entfernen",
+        "title": "{name} aus {project} entfernen?"
+    },
     "richText": {
         "bold": "Fett",
         "bulletList": "Aufzählung",

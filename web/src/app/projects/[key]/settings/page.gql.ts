@@ -13,6 +13,7 @@ export const projectSettingsQuery = gql`
                 totalCount
                 nodes {
                     role
+                    assignedIssueCount
                     user {
                         id
                         firstName
