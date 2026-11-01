@@ -9,6 +9,21 @@
         "title": "Mitglieder hinzufügen",
         "trigger": "Mitglieder hinzufügen"
     },
+    "apiErrors": {
+        "alreadyMembers": "{count, plural, one {{names} ist schon Mitglied des Projekts.} other {{names} sind schon Mitglieder des Projekts.}}",
+        "defaultEpicNotDeletable": "Das Epic {epic} lässt sich nicht löschen, jedes Projekt behält es für die Issues ohne anderes Epic.",
+        "epicNotInProject": "Das Epic gibt es in diesem Projekt nicht.",
+        "issueLinkExists": "Das Issue hat diesen Link schon.",
+        "labelNameTaken": "Das Label {name} gibt es schon.",
+        "labelNotFound": "Eines der Labels gibt es nicht.",
+        "lastOwner": "Ein Projekt braucht mindestens einen Inhaber. Mach zuerst ein anderes Mitglied zum Inhaber.",
+        "moveIssuesToOtherEpic": "Wähle ein anderes Epic, in das die Issues verschoben werden.",
+        "notAMember": "Der Benutzer ist kein Mitglied des Projekts.",
+        "projectKeyTaken": "Der Key {key} ist schon an ein anderes Projekt vergeben.",
+        "projectNotArchived": "Nur archivierte Projekte lassen sich löschen.",
+        "superAdminAlwaysAdmin": "{name} ist über SUPER_ADMIN_EMAILS Super-Admin und hat immer Admin-Rechte.",
+        "userNotFound": "Einen der Benutzer gibt es nicht."
+    },
     "apiTokens": {
         "copied": "Kopiert",
         "copy": "Token kopieren",

@@ -3,6 +3,7 @@ import "server-only";
 import { refresh } from "next/cache";
 
 import { GraphQLFetchError } from "./graphQLFetch";
+import { translateApiError } from "./translateApiError";
 
 interface RunMutationOptions {
     errorMessage: string;
@@ -20,7 +21,7 @@ export async function runMutation(
         await mutate();
     } catch (error) {
         if (error instanceof GraphQLFetchError && error.code === "BAD_REQUEST") {
-            return { error: error.message };
+            return { error: await translateApiError(error) };
         }
         console.error(error);
         return { error: errorMessage };
