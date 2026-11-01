@@ -34,7 +34,7 @@ export function ListPagination({ pagination, totalCount, href, className }: List
                 size="icon-sm"
                 aria-label={label}
                 nativeButton={false}
-                render={<Link href={href({ ...pagination, page: targetPage })} />}
+                render={<Link href={href({ ...pagination, page: targetPage })} scroll={false} />}
             >
                 {icon}
             </Button>
