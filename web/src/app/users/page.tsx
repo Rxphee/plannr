@@ -9,6 +9,7 @@ import { pageCountOf, type Pagination, paginationHref, parsePagination, toOffset
 import { parseSearch } from "@src/util/search";
 import { SearchXIcon } from "lucide-react";
 import { notFound, redirect } from "next/navigation";
+import { getTranslations } from "next-intl/server";
 
 import { usersPageQuery } from "./page.gql";
 import type { GQLUsersPageQuery, GQLUsersPageQueryVariables } from "./page.gql.generated";
@@ -18,10 +19,13 @@ export default async function UsersPage({ searchParams }: PageProps<"/users">) {
     const resolvedSearchParams = await searchParams;
     const pagination = parsePagination(resolvedSearchParams);
     const search = parseSearch(resolvedSearchParams);
-    const { canAppointAdmins, users } = await graphQLFetch<GQLUsersPageQuery, GQLUsersPageQueryVariables>(usersPageQuery, {
-        search,
-        ...toOffsetAndLimit(pagination),
-    });
+    const [{ canAppointAdmins, users }, t] = await Promise.all([
+        graphQLFetch<GQLUsersPageQuery, GQLUsersPageQueryVariables>(usersPageQuery, {
+            search,
+            ...toOffsetAndLimit(pagination),
+        }),
+        getTranslations("users"),
+    ]);
     // Only for the super-admin, like the sidebar link
     if (!canAppointAdmins) {
         notFound();
@@ -35,21 +39,18 @@ export default async function UsersPage({ searchParams }: PageProps<"/users">) {
 
     return (
         <>
-            <PageHeader breadcrumbs={[{ label: "Users" }]} />
-            <PageIntro
-                title="Users"
-                description="Everyone who has logged in. Admins see and manage all projects and labels; only you as super-admin appoint them."
-            />
+            <PageHeader breadcrumbs={[{ label: t("title") }]} />
+            <PageIntro title={t("title")} description={t("description")} />
             <PageContent className="grid gap-4">
-                <ListSearch placeholder="Search name or email" label="Search users" />
+                <ListSearch placeholder={t("searchPlaceholder")} label={t("searchLabel")} />
                 {users.totalCount === 0 ? (
                     <Empty className="rounded-xl border border-dashed">
                         <EmptyHeader>
                             <EmptyMedia variant="icon">
                                 <SearchXIcon />
                             </EmptyMedia>
-                            <EmptyTitle>No matching users</EmptyTitle>
-                            <EmptyDescription>Search for another name or email to see more users.</EmptyDescription>
+                            <EmptyTitle>{t("noMatchesTitle")}</EmptyTitle>
+                            <EmptyDescription>{t("noMatchesDescription")}</EmptyDescription>
                         </EmptyHeader>
                     </Empty>
                 ) : (

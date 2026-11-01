@@ -4,6 +4,7 @@ import { cn } from "@src/lib/utils";
 import { PAGE_SIZES, pageCountOf, pageWithSize, type Pagination } from "@src/util/pagination";
 import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import type { ReactNode } from "react";
 
 interface ListPaginationProps {
@@ -16,6 +17,7 @@ interface ListPaginationProps {
 
 // Page size, the range shown and the buttons to the previous and next page, below a paginated list
 export function ListPagination({ pagination, totalCount, href, className }: ListPaginationProps) {
+    const t = useTranslations("pagination");
     // Stays visible on a single page as long as another page size would split the list, so a larger size can be taken back
     if (totalCount <= Math.min(...PAGE_SIZES)) {
         return null;
@@ -43,9 +45,12 @@ export function ListPagination({ pagination, totalCount, href, className }: List
         );
 
     return (
-        <nav aria-label="Pages" className={cn("text-muted-foreground flex flex-wrap items-center justify-end gap-x-6 gap-y-2 text-sm", className)}>
+        <nav
+            aria-label={t("label")}
+            className={cn("text-muted-foreground flex flex-wrap items-center justify-end gap-x-6 gap-y-2 text-sm", className)}
+        >
             <div className="flex items-center gap-2">
-                <span>Per page</span>
+                <span>{t("perPage")}</span>
                 <PageSizeSelect
                     pageSize={pageSize}
                     hrefs={PAGE_SIZES.map((size) => ({
@@ -55,12 +60,10 @@ export function ListPagination({ pagination, totalCount, href, className }: List
                 />
             </div>
             <div className="flex items-center gap-3">
-                <span className="tabular-nums">
-                    {first}–{last} of {totalCount}
-                </span>
+                <span className="tabular-nums">{t("range", { first, last, total: totalCount })}</span>
                 <div className="flex gap-1">
-                    {pageLink(page - 1, "Previous page", <ChevronLeftIcon />)}
-                    {pageLink(page + 1, "Next page", <ChevronRightIcon />)}
+                    {pageLink(page - 1, t("previous"), <ChevronLeftIcon />)}
+                    {pageLink(page + 1, t("next"), <ChevronRightIcon />)}
                 </div>
             </div>
         </nav>

@@ -4,6 +4,7 @@ import { LabelBadge, LabelColorDot } from "@src/app/labels/LabelBadge";
 import { Button } from "@src/components/ui/Button";
 import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuTrigger } from "@src/components/ui/DropdownMenu";
 import type { GQLLabelColor } from "@src/graphql.generated";
+import { useTranslations } from "next-intl";
 
 type Label = { id: string; name: string; color: GQLLabelColor };
 
@@ -17,6 +18,7 @@ interface IssueLabelsSelectProps {
 
 // The labels of an issue as badges, with a menu that stays open to check several of them
 export function IssueLabelsSelect({ labels, selected, disabled, onChange }: IssueLabelsSelectProps) {
+    const t = useTranslations("issueFields");
     const selectedIds = new Set(selected.map(({ id }) => id));
 
     const toggle = (labelId: string, isChecked: boolean) => {
@@ -27,13 +29,18 @@ export function IssueLabelsSelect({ labels, selected, disabled, onChange }: Issu
         <DropdownMenu>
             <DropdownMenuTrigger
                 render={
-                    <Button variant="outline" size="sm" aria-label="Labels" className="h-auto min-h-8 w-full flex-wrap justify-start gap-1 py-1" />
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        aria-label={t("labels")}
+                        className="h-auto min-h-8 w-full flex-wrap justify-start gap-1 py-1"
+                    />
                 }
             >
                 {selected.length > 0 ? (
                     selected.map((label) => <LabelBadge key={label.id} label={label} />)
                 ) : (
-                    <span className="text-muted-foreground font-normal">No labels</span>
+                    <span className="text-muted-foreground font-normal">{t("noLabels")}</span>
                 )}
             </DropdownMenuTrigger>
             <DropdownMenuContent className="w-auto min-w-52">

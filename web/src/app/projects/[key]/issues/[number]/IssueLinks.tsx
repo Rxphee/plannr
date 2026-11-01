@@ -7,10 +7,13 @@ import { Button } from "@src/components/ui/Button";
 import type { GQLIssueLinkKind } from "@src/graphql.generated";
 import { FORM_ERROR, type FormApi } from "final-form";
 import { GitPullRequestIcon, LinkIcon, XIcon } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { useState, useTransition } from "react";
 
 import { addIssueLink, removeIssueLink } from "../actions";
 import { linkLabel } from "./linkLabel";
+
+const LINK_URL_PATTERN = /^(https?|obsidian):\/\/\S+$/;
 
 interface IssueLinksProps {
     issue: { id: string; links: { id: string; url: string; kind: GQLIssueLinkKind }[] };
@@ -18,6 +21,7 @@ interface IssueLinksProps {
 }
 
 export function IssueLinks({ issue, canEdit }: IssueLinksProps) {
+    const t = useTranslations("issue");
     const [error, setError] = useState<string>();
     const [pending, startTransition] = useTransition();
 
@@ -52,7 +56,7 @@ export function IssueLinks({ issue, canEdit }: IssueLinksProps) {
                                         variant="ghost"
                                         size="icon-xs"
                                         disabled={pending}
-                                        aria-label={`Remove ${link.url}`}
+                                        aria-label={t("removeLink", { url: link.url })}
                                         onClick={() => remove(link.id)}
                                     >
                                         <XIcon />
@@ -63,7 +67,7 @@ export function IssueLinks({ issue, canEdit }: IssueLinksProps) {
                     })}
                 </ul>
             ) : (
-                <p className="text-muted-foreground text-sm">No links yet. Pull requests on GitHub are recognized as such.</p>
+                <p className="text-muted-foreground text-sm">{t("noLinks")}</p>
             )}
             {error && (
                 <p className="text-destructive text-sm" aria-live="polite">
@@ -76,6 +80,8 @@ export function IssueLinks({ issue, canEdit }: IssueLinksProps) {
 }
 
 function AddIssueLinkForm({ issueId }: { issueId: string }) {
+    const t = useTranslations("issue");
+
     const handleSubmit = async ({ url = "" }: { url?: string }, form: FormApi<{ url?: string }>) => {
         const { error } = await addIssueLink({ issueId, url: url.trim() });
         if (error) {
@@ -89,22 +95,19 @@ function AddIssueLinkForm({ issueId }: { issueId: string }) {
         <FinalForm<{ url?: string }> onSubmit={handleSubmit} className="grid grid-cols-1 gap-2">
             {({ submitting, values }) => (
                 <>
-                    <TextField name="url" label="Add link" validate={validateLinkUrl} />
+                    <TextField
+                        name="url"
+                        label={t("addLink")}
+                        validate={(url) => (url?.trim() && !LINK_URL_PATTERN.test(url.trim()) ? t("linkUrlPattern") : undefined)}
+                    />
                     <FormSubmitError />
                     <div>
                         <Button type="submit" variant="outline" size="sm" disabled={submitting || !values.url?.trim()}>
-                            Add
+                            {t("add")}
                         </Button>
                     </div>
                 </>
             )}
         </FinalForm>
     );
-}
-
-function validateLinkUrl(url: string | undefined): string | undefined {
-    if (url?.trim() && !/^(https?|obsidian):\/\/\S+$/.test(url.trim())) {
-        return "Starts with http://, https:// or obsidian://";
-    }
-    return undefined;
 }

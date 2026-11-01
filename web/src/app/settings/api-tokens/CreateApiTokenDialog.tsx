@@ -7,10 +7,11 @@ import { TextField } from "@src/components/form/TextField";
 import { Button } from "@src/components/ui/Button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@src/components/ui/Dialog";
 import { FORM_ERROR } from "final-form";
+import { useTranslations } from "next-intl";
 import { type ReactElement, useState } from "react";
 
 import { createApiToken } from "./actions";
-import { type ApiTokenExpiry, apiTokenExpiryOptions, DEFAULT_API_TOKEN_EXPIRY, expiresAtOf } from "./apiTokenExpiry";
+import { API_TOKEN_EXPIRIES, type ApiTokenExpiry, DEFAULT_API_TOKEN_EXPIRY, expiresAtOf } from "./apiTokenExpiry";
 import { API_TOKEN_NAME_MAX_LENGTH } from "./apiTokenValidation";
 import { CreatedApiToken } from "./CreatedApiToken";
 
@@ -35,6 +36,8 @@ export function CreateApiTokenDialog({ trigger }: { trigger: ReactElement }) {
 }
 
 function CreateApiTokenContent({ onDone }: { onDone: () => void }) {
+    const t = useTranslations("apiTokens");
+    const tCommon = useTranslations("common");
     const [token, setToken] = useState<string>();
 
     const handleSubmit = async ({ name, expiry }: ApiTokenFormValues) => {
@@ -54,17 +57,20 @@ function CreateApiTokenContent({ onDone }: { onDone: () => void }) {
             {({ submitting }) => (
                 <>
                     <DialogHeader>
-                        <DialogTitle>New API token</DialogTitle>
-                        <DialogDescription>
-                            The token acts as you, with all your rights in every project. Give it a name to recognize it later.
-                        </DialogDescription>
+                        <DialogTitle>{t("createTitle")}</DialogTitle>
+                        <DialogDescription>{t("createDescription")}</DialogDescription>
                     </DialogHeader>
-                    <TextField name="name" label="Name" required maxLength={API_TOKEN_NAME_MAX_LENGTH} />
-                    <SelectField name="expiry" label="Expires after" options={apiTokenExpiryOptions} required />
+                    <TextField name="name" label={tCommon("name")} required maxLength={API_TOKEN_NAME_MAX_LENGTH} />
+                    <SelectField
+                        name="expiry"
+                        label={t("expiresAfter")}
+                        options={API_TOKEN_EXPIRIES.map((expiry) => ({ value: expiry, label: t(`expiry.${expiry}`) }))}
+                        required
+                    />
                     <FormSubmitError />
                     <DialogFooter>
                         <Button type="submit" disabled={submitting}>
-                            Create token
+                            {t("createSubmit")}
                         </Button>
                     </DialogFooter>
                 </>

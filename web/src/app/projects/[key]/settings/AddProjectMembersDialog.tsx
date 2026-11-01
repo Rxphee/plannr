@@ -9,9 +9,10 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import type { GQLInstanceRole, GQLProjectMemberRole } from "@src/graphql.generated";
 import { FORM_ERROR } from "final-form";
 import { UserPlusIcon } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 
-import { projectMemberRoleOptions } from "../projectMemberRoles";
+import { PROJECT_MEMBER_ROLES } from "../projectMemberRoles";
 import { addProjectMembers } from "./actions";
 
 interface AddProjectMembersDialogProps {
@@ -21,13 +22,14 @@ interface AddProjectMembersDialogProps {
 }
 
 export function AddProjectMembersDialog({ projectId, users }: AddProjectMembersDialogProps) {
+    const t = useTranslations("addProjectMembers");
     const [open, setOpen] = useState(false);
 
     return (
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger render={<Button variant="outline" className="w-fit" disabled={users.length === 0} />}>
                 <UserPlusIcon />
-                Add members
+                {t("trigger")}
             </DialogTrigger>
             <DialogContent>
                 <AddProjectMembersForm projectId={projectId} users={users} onAdded={() => setOpen(false)} />
@@ -42,6 +44,16 @@ interface AddProjectMembersFormValues {
 }
 
 function AddProjectMembersForm({ projectId, users, onAdded }: AddProjectMembersDialogProps & { onAdded: () => void }) {
+    const t = useTranslations("addProjectMembers");
+    const tRole = useTranslations("projectMemberRole");
+    const tInstanceRole = useTranslations("instanceRole");
+
+    // Admins can be added, their role takes effect once their admin rights end
+    const memberOptionLabel = ({ firstName, lastName, instanceRole }: AddProjectMembersDialogProps["users"][number]): string => {
+        const name = `${firstName} ${lastName}`;
+        return instanceRole === "user" ? name : `${name} (${tInstanceRole(instanceRole)})`;
+    };
+
     const handleSubmit = async (values: AddProjectMembersFormValues) => {
         const { error } = await addProjectMembers({ projectId, ...values });
         if (error) {
@@ -55,37 +67,31 @@ function AddProjectMembersForm({ projectId, users, onAdded }: AddProjectMembersD
             {({ submitting, values }) => (
                 <>
                     <DialogHeader>
-                        <DialogTitle>Add members</DialogTitle>
-                        <DialogDescription>
-                            Choose everyone who joins with the same role. Only people who have logged in to Plannr at least once can be added.
-                        </DialogDescription>
+                        <DialogTitle>{t("title")}</DialogTitle>
+                        <DialogDescription>{t("description")}</DialogDescription>
                     </DialogHeader>
                     <MultiSelectField
                         name="userIds"
-                        label="People"
+                        label={t("people")}
                         required
-                        placeholder="Search by name"
-                        emptyText="No one found"
+                        placeholder={t("peoplePlaceholder")}
+                        emptyText={t("noPeopleFound")}
                         options={users.map((user) => ({ value: user.id, label: memberOptionLabel(user) }))}
                     />
-                    <SelectField name="role" label="Role" required options={projectMemberRoleOptions} />
+                    <SelectField
+                        name="role"
+                        label={t("role")}
+                        required
+                        options={PROJECT_MEMBER_ROLES.map((role) => ({ value: role, label: tRole(role) }))}
+                    />
                     <FormSubmitError />
                     <DialogFooter>
                         <Button type="submit" disabled={submitting}>
-                            {values.userIds.length > 1 ? `Add ${values.userIds.length} members` : "Add member"}
+                            {t("submit", { count: values.userIds.length })}
                         </Button>
                     </DialogFooter>
                 </>
             )}
         </FinalForm>
     );
-}
-
-const instanceRoleLabels: Record<GQLInstanceRole, string | undefined> = { superAdmin: "Super-admin", admin: "Admin", user: undefined };
-
-// Admins can be added, their role takes effect once their admin rights end
-function memberOptionLabel({ firstName, lastName, instanceRole }: AddProjectMembersDialogProps["users"][number]): string {
-    const name = `${firstName} ${lastName}`;
-    const roleLabel = instanceRoleLabels[instanceRole];
-    return roleLabel ? `${name} (${roleLabel})` : name;
 }

@@ -6,11 +6,13 @@ import { Button } from "@src/components/ui/Button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@src/components/ui/Dialog";
 import { FORM_ERROR } from "final-form";
 import { Trash2Icon } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 
 import { revokeApiToken } from "./actions";
 
 export function RevokeApiTokenDialog({ apiToken }: { apiToken: { id: string; name: string } }) {
+    const t = useTranslations("apiTokens");
     const [open, setOpen] = useState(false);
 
     const handleSubmit = async () => {
@@ -23,7 +25,9 @@ export function RevokeApiTokenDialog({ apiToken }: { apiToken: { id: string; nam
 
     return (
         <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger render={<Button variant="ghost" size="icon" aria-label={`Revoke ${apiToken.name}`} title="Revoke token" />}>
+            <DialogTrigger
+                render={<Button variant="ghost" size="icon" aria-label={t("revokeTrigger", { token: apiToken.name })} title={t("revokeSubmit")} />}
+            >
                 <Trash2Icon />
             </DialogTrigger>
             <DialogContent>
@@ -31,16 +35,13 @@ export function RevokeApiTokenDialog({ apiToken }: { apiToken: { id: string; nam
                     {({ submitting }) => (
                         <>
                             <DialogHeader>
-                                <DialogTitle>Revoke {apiToken.name}</DialogTitle>
-                                <DialogDescription>
-                                    Every tool that uses this token loses its access at once. This cannot be undone, but you can create a new token
-                                    any time.
-                                </DialogDescription>
+                                <DialogTitle>{t("revokeTitle", { token: apiToken.name })}</DialogTitle>
+                                <DialogDescription>{t("revokeDescription")}</DialogDescription>
                             </DialogHeader>
                             <FormSubmitError />
                             <DialogFooter>
                                 <Button type="submit" variant="destructive" disabled={submitting}>
-                                    Revoke token
+                                    {t("revokeSubmit")}
                                 </Button>
                             </DialogFooter>
                         </>

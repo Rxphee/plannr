@@ -9,14 +9,13 @@ import { graphQLFetch } from "@src/util/graphQLFetch";
 import { CalendarIcon, UsersIcon } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { getFormatter, getTranslations } from "next-intl/server";
 
 import { ProjectIcon } from "../ProjectIcon";
 import { ProjectStatusBadge } from "../ProjectStatusBadge";
 import { projectMembersQuery, projectQuery } from "./page.gql";
 import type { GQLProjectMembersQuery, GQLProjectMembersQueryVariables, GQLProjectQuery, GQLProjectQueryVariables } from "./page.gql.generated";
 import { ProjectMemberOverview } from "./ProjectMemberOverview";
-
-const dateFormat = new Intl.DateTimeFormat("en", { dateStyle: "medium" });
 
 export default async function ProjectPage({ params }: PageProps<"/projects/[key]">) {
     const { key } = await params;
@@ -25,10 +24,15 @@ export default async function ProjectPage({ params }: PageProps<"/projects/[key]
         notFound();
     }
     // All of them, the members card shows a few and expands to the rest
-    const members = await fetchAllPages(async (pagination) => {
-        const data = await graphQLFetch<GQLProjectMembersQuery, GQLProjectMembersQueryVariables>(projectMembersQuery, { key, ...pagination });
-        return data.project?.members ?? { nodes: [], totalCount: 0 };
-    });
+    const [members, t, tCommon, format] = await Promise.all([
+        fetchAllPages(async (pagination) => {
+            const data = await graphQLFetch<GQLProjectMembersQuery, GQLProjectMembersQueryVariables>(projectMembersQuery, { key, ...pagination });
+            return data.project?.members ?? { nodes: [], totalCount: 0 };
+        }),
+        getTranslations("project"),
+        getTranslations("common"),
+        getFormatter(),
+    ]);
 
     const settingsLink = (label: string) =>
         project.canManage && (
@@ -41,26 +45,22 @@ export default async function ProjectPage({ params }: PageProps<"/projects/[key]
 
     return (
         <>
-            <PageHeader breadcrumbs={[{ label: "Projects", href: "/projects" }, { label: project.name }]} />
+            <PageHeader breadcrumbs={[{ label: tCommon("projects"), href: "/projects" }, { label: project.name }]} />
             <PageIntro
                 title={project.name}
                 icon={<ProjectIcon projectKey={project.key} size="xl" />}
                 badge={<ProjectStatusBadge status={project.status} />}
-                description={
-                    project.status === "archived"
-                        ? "Its epics and issues are read-only until an owner or admin sets the project back to active."
-                        : undefined
-                }
+                description={project.status === "archived" ? t("archivedDescription") : undefined}
                 meta={
                     <>
                         <span className="font-mono">{project.key}</span>
                         <span className="flex items-center gap-1">
                             <UsersIcon className="size-4" />
-                            {members.length === 1 ? "1 member" : `${members.length} members`}
+                            {t("memberCount", { count: members.length })}
                         </span>
                         <span className="flex items-center gap-1">
                             <CalendarIcon className="size-4" />
-                            Created {dateFormat.format(new Date(project.createdAt))}
+                            {tCommon("created", { date: format.dateTime(new Date(project.createdAt), "date") })}
                         </span>
                     </>
                 }
@@ -68,26 +68,24 @@ export default async function ProjectPage({ params }: PageProps<"/projects/[key]
             <PageContent className="grid items-start gap-4 lg:grid-cols-[1fr_20rem]">
                 <Card>
                     <CardHeader className="items-center">
-                        <CardTitle>About</CardTitle>
-                        {settingsLink("Edit")}
+                        <CardTitle>{t("about")}</CardTitle>
+                        {settingsLink(tCommon("edit"))}
                     </CardHeader>
                     <CardContent>
                         {project.description ? (
                             <RichTextEditor value={project.description} readOnly />
                         ) : (
-                            <p className="text-muted-foreground">
-                                No description yet. Describe the goal of the project, so everyone knows what it is about.
-                            </p>
+                            <p className="text-muted-foreground">{t("noDescription")}</p>
                         )}
                     </CardContent>
                 </Card>
                 <Card>
                     <CardHeader className="items-center">
                         <CardTitle className="flex items-center gap-2">
-                            Members
+                            {t("members")}
                             <span className="bg-muted text-muted-foreground rounded-md px-1.5 text-xs tabular-nums">{members.length}</span>
                         </CardTitle>
-                        {settingsLink("Manage")}
+                        {settingsLink(t("manage"))}
                     </CardHeader>
                     <CardContent>
                         <ProjectMemberOverview members={members} />

@@ -15,6 +15,7 @@ import {
     ListOrderedIcon,
     type LucideIcon,
 } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { useEffect, useRef } from "react";
 
 import { createRichTextExtensions, removeEmptyParagraphs } from "./richTextExtensions";
@@ -97,41 +98,42 @@ export function RichTextEditor({ value, onChange, readOnly, placeholder, id, cla
 }
 
 interface ToolbarAction {
-    label: string;
+    // Tells the actions apart and names their label in the messages
+    name: "bold" | "italic" | "code" | "heading1" | "heading2" | "heading3" | "bulletList" | "orderedList" | "taskList";
     icon: LucideIcon;
     isActive: (editor: Editor) => boolean;
     run: (editor: Editor) => void;
 }
 
 const toolbarActions: ToolbarAction[] = [
-    { label: "Bold", icon: BoldIcon, isActive: (editor) => editor.isActive("bold"), run: (editor) => editor.chain().focus().toggleBold().run() },
+    { name: "bold", icon: BoldIcon, isActive: (editor) => editor.isActive("bold"), run: (editor) => editor.chain().focus().toggleBold().run() },
     {
-        label: "Italic",
+        name: "italic",
         icon: ItalicIcon,
         isActive: (editor) => editor.isActive("italic"),
         run: (editor) => editor.chain().focus().toggleItalic().run(),
     },
-    { label: "Code", icon: CodeIcon, isActive: (editor) => editor.isActive("code"), run: (editor) => editor.chain().focus().toggleCode().run() },
+    { name: "code", icon: CodeIcon, isActive: (editor) => editor.isActive("code"), run: (editor) => editor.chain().focus().toggleCode().run() },
     ...([1, 2, 3] as const).map((level): ToolbarAction => ({
-        label: `Heading ${level}`,
+        name: `heading${level}`,
         icon: [Heading1Icon, Heading2Icon, Heading3Icon][level - 1],
         isActive: (editor) => editor.isActive("heading", { level }),
         run: (editor) => editor.chain().focus().toggleHeading({ level }).run(),
     })),
     {
-        label: "Bulleted list",
+        name: "bulletList",
         icon: ListIcon,
         isActive: (editor) => editor.isActive("bulletList"),
         run: (editor) => editor.chain().focus().toggleBulletList().run(),
     },
     {
-        label: "Numbered list",
+        name: "orderedList",
         icon: ListOrderedIcon,
         isActive: (editor) => editor.isActive("orderedList"),
         run: (editor) => editor.chain().focus().toggleOrderedList().run(),
     },
     {
-        label: "Checklist",
+        name: "taskList",
         icon: ListChecksIcon,
         isActive: (editor) => editor.isActive("taskList"),
         run: (editor) => editor.chain().focus().toggleTaskList().run(),
@@ -139,20 +141,22 @@ const toolbarActions: ToolbarAction[] = [
 ];
 
 function RichTextToolbar({ editor }: { editor: Editor }) {
-    const activeLabels = useEditorState({
+    const t = useTranslations("richText");
+    const activeNames = useEditorState({
         editor,
-        selector: ({ editor: currentEditor }) => toolbarActions.filter((action) => action.isActive(currentEditor)).map((action) => action.label),
+        selector: ({ editor: currentEditor }) => toolbarActions.filter((action) => action.isActive(currentEditor)).map((action) => action.name),
         equalityFn: (previous, next) => previous.join() === next?.join(),
     });
 
     return (
         <div className="flex flex-wrap gap-0.5 border-b p-1">
-            {toolbarActions.map(({ label, icon: Icon, run }) => {
-                const isActive = activeLabels.includes(label);
+            {toolbarActions.map(({ name, icon: Icon, run }) => {
+                const isActive = activeNames.includes(name);
+                const label = t(name);
 
                 return (
                     <Button
-                        key={label}
+                        key={name}
                         type="button"
                         variant="ghost"
                         size="icon-sm"

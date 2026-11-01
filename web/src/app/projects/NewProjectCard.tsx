@@ -1,9 +1,12 @@
 import { PlusIcon } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 import { CreateProjectDialog } from "./CreateProjectDialog";
 
 // The last tile of the project grid, so creating a project is always where the projects are
 export function NewProjectCard() {
+    const t = useTranslations("projects");
+
     return (
         <CreateProjectDialog
             trigger={
@@ -14,7 +17,7 @@ export function NewProjectCard() {
                     <span className="bg-muted group-hover:bg-primary group-hover:text-primary-foreground flex size-10 items-center justify-center rounded-lg transition-colors">
                         <PlusIcon className="size-5" />
                     </span>
-                    New project
+                    {t("newProject")}
                 </button>
             }
         />

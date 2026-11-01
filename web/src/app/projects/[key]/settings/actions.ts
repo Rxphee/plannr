@@ -5,6 +5,7 @@ import { graphQLFetch } from "@src/util/graphQLFetch";
 import { runMutation } from "@src/util/runMutation";
 import { refresh } from "next/cache";
 import { redirect } from "next/navigation";
+import { getTranslations } from "next-intl/server";
 
 import {
     addProjectMembersMutation,
@@ -33,47 +34,53 @@ import type {
 } from "./actions.gql.generated";
 
 export async function updateProject(id: string, input: GQLUpdateProjectInput): Promise<{ error?: string }> {
+    const t = await getTranslations("errors");
     return runMutation(() => graphQLFetch<GQLUpdateProjectMutation, GQLUpdateProjectMutationVariables>(updateProjectMutation, { id, input }), {
-        errorMessage: "The project could not be saved.",
+        errorMessage: t("saveProject"),
     });
 }
 
 export async function changeProjectStatus(id: string, status: GQLProjectStatus): Promise<{ error?: string }> {
+    const t = await getTranslations("errors");
     return runMutation(
         () => graphQLFetch<GQLChangeProjectStatusMutation, GQLChangeProjectStatusMutationVariables>(changeProjectStatusMutation, { id, status }),
-        { errorMessage: "The status could not be changed." },
+        { errorMessage: t("changeProjectStatus") },
     );
 }
 
 export async function deleteProject(id: string): Promise<{ error?: string }> {
+    const t = await getTranslations("errors");
     return runMutation(() => graphQLFetch<GQLDeleteProjectMutation, GQLDeleteProjectMutationVariables>(deleteProjectMutation, { id }), {
-        errorMessage: "The project could not be deleted.",
+        errorMessage: t("deleteProject"),
         onSuccess: () => redirect("/projects"),
     });
 }
 
 export async function addProjectMembers(input: GQLAddProjectMembersInput): Promise<{ error?: string }> {
+    const t = await getTranslations("errors");
     return runMutation(
         () => graphQLFetch<GQLAddProjectMembersMutation, GQLAddProjectMembersMutationVariables>(addProjectMembersMutation, { input }),
         {
-            errorMessage: "The members could not be added.",
+            errorMessage: t("addMembers"),
         },
     );
 }
 
 export async function changeProjectMemberRole(projectKey: string, input: GQLProjectMemberInput): Promise<{ error?: string }> {
+    const t = await getTranslations("errors");
     return runMutation(
         () =>
             graphQLFetch<GQLChangeProjectMemberRoleMutation, GQLChangeProjectMemberRoleMutationVariables>(changeProjectMemberRoleMutation, { input }),
-        { errorMessage: "The role could not be changed.", onSuccess: () => refreshOrLeaveSettings(projectKey) },
+        { errorMessage: t("changeRole"), onSuccess: () => refreshOrLeaveSettings(projectKey) },
     );
 }
 
 export async function removeProjectMember(projectKey: string, variables: GQLRemoveProjectMemberMutationVariables): Promise<{ error?: string }> {
+    const t = await getTranslations("errors");
     return runMutation(
         () => graphQLFetch<GQLRemoveProjectMemberMutation, GQLRemoveProjectMemberMutationVariables>(removeProjectMemberMutation, variables),
         {
-            errorMessage: "The member could not be removed.",
+            errorMessage: t("removeMember"),
             onSuccess: () => refreshOrLeaveSettings(projectKey),
         },
     );

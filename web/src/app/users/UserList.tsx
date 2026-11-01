@@ -3,6 +3,7 @@
 import { Switch } from "@src/components/ui/Switch";
 import { UserAvatar } from "@src/components/UserAvatar";
 import type { GQLInstanceRole } from "@src/graphql.generated";
+import { useTranslations } from "next-intl";
 import { useState, useTransition } from "react";
 
 import { setUserAdmin } from "./actions";
@@ -13,6 +14,7 @@ interface UserListProps {
 }
 
 export function UserList({ users }: UserListProps) {
+    const t = useTranslations("users");
     const [error, setError] = useState<string>();
     const [pending, startTransition] = useTransition();
 
@@ -42,13 +44,13 @@ export function UserList({ users }: UserListProps) {
                             </div>
                             <label
                                 className="text-muted-foreground flex shrink-0 items-center gap-2 text-sm"
-                                title={isSuperAdmin ? "The super-admin always has admin rights" : undefined}
+                                title={isSuperAdmin ? t("superAdminAlwaysAdmin") : undefined}
                             >
-                                Admin
+                                {t("admin")}
                                 <Switch
                                     checked={user.instanceRole !== "user"}
                                     disabled={pending || isSuperAdmin}
-                                    aria-label={`Admin rights of ${name}`}
+                                    aria-label={t("adminRightsOf", { name })}
                                     onCheckedChange={(isAdmin) => changeAdmin(user.id, isAdmin)}
                                 />
                             </label>

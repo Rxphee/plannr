@@ -7,6 +7,7 @@ import { Button } from "@src/components/ui/Button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@src/components/ui/Dialog";
 import { FORM_ERROR } from "final-form";
 import { Trash2Icon } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 import { deleteEpic } from "../actions";
 
@@ -21,6 +22,8 @@ interface DeleteEpicDialogProps {
 }
 
 export function DeleteEpicDialog({ projectKey, epic, otherEpics }: DeleteEpicDialogProps) {
+    const t = useTranslations("deleteEpic");
+
     // On success the action redirects to the epic list
     const handleSubmit = async ({ issueTarget }: { issueTarget: string }) => {
         const { error } = await deleteEpic(projectKey, { id: epic.id, moveIssuesToEpicId: issueTarget === DELETE_ISSUES ? null : issueTarget });
@@ -30,13 +33,13 @@ export function DeleteEpicDialog({ projectKey, epic, otherEpics }: DeleteEpicDia
     };
 
     const issueTargetOptions = [
-        ...otherEpics.map((otherEpic) => ({ value: otherEpic.id, label: `Move them to ${otherEpic.name}` })),
-        { value: DELETE_ISSUES, label: "Delete them with the epic" },
+        ...otherEpics.map((otherEpic) => ({ value: otherEpic.id, label: t("moveTo", { epic: otherEpic.name }) })),
+        { value: DELETE_ISSUES, label: t("deleteWithEpic") },
     ];
 
     return (
         <Dialog>
-            <DialogTrigger render={<Button variant="destructive" size="icon" aria-label="Delete epic" title="Delete epic" />}>
+            <DialogTrigger render={<Button variant="destructive" size="icon" aria-label={t("trigger")} title={t("trigger")} />}>
                 <Trash2Icon />
             </DialogTrigger>
             <DialogContent>
@@ -48,17 +51,15 @@ export function DeleteEpicDialog({ projectKey, epic, otherEpics }: DeleteEpicDia
                     {({ values, submitting }) => (
                         <>
                             <DialogHeader>
-                                <DialogTitle>Delete {epic.name}</DialogTitle>
-                                <DialogDescription>Deleting the epic cannot be undone. Choose what happens with its issues.</DialogDescription>
+                                <DialogTitle>{t("title", { epic: epic.name })}</DialogTitle>
+                                <DialogDescription>{t("description")}</DialogDescription>
                             </DialogHeader>
-                            <SelectField name="issueTarget" label="Issues of the epic" required options={issueTargetOptions} />
-                            {values.issueTarget === DELETE_ISSUES && (
-                                <p className="text-destructive text-sm">The issues of the epic are deleted for good, including the done ones.</p>
-                            )}
+                            <SelectField name="issueTarget" label={t("issueTarget")} required options={issueTargetOptions} />
+                            {values.issueTarget === DELETE_ISSUES && <p className="text-destructive text-sm">{t("deleteWarning")}</p>}
                             <FormSubmitError />
                             <DialogFooter>
                                 <Button type="submit" variant="destructive" disabled={submitting}>
-                                    Delete epic
+                                    {t("submit")}
                                 </Button>
                             </DialogFooter>
                         </>

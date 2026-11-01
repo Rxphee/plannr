@@ -4,6 +4,7 @@ import type { GQLLabelColor } from "@src/graphql.generated";
 import { graphQLFetch } from "@src/util/graphQLFetch";
 import { toOffsetAndLimit } from "@src/util/pagination";
 import { ListTodoIcon } from "lucide-react";
+import { getTranslations } from "next-intl/server";
 import type { ReactNode } from "react";
 
 import { IssueFilters } from "./IssueFilters";
@@ -11,7 +12,6 @@ import { IssueList } from "./IssueList";
 import { isIssueListFiltered, issueListHref, type IssueListParams, toIssueFilter } from "./issueListParams";
 import { issueListQuery } from "./IssueListView.gql";
 import type { GQLIssueListQuery, GQLIssueListQueryVariables } from "./IssueListView.gql.generated";
-import { issueViews } from "./issueViews";
 
 interface IssueListViewProps {
     project: { id: string; key: string; epics: { id: string; name: string }[] };
@@ -28,14 +28,18 @@ interface IssueListViewProps {
 
 // The filters, the issues of the current page and the pagination, shared by the issue list and the page of an epic
 export async function IssueListView({ project, labels, path, params, epicId, createAction }: IssueListViewProps) {
-    const { issues } = await graphQLFetch<GQLIssueListQuery, GQLIssueListQueryVariables>(issueListQuery, {
-        projectId: project.id,
-        view: params.view ?? null,
-        filter: toIssueFilter(epicId ? { ...params, epics: [epicId] } : params),
-        ...toOffsetAndLimit(params),
-    });
+    const [{ issues }, t, tViews] = await Promise.all([
+        graphQLFetch<GQLIssueListQuery, GQLIssueListQueryVariables>(issueListQuery, {
+            projectId: project.id,
+            view: params.view ?? null,
+            filter: toIssueFilter(epicId ? { ...params, epics: [epicId] } : params),
+            ...toOffsetAndLimit(params),
+        }),
+        getTranslations("issues"),
+        getTranslations("issueViews"),
+    ]);
     const isFiltered = isIssueListFiltered(params);
-    const view = params.view && issueViews[params.view];
+    const { view } = params;
 
     return (
         <div className="grid gap-4">
@@ -57,20 +61,18 @@ export async function IssueListView({ project, labels, path, params, epicId, cre
                         </EmptyMedia>
                         {isFiltered ? (
                             <>
-                                <EmptyTitle>No matching issues</EmptyTitle>
-                                <EmptyDescription>Change the filters or the search to see more issues.</EmptyDescription>
+                                <EmptyTitle>{t("noMatchesTitle")}</EmptyTitle>
+                                <EmptyDescription>{t("noMatchesDescription")}</EmptyDescription>
                             </>
                         ) : view ? (
                             <>
-                                <EmptyTitle>{view.emptyTitle}</EmptyTitle>
-                                <EmptyDescription>{view.emptyDescription}</EmptyDescription>
+                                <EmptyTitle>{tViews(`${view}.emptyTitle`)}</EmptyTitle>
+                                <EmptyDescription>{tViews(`${view}.emptyDescription`)}</EmptyDescription>
                             </>
                         ) : (
                             <>
-                                <EmptyTitle>No open issues</EmptyTitle>
-                                <EmptyDescription>
-                                    Issues are the tasks and bugs of the project. Done ones are under the status filter.
-                                </EmptyDescription>
+                                <EmptyTitle>{t("noOpenTitle")}</EmptyTitle>
+                                <EmptyDescription>{t("noOpenDescription")}</EmptyDescription>
                             </>
                         )}
                     </EmptyHeader>

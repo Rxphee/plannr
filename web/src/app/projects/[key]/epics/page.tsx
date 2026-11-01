@@ -9,6 +9,7 @@ import { pageCountOf, type Pagination, paginationHref, parsePagination, toOffset
 import { parseSearch } from "@src/util/search";
 import { SearchXIcon } from "lucide-react";
 import { notFound, redirect } from "next/navigation";
+import { getTranslations } from "next-intl/server";
 
 import { CreateEpicDialog } from "./CreateEpicDialog";
 import { EpicCard } from "./EpicCard";
@@ -25,11 +26,16 @@ export default async function EpicsPage({ params, searchParams }: PageProps<"/pr
     const pagination = parsePagination(resolvedSearchParams);
     const search = parseSearch(resolvedSearchParams);
     const epicsHref = (otherPagination: Pagination) => paginationHref(`/projects/${project.key}/epics`, otherPagination, search ? { search } : {});
-    const { epics } = await graphQLFetch<GQLEpicCardsQuery, GQLEpicCardsQueryVariables>(epicCardsQuery, {
-        projectId: project.id,
-        search,
-        ...toOffsetAndLimit(pagination),
-    });
+    const [{ epics }, t, tCommon, tSidebar] = await Promise.all([
+        graphQLFetch<GQLEpicCardsQuery, GQLEpicCardsQueryVariables>(epicCardsQuery, {
+            projectId: project.id,
+            search,
+            ...toOffsetAndLimit(pagination),
+        }),
+        getTranslations("epics"),
+        getTranslations("common"),
+        getTranslations("sidebar"),
+    ]);
     // A page behind the last one, e.g. after deleting epics, shows the last one instead
     const pageCount = pageCountOf(epics.totalCount, pagination);
     if (pagination.page > pageCount) {
@@ -40,26 +46,26 @@ export default async function EpicsPage({ params, searchParams }: PageProps<"/pr
         <>
             <PageHeader
                 breadcrumbs={[
-                    { label: "Projects", href: "/projects" },
+                    { label: tCommon("projects"), href: "/projects" },
                     { label: project.name, href: `/projects/${project.key}` },
-                    { label: "Epics" },
+                    { label: tSidebar("epics") },
                 ]}
             />
             <PageIntro
-                title="Epics"
-                description="Epics split the project into parts. Issues without another epic stay in General."
+                title={tSidebar("epics")}
+                description={t("description")}
                 actions={project.canContribute && <CreateEpicDialog projectId={project.id} />}
             />
             <PageContent className="grid gap-6">
-                <ListSearch placeholder="Search name" label="Search epics" />
+                <ListSearch placeholder={t("searchPlaceholder")} label={t("searchLabel")} />
                 {epics.totalCount === 0 ? (
                     <Empty className="rounded-xl border border-dashed">
                         <EmptyHeader>
                             <EmptyMedia variant="icon">
                                 <SearchXIcon />
                             </EmptyMedia>
-                            <EmptyTitle>No matching epics</EmptyTitle>
-                            <EmptyDescription>Search for another name to see more epics.</EmptyDescription>
+                            <EmptyTitle>{t("noMatchesTitle")}</EmptyTitle>
+                            <EmptyDescription>{t("noMatchesDescription")}</EmptyDescription>
                         </EmptyHeader>
                     </Empty>
                 ) : (

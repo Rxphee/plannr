@@ -8,6 +8,7 @@ import { graphQLFetch } from "@src/util/graphQLFetch";
 import { pageCountOf, paginationHref, parsePagination, toOffsetAndLimit } from "@src/util/pagination";
 import { PencilIcon, PlusIcon, TagIcon } from "lucide-react";
 import { redirect } from "next/navigation";
+import { getTranslations } from "next-intl/server";
 
 import { DeleteLabelDialog } from "./DeleteLabelDialog";
 import { LabelBadge } from "./LabelBadge";
@@ -17,10 +18,10 @@ import type { GQLLabelsPageQuery, GQLLabelsPageQueryVariables } from "./page.gql
 
 export default async function LabelsPage({ searchParams }: PageProps<"/labels">) {
     const pagination = parsePagination(await searchParams);
-    const { labels, canManageLabels } = await graphQLFetch<GQLLabelsPageQuery, GQLLabelsPageQueryVariables>(
-        labelsPageQuery,
-        toOffsetAndLimit(pagination),
-    );
+    const [{ labels, canManageLabels }, t] = await Promise.all([
+        graphQLFetch<GQLLabelsPageQuery, GQLLabelsPageQueryVariables>(labelsPageQuery, toOffsetAndLimit(pagination)),
+        getTranslations("labels"),
+    ]);
     // A page behind the last one, e.g. after deleting labels, shows the last one instead
     const pageCount = pageCountOf(labels.totalCount, pagination);
     if (pagination.page > pageCount) {
@@ -32,7 +33,7 @@ export default async function LabelsPage({ searchParams }: PageProps<"/labels">)
             trigger={
                 <Button>
                     <PlusIcon />
-                    New label
+                    {t("newLabel")}
                 </Button>
             }
         />
@@ -40,12 +41,8 @@ export default async function LabelsPage({ searchParams }: PageProps<"/labels">)
 
     return (
         <>
-            <PageHeader breadcrumbs={[{ label: "Labels" }]} />
-            <PageIntro
-                title="Labels"
-                description="Labels tag issues across all projects, e.g. upstream for bugs in third-party code. Admins manage them."
-                actions={createAction}
-            />
+            <PageHeader breadcrumbs={[{ label: t("title") }]} />
+            <PageIntro title={t("title")} description={t("description")} actions={createAction} />
             <PageContent className="grid gap-4">
                 {labels.totalCount === 0 ? (
                     <Empty className="rounded-xl border border-dashed">
@@ -53,12 +50,8 @@ export default async function LabelsPage({ searchParams }: PageProps<"/labels">)
                             <EmptyMedia variant="icon">
                                 <TagIcon />
                             </EmptyMedia>
-                            <EmptyTitle>No labels yet</EmptyTitle>
-                            <EmptyDescription>
-                                {canManageLabels
-                                    ? "Create the first label, then pick it on any issue."
-                                    : "Admins create the labels for all projects."}
-                            </EmptyDescription>
+                            <EmptyTitle>{t("noLabelsTitle")}</EmptyTitle>
+                            <EmptyDescription>{canManageLabels ? t("noLabelsDescriptionAdmin") : t("noLabelsDescription")}</EmptyDescription>
                         </EmptyHeader>
                         {createAction && <EmptyContent>{createAction}</EmptyContent>}
                     </Empty>
@@ -75,7 +68,12 @@ export default async function LabelsPage({ searchParams }: PageProps<"/labels">)
                                             <LabelDialog
                                                 label={label}
                                                 trigger={
-                                                    <Button variant="ghost" size="icon-sm" aria-label={`Edit ${label.name}`} title="Edit label">
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="icon-sm"
+                                                        aria-label={t("editName", { label: label.name })}
+                                                        title={t("editLabel")}
+                                                    >
                                                         <PencilIcon />
                                                     </Button>
                                                 }

@@ -2,7 +2,7 @@ import type { GQLIssueFilter, GQLIssuePriority, GQLIssueStatus, GQLIssueType, GQ
 import { type Pagination, parsePagination, writePagination } from "@src/util/pagination";
 import { parseSearch } from "@src/util/search";
 
-import { issuePriorityOptions, issueStatusOptions, issueTypeOptions } from "./issueOptions";
+import { ISSUE_PRIORITIES, ISSUE_STATUSES, ISSUE_TYPES } from "./issueOptions";
 import { isIssueView, OPEN_ISSUE_STATUSES } from "./issueViews";
 
 // Without a status in the URL the list shows what still needs to be done
@@ -51,11 +51,7 @@ function readStatuses(searchParams: SearchParams): GQLIssueStatus[] {
     if (status === ALL_STATUSES) {
         return [];
     }
-    const statuses = readList(
-        searchParams,
-        "status",
-        issueStatusOptions.map(({ value }) => value),
-    );
+    const statuses = readList(searchParams, "status", ISSUE_STATUSES);
     return statuses.length > 0 ? statuses : DEFAULT_STATUSES;
 }
 
@@ -65,16 +61,8 @@ export function parseIssueListParams(searchParams: SearchParams): IssueListParam
     return {
         ...(view && { view }),
         statuses: view ? openStatusesAmong(readStatuses(searchParams)) : readStatuses(searchParams),
-        types: readList(
-            searchParams,
-            "type",
-            issueTypeOptions.map(({ value }) => value),
-        ),
-        priorities: readList(
-            searchParams,
-            "priority",
-            issuePriorityOptions.map(({ value }) => value),
-        ),
+        types: readList(searchParams, "type", ISSUE_TYPES),
+        priorities: readList(searchParams, "priority", ISSUE_PRIORITIES),
         epics: readIds(searchParams, "epic"),
         labels: readIds(searchParams, "label"),
         search: parseSearch(searchParams),

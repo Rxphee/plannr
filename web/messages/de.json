@@ -1,0 +1,420 @@
+{
+    "addProjectMembers": {
+        "description": "Wähle alle, die mit derselben Rolle dazukommen. Hinzufügen lassen sich nur Personen, die sich schon einmal bei Plannr angemeldet haben.",
+        "noPeopleFound": "Niemand gefunden",
+        "people": "Personen",
+        "peoplePlaceholder": "Nach Name suchen",
+        "role": "Rolle",
+        "submit": "{count, plural, =0 {Mitglied hinzufügen} one {Mitglied hinzufügen} other {# Mitglieder hinzufügen}}",
+        "title": "Mitglieder hinzufügen",
+        "trigger": "Mitglieder hinzufügen"
+    },
+    "apiTokens": {
+        "copied": "Kopiert",
+        "copy": "Token kopieren",
+        "copyDescription": "Du siehst ihn nicht noch einmal. Sende ihn bei jeder Anfrage als <code>{header}</code>.",
+        "copyTitle": "API-Token kopieren",
+        "createDescription": "Der Token handelt in deinem Namen, mit all deinen Rechten in jedem Projekt. Gib ihm einen Namen, damit du ihn später wiedererkennst.",
+        "createSubmit": "Token erstellen",
+        "createTitle": "Neuer API-Token",
+        "created": "Erstellt am {date}",
+        "description": "Mit persönlichen Tokens nutzen Skripte und KI-Agenten wie Claude Code Plannr in deinem Namen, z. B. über die API oder MCP.",
+        "done": "Fertig",
+        "expired": "Abgelaufen",
+        "expiredOn": "Abgelaufen am {date}",
+        "expiresAfter": "Gültig für",
+        "expiresOn": "Läuft ab am {date}",
+        "expiry": {
+            "30": "30 Tage",
+            "365": "1 Jahr",
+            "90": "90 Tage",
+            "never": "Unbegrenzt"
+        },
+        "lastUsed": "Zuletzt genutzt am {date}",
+        "neverUsed": "Nie genutzt",
+        "newToken": "Neuer Token",
+        "noExpiry": "Kein Ablaufdatum",
+        "noTokensDescription": "Erstelle einen Token für jedes Tool, das mit Plannr arbeiten soll, damit du sie einzeln widerrufen kannst.",
+        "noTokensTitle": "Noch keine API-Tokens",
+        "revokeDescription": "Jedes Tool, das diesen Token nutzt, verliert sofort den Zugriff. Das lässt sich nicht rückgängig machen, aber du kannst jederzeit einen neuen Token erstellen.",
+        "revokeSubmit": "Token widerrufen",
+        "revokeTitle": "{token} widerrufen",
+        "revokeTrigger": "{token} widerrufen",
+        "title": "API-Tokens",
+        "token": "API-Token"
+    },
+    "commandMenu": {
+        "actions": "Aktionen",
+        "allProjects": "Alle Projekte",
+        "createIssue": "Issue erstellen",
+        "description": "Issues nach Key oder Titel und Projekte nach Name oder Key finden",
+        "issues": "Issues",
+        "noResults": "Keine Issues oder Projekte gefunden.",
+        "placeholder": "Issues und Projekte suchen …",
+        "projects": "Projekte",
+        "searching": "Suche läuft …",
+        "title": "Suchen"
+    },
+    "common": {
+        "clearSearch": "Suche leeren",
+        "close": "Schließen",
+        "created": "Erstellt am {date}",
+        "default": "Standard",
+        "description": "Beschreibung",
+        "edit": "Bearbeiten",
+        "loading": "Wird geladen",
+        "name": "Name",
+        "noDescriptionYet": "Noch keine Beschreibung.",
+        "none": "Keine",
+        "projects": "Projekte",
+        "required": "Pflichtfeld",
+        "reset": "Zurücksetzen",
+        "save": "Speichern"
+    },
+    "createIssue": {
+        "description": "Das Issue bekommt die nächste Nummer von {key}, z. B. {key}-42.",
+        "descriptionPlaceholder": "Was ist zu tun? Checklisten ersetzen Unteraufgaben.",
+        "submit": "Issue erstellen",
+        "title": "Neues Issue",
+        "trigger": "Neues Issue"
+    },
+    "createProject": {
+        "description": "Der Key steht vor jeder Issue-ID, z. B. {key}-42. Er lässt sich später nicht mehr ändern.",
+        "descriptionPlaceholder": "Was ist das Ziel des Projekts?",
+        "key": "Key",
+        "keyPattern": "2 bis 5 Großbuchstaben",
+        "submit": "Projekt erstellen",
+        "title": "Neues Projekt"
+    },
+    "datePicker": {
+        "clear": "Leeren",
+        "placeholder": "Datum wählen",
+        "today": "Heute"
+    },
+    "deleteEpic": {
+        "deleteWarning": "Die Issues des Epics werden endgültig gelöscht, auch die erledigten.",
+        "deleteWithEpic": "Mit dem Epic löschen",
+        "description": "Das Löschen des Epics lässt sich nicht rückgängig machen. Wähle, was mit seinen Issues passiert.",
+        "issueTarget": "Issues des Epics",
+        "moveTo": "Nach {epic} verschieben",
+        "submit": "Epic löschen",
+        "title": "{epic} löschen",
+        "trigger": "Epic löschen"
+    },
+    "deleteIssue": {
+        "description": "Damit wird das Issue mit seinen Links gelöscht. Das lässt sich nicht rückgängig machen. Um es aufzubewahren, setze den Status stattdessen auf Abgebrochen.",
+        "submit": "Issue löschen",
+        "title": "{issue} löschen",
+        "trigger": "Issue löschen"
+    },
+    "deleteProject": {
+        "confirmation": "Gib „{project}“ ein, um zu bestätigen",
+        "description": "Damit wird {project} mit allem, was darin ist, gelöscht. Das lässt sich nicht rückgängig machen.",
+        "submit": "Projekt löschen",
+        "title": "Projekt löschen"
+    },
+    "epics": {
+        "createEpic": "Epic erstellen",
+        "defaultEpicDescription": "Jedes Projekt hat dieses Epic für die Issues, die zu keinem anderen Epic gehören. Es lässt sich nicht löschen.",
+        "description": "Epics teilen das Projekt in Abschnitte. Issues ohne anderes Epic bleiben in General.",
+        "descriptionPlaceholder": "Was gehört zu diesem Epic, und wann ist es fertig?",
+        "doneCount": "{done} von {total} erledigt",
+        "editEpic": "Epic bearbeiten",
+        "newEpic": "Neues Epic",
+        "newEpicDescription": "Ein Epic bündelt die Issues eines Abschnitts des Projekts, etwa des Designs oder des Launchs.",
+        "noIssuesYet": "Noch keine Issues",
+        "noMatchesDescription": "Suche nach einem anderen Namen, um weitere Epics zu sehen.",
+        "noMatchesTitle": "Keine passenden Epics",
+        "progress": "Fortschritt",
+        "searchLabel": "Epics suchen",
+        "searchPlaceholder": "Name suchen"
+    },
+    "errors": {
+        "addLink": "Der Link konnte nicht hinzugefügt werden.",
+        "addMembers": "Die Mitglieder konnten nicht hinzugefügt werden.",
+        "changeProjectStatus": "Der Status konnte nicht geändert werden.",
+        "changeRole": "Die Rolle konnte nicht geändert werden.",
+        "createApiToken": "Der API-Token konnte nicht erstellt werden.",
+        "createEpic": "Das Epic konnte nicht erstellt werden.",
+        "createIssue": "Das Issue konnte nicht erstellt werden.",
+        "createLabel": "Das Label konnte nicht erstellt werden.",
+        "createProject": "Das Projekt konnte nicht erstellt werden.",
+        "deleteEpic": "Das Epic konnte nicht gelöscht werden.",
+        "deleteIssue": "Das Issue konnte nicht gelöscht werden.",
+        "deleteLabel": "Das Label konnte nicht gelöscht werden.",
+        "deleteProject": "Das Projekt konnte nicht gelöscht werden.",
+        "makeAdmin": "Der Benutzer konnte nicht zum Admin gemacht werden.",
+        "removeAdmin": "Die Admin-Rechte konnten nicht entzogen werden.",
+        "removeLink": "Der Link konnte nicht entfernt werden.",
+        "removeMember": "Das Mitglied konnte nicht entfernt werden.",
+        "revokeApiToken": "Der API-Token konnte nicht widerrufen werden.",
+        "saveEpic": "Das Epic konnte nicht gespeichert werden.",
+        "saveIssue": "Das Issue konnte nicht gespeichert werden.",
+        "saveLabel": "Das Label konnte nicht gespeichert werden.",
+        "saveProject": "Das Projekt konnte nicht gespeichert werden."
+    },
+    "filterMenu": {
+        "clear": "Filter leeren",
+        "selectedCount": "{count} ausgewählt"
+    },
+    "instanceRole": {
+        "admin": "Admin",
+        "superAdmin": "Super-Admin"
+    },
+    "issue": {
+        "add": "Hinzufügen",
+        "addLink": "Link hinzufügen",
+        "canceledOn": "Abgebrochen am {date}",
+        "createdBy": "Erstellt von {name} am {date}",
+        "description": "Beschreibung",
+        "descriptionPlaceholder": "Beschreibung hinzufügen. Checklisten ersetzen Unteraufgaben.",
+        "details": "Details",
+        "discard": "Verwerfen",
+        "doneOn": "Erledigt am {date}",
+        "editTitle": "Titel bearbeiten",
+        "linkUrlPattern": "Beginnt mit http://, https:// oder obsidian://",
+        "links": "Links",
+        "noDescription": "Keine Beschreibung.",
+        "noLinks": "Noch keine Links. Pull Requests auf GitHub werden als solche erkannt.",
+        "removeLink": "{url} entfernen"
+    },
+    "issueFields": {
+        "addLabels": "Labels hinzufügen",
+        "description": "Beschreibung",
+        "dueDate": "Fällig am",
+        "epic": "Epic",
+        "label": "Label",
+        "labels": "Labels",
+        "noDueDate": "Kein Datum",
+        "noLabels": "Keine Labels",
+        "noMatchingLabel": "Kein passendes Label",
+        "priority": "Priorität",
+        "status": "Status",
+        "title": "Titel",
+        "type": "Typ"
+    },
+    "issuePriority": {
+        "high": "Hoch",
+        "iconLabel": "Priorität {priority}",
+        "low": "Niedrig",
+        "normal": "Normal"
+    },
+    "issueStatus": {
+        "canceled": "Abgebrochen",
+        "done": "Erledigt",
+        "inProgress": "In Arbeit",
+        "todo": "Zu erledigen"
+    },
+    "issueType": {
+        "bug": "Bug",
+        "task": "Aufgabe"
+    },
+    "issueViews": {
+        "bugs": {
+            "emptyDescription": "Hier erscheinen offene Issues vom Typ Bug.",
+            "emptyTitle": "Keine offenen Bugs",
+            "label": "Bugs"
+        },
+        "due": {
+            "emptyDescription": "Hier erscheinen offene Issues mit Fälligkeitsdatum, die frühesten zuerst.",
+            "emptyTitle": "Nichts fällig",
+            "label": "Fällig"
+        },
+        "focus": {
+            "emptyDescription": "Hier erscheinen offene Issues mit hoher Priorität.",
+            "emptyTitle": "Nichts im Fokus",
+            "label": "Fokus"
+        },
+        "pullRequests": {
+            "emptyDescription": "Hier erscheinen offene Issues mit einem Link auf einen Pull Request auf GitHub.",
+            "emptyTitle": "Keine offenen Pull Requests",
+            "label": "Offene PRs"
+        }
+    },
+    "issues": {
+        "allView": "Alle",
+        "descriptionDue": "Die Aufgaben und Bugs von {project}, die am frühesten fälligen zuerst.",
+        "descriptionNewest": "Die Aufgaben und Bugs von {project}, die neuesten zuerst.",
+        "noMatchesDescription": "Ändere die Filter oder die Suche, um weitere Issues zu sehen.",
+        "noMatchesTitle": "Keine passenden Issues",
+        "noOpenDescription": "Issues sind die Aufgaben und Bugs des Projekts. Erledigte findest du über den Statusfilter.",
+        "noOpenTitle": "Keine offenen Issues",
+        "pullRequest": "Pull Request",
+        "searchLabel": "Issues suchen",
+        "searchPlaceholder": "Titel oder Key suchen",
+        "title": "Issues"
+    },
+    "labelColor": {
+        "amber": "Bernstein",
+        "blue": "Blau",
+        "gray": "Grau",
+        "green": "Grün",
+        "orange": "Orange",
+        "pink": "Pink",
+        "red": "Rot",
+        "teal": "Petrol",
+        "violet": "Violett"
+    },
+    "labels": {
+        "color": "Farbe",
+        "createLabel": "Label erstellen",
+        "deleteDescription": "Damit wird das Label von allen Issues in allen Projekten entfernt. Das lässt sich nicht rückgängig machen.",
+        "deleteLabel": "Label löschen",
+        "deleteName": "{label} löschen",
+        "description": "Labels markieren Issues in allen Projekten, z. B. upstream für Bugs in fremdem Code. Admins verwalten sie.",
+        "dialogDescription": "Labels gelten für alle Projekte, halte den Namen also kurz und allgemein.",
+        "editLabel": "Label bearbeiten",
+        "editName": "{label} bearbeiten",
+        "newLabel": "Neues Label",
+        "noLabelsDescription": "Admins erstellen die Labels für alle Projekte.",
+        "noLabelsDescriptionAdmin": "Erstelle das erste Label und wähle es dann bei einem beliebigen Issue.",
+        "noLabelsTitle": "Noch keine Labels",
+        "preview": "Vorschau",
+        "previewPlaceholder": "label",
+        "title": "Labels"
+    },
+    "languageSwitcher": {
+        "label": "Sprache",
+        "system": "System"
+    },
+    "metadata": {
+        "description": "Ein schlanker, selbst gehosteter Issue-Tracker"
+    },
+    "pagination": {
+        "entriesPerPage": "Einträge pro Seite",
+        "label": "Seiten",
+        "next": "Nächste Seite",
+        "perPage": "Pro Seite",
+        "previous": "Vorherige Seite",
+        "range": "{first}–{last} von {total}"
+    },
+    "project": {
+        "about": "Über das Projekt",
+        "archivedDescription": "Seine Epics und Issues sind schreibgeschützt, bis ein Inhaber oder Admin das Projekt wieder aktiv setzt.",
+        "manage": "Verwalten",
+        "memberCount": "{count, plural, one {# Mitglied} other {# Mitglieder}}",
+        "members": "Mitglieder",
+        "noDescription": "Noch keine Beschreibung. Beschreibe das Ziel des Projekts, damit alle wissen, worum es geht.",
+        "showAllMembers": "Alle {count} Mitglieder anzeigen",
+        "showLess": "Weniger anzeigen"
+    },
+    "projectMemberRole": {
+        "member": "Mitglied",
+        "owner": "Inhaber",
+        "viewer": "Betrachter"
+    },
+    "projectSettings": {
+        "addAsMember": "Als Mitglied hinzufügen",
+        "addNameAsMember": "{name} als Mitglied hinzufügen",
+        "adminAccessDescription": "Admins sehen und ändern jedes Projekt, ohne Mitglied zu sein. Füge sie hinzu, damit sie den Zugriff behalten, wenn ihre Admin-Rechte enden.",
+        "adminAccessTitle": "Zugriff über Admin-Rechte",
+        "archive": "Archivieren",
+        "archiveFirst": "Archiviere das Projekt zuerst, um es zu löschen.",
+        "deleteDescription": "Löscht das Projekt mit allem, was darin ist. Das lässt sich nicht rückgängig machen.",
+        "deleteTitle": "Projekt löschen",
+        "description": "Name, Mitglieder und Status von {project}.",
+        "generalDescription": "Name und Beschreibung des Projekts.",
+        "generalTitle": "Allgemein",
+        "key": "Key",
+        "keyDescription": "Fest, weil jede Issue-ID damit beginnt, z. B. <mono>{key}-42</mono>.",
+        "membersDescription": "Inhaber verwalten das Projekt, Mitglieder arbeiten an Epics und Issues, Betrachter lesen nur.",
+        "membersTitle": "Mitglieder",
+        "noMemberMatches": "Kein Mitglied passt zur Suche.",
+        "pause": "Pausieren",
+        "remove": "{name} entfernen",
+        "restore": "Wiederherstellen",
+        "resume": "Fortsetzen",
+        "roleOf": "Rolle von {name}",
+        "searchMembersLabel": "Mitglieder suchen",
+        "searchMembersPlaceholder": "Name oder E-Mail suchen",
+        "statusActive": "Das Projekt ist aktiv.",
+        "statusArchived": "Das Projekt ist archiviert. Stelle es wieder her, um daran weiterzuarbeiten, oder lösche es unten.",
+        "statusDescription": "Pausiere ein Projekt, solange es wartet, und archiviere es, wenn es fertig ist.",
+        "statusPaused": "Das Projekt ist pausiert. Setze es fort, wenn die Arbeit weitergeht.",
+        "statusTitle": "Status",
+        "title": "Einstellungen"
+    },
+    "projectStatus": {
+        "active": "Aktiv",
+        "archived": "Archiviert",
+        "paused": "Pausiert"
+    },
+    "projectSwitcher": {
+        "chooseProject": "Projekt wählen",
+        "noResults": "Keine Projekte gefunden",
+        "searchPlaceholder": "Projekte suchen"
+    },
+    "projects": {
+        "description": "Jedes Projekt bündelt die Epics und Issues eines Ziels. Öffne eines, um zu sehen, was gerade passiert.",
+        "newProject": "Neues Projekt",
+        "noArchivedDescription": "Archiviere ein fertiges Projekt in seinen Einstellungen, dann wartet es hier.",
+        "noArchivedTitle": "Keine archivierten Projekte",
+        "noMatchesDescription": "Suche nach einem anderen Namen oder Key, oder sieh in einer anderen Ansicht nach.",
+        "noMatchesTitle": "Keine passenden Projekte",
+        "noProjectsDescription": "Projekte bündeln die Epics und Issues eines Ziels, etwa eines Website-Relaunchs oder einer App.",
+        "noProjectsTitle": "Noch keine Projekte",
+        "searchLabel": "Projekte suchen",
+        "searchPlaceholder": "Name oder Key suchen",
+        "views": {
+            "all": "Alle",
+            "archived": "Archiviert",
+            "open": "Offen"
+        }
+    },
+    "quickCapture": {
+        "chooseProject": "Projekt wählen",
+        "description": "Landet im Epic General des Projekts, die Details folgen später.",
+        "descriptionInProject": "Landet im Epic General von {project}, die Details folgen später.",
+        "project": "Projekt",
+        "submit": "Issue erstellen",
+        "title": "Issue erfassen"
+    },
+    "richText": {
+        "bold": "Fett",
+        "bulletList": "Aufzählung",
+        "code": "Code",
+        "heading1": "Überschrift 1",
+        "heading2": "Überschrift 2",
+        "heading3": "Überschrift 3",
+        "italic": "Kursiv",
+        "orderedList": "Nummerierte Liste",
+        "taskList": "Checkliste"
+    },
+    "sidebar": {
+        "allProjects": "Alle Projekte",
+        "epics": "Epics",
+        "issues": "Issues",
+        "labels": "Labels",
+        "mobileDescription": "Zeigt die Seitenleiste auf dem Smartphone.",
+        "mobileTitle": "Seitenleiste",
+        "overview": "Übersicht",
+        "project": "Projekt",
+        "search": "Suchen",
+        "settings": "Einstellungen",
+        "toggle": "Seitenleiste ein- oder ausblenden",
+        "users": "Benutzer",
+        "workspace": "Arbeitsbereich"
+    },
+    "themeSwitcher": {
+        "dark": "Dunkel",
+        "label": "Design",
+        "light": "Hell",
+        "system": "System"
+    },
+    "userMenu": {
+        "apiTokens": "API-Tokens",
+        "instanceRole": "Instanzrolle",
+        "signOut": "Abmelden"
+    },
+    "users": {
+        "admin": "Admin",
+        "adminRightsOf": "Admin-Rechte von {name}",
+        "description": "Alle, die sich angemeldet haben. Admins sehen und verwalten alle Projekte und Labels; ernennen kannst nur du als Super-Admin.",
+        "noMatchesDescription": "Suche nach einem anderen Namen oder einer anderen E-Mail, um weitere Benutzer zu sehen.",
+        "noMatchesTitle": "Keine passenden Benutzer",
+        "searchLabel": "Benutzer suchen",
+        "searchPlaceholder": "Name oder E-Mail suchen",
+        "superAdminAlwaysAdmin": "Der Super-Admin hat immer Admin-Rechte",
+        "title": "Benutzer"
+    }
+}

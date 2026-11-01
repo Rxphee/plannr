@@ -3,11 +3,10 @@ import { AvatarGroup, AvatarGroupCount } from "@src/components/ui/Avatar";
 import { UserAvatar } from "@src/components/UserAvatar";
 import type { GQLProjectStatus } from "@src/graphql.generated";
 import Link from "next/link";
+import { useFormatter, useTranslations } from "next-intl";
 
 import { ProjectIcon } from "./ProjectIcon";
 import { ProjectStatusBadge } from "./ProjectStatusBadge";
-
-const dateFormat = new Intl.DateTimeFormat("en", { dateStyle: "medium" });
 
 interface ProjectCardProps {
     project: {
@@ -22,6 +21,8 @@ interface ProjectCardProps {
 }
 
 export function ProjectCard({ project }: ProjectCardProps) {
+    const t = useTranslations("common");
+    const format = useFormatter();
     const hiddenMemberCount = project.members.totalCount - project.members.nodes.length;
 
     return (
@@ -38,7 +39,7 @@ export function ProjectCard({ project }: ProjectCardProps) {
                 <ProjectStatusBadge status={project.status} />
             </div>
             <p className="text-muted-foreground line-clamp-2 min-h-10 text-sm">
-                {project.description ? markdownToPlainText(project.description) : "No description yet."}
+                {project.description ? markdownToPlainText(project.description) : t("noDescriptionYet")}
             </p>
             <div className="mt-auto flex items-center justify-between gap-3 border-t pt-4">
                 <AvatarGroup className="-space-x-1.5">
@@ -47,7 +48,7 @@ export function ProjectCard({ project }: ProjectCardProps) {
                     ))}
                     {hiddenMemberCount > 0 && <AvatarGroupCount className="ring-card! text-xs">+{hiddenMemberCount}</AvatarGroupCount>}
                 </AvatarGroup>
-                <span className="text-muted-foreground text-sm">Created {dateFormat.format(new Date(project.createdAt))}</span>
+                <span className="text-muted-foreground text-sm">{t("created", { date: format.dateTime(new Date(project.createdAt), "date") })}</span>
             </div>
         </Link>
     );

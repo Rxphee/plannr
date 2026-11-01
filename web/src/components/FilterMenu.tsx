@@ -6,6 +6,7 @@ import { Button } from "@src/components/ui/Button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@src/components/ui/DropdownMenu";
 import { cn } from "@src/lib/utils";
 import { CheckIcon, PlusCircleIcon, XIcon } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 // Up to this many selected options are named in the trigger, more are counted
 const MAX_NAMED_OPTIONS = 2;
@@ -19,6 +20,7 @@ interface FilterMenuProps<Value extends string> {
 
 // A filter that matches any of the selected options, with checkboxes that keep the menu open
 export function FilterMenu<Value extends string>({ label, options, selected, onChange }: FilterMenuProps<Value>) {
+    const t = useTranslations("filterMenu");
     const selectedOptions = options.filter((option) => selected.includes(option.value));
 
     const toggle = (value: Value, isChecked: boolean) => {
@@ -37,7 +39,9 @@ export function FilterMenu<Value extends string>({ label, options, selected, onC
                     <>
                         <span aria-hidden="true" className="bg-border h-4 w-px" />
                         {selectedOptions.length > MAX_NAMED_OPTIONS ? (
-                            <span className="bg-muted rounded-md px-1.5 text-xs leading-5 font-medium">{selectedOptions.length} selected</span>
+                            <span className="bg-muted rounded-md px-1.5 text-xs leading-5 font-medium">
+                                {t("selectedCount", { count: selectedOptions.length })}
+                            </span>
                         ) : (
                             selectedOptions.map((option) => (
                                 <span key={option.value} className="bg-muted max-w-36 rounded-md px-1.5 text-xs leading-5 font-medium">
@@ -71,7 +75,7 @@ export function FilterMenu<Value extends string>({ label, options, selected, onC
                             className="text-muted-foreground focus:bg-destructive/10 focus:text-destructive focus:**:text-destructive dark:focus:bg-destructive/20"
                         >
                             <XIcon />
-                            Clear filter
+                            {t("clear")}
                         </DropdownMenuItem>
                     </>
                 )}

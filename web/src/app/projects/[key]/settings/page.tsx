@@ -8,6 +8,7 @@ import { graphQLFetch } from "@src/util/graphQLFetch";
 import { pageCountOf, type Pagination, paginationHref, parsePagination, toOffsetAndLimit } from "@src/util/pagination";
 import { parseSearch } from "@src/util/search";
 import { notFound, redirect } from "next/navigation";
+import { getTranslations } from "next-intl/server";
 
 import { AddProjectMembersDialog } from "./AddProjectMembersDialog";
 import { DeleteProjectDialog } from "./DeleteProjectDialog";
@@ -62,6 +63,7 @@ export default async function ProjectSettingsPage({ params, searchParams }: Page
         const data = await graphQLFetch<GQLProjectMemberIdsQuery, GQLProjectMemberIdsQueryVariables>(projectMemberIdsQuery, { key, ...pagination });
         return data.project?.members ?? { nodes: [], totalCount: 0 };
     });
+    const [t, tCommon, tSidebar] = await Promise.all([getTranslations("projectSettings"), getTranslations("common"), getTranslations("sidebar")]);
     const memberIds = new Set(members.map(({ user }) => user.id));
     const usersToAdd = users.filter((user) => !memberIds.has(user.id));
 
@@ -69,23 +71,23 @@ export default async function ProjectSettingsPage({ params, searchParams }: Page
         <>
             <PageHeader
                 breadcrumbs={[
-                    { label: "Projects", href: "/projects" },
+                    { label: tCommon("projects"), href: "/projects" },
                     { label: project.name, href: `/projects/${project.key}` },
-                    { label: "Settings" },
+                    { label: tSidebar("settings") },
                 ]}
             />
-            <PageIntro title="Settings" description={`Name, members and status of ${project.name}.`} />
+            <PageIntro title={t("title")} description={t("description", { project: project.name })} />
             <PageContent>
                 <div className="max-w-4xl">
-                    <SettingsSection title="General" description="Name and description of the project.">
+                    <SettingsSection title={t("generalTitle")} description={t("generalDescription")}>
                         <EditProjectForm project={project} />
                     </SettingsSection>
 
-                    <SettingsSection title="Members" description="Owners manage the project, members work on epics and issues, viewers only read.">
+                    <SettingsSection title={t("membersTitle")} description={t("membersDescription")}>
                         <div className="grid gap-3">
                             {/* Above the list, so adding someone does not mean scrolling past all members */}
                             <div className="flex flex-wrap items-center justify-between gap-2">
-                                <ListSearch placeholder="Search name or email" label="Search members" />
+                                <ListSearch placeholder={t("searchMembersPlaceholder")} label={t("searchMembersLabel")} />
                                 <AddProjectMembersDialog projectId={project.id} users={usersToAdd} />
                             </div>
                             {project.members.totalCount > 0 ? (
@@ -95,7 +97,7 @@ export default async function ProjectSettingsPage({ params, searchParams }: Page
                                 </>
                             ) : (
                                 <p className="text-muted-foreground rounded-lg border border-dashed px-3 py-6 text-center text-sm">
-                                    No member matches the search.
+                                    {t("noMemberMatches")}
                                 </p>
                             )}
                             {project.adminsWithoutMembership.length > 0 && (
@@ -104,15 +106,15 @@ export default async function ProjectSettingsPage({ params, searchParams }: Page
                         </div>
                     </SettingsSection>
 
-                    <SettingsSection title="Status" description="Pause a project while it waits, archive it when it is done.">
+                    <SettingsSection title={t("statusTitle")} description={t("statusDescription")}>
                         <ProjectStatusActions project={project} />
                     </SettingsSection>
 
-                    <SettingsSection title="Delete project" description="Deletes the project with everything in it. This cannot be undone.">
+                    <SettingsSection title={t("deleteTitle")} description={t("deleteDescription")}>
                         {project.status === "archived" ? (
                             <DeleteProjectDialog project={project} />
                         ) : (
-                            <p className="text-muted-foreground text-sm">Archive the project first to delete it.</p>
+                            <p className="text-muted-foreground text-sm">{t("archiveFirst")}</p>
                         )}
                     </SettingsSection>
                 </div>

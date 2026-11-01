@@ -6,6 +6,7 @@ import { RichTextEditor } from "@src/components/richText/RichTextEditor";
 import { Badge } from "@src/components/ui/Badge";
 import { graphQLFetch } from "@src/util/graphQLFetch";
 import { notFound } from "next/navigation";
+import { getTranslations } from "next-intl/server";
 
 import { CreateIssueDialog } from "../../issues/CreateIssueDialog";
 import { parseIssueListParams } from "../../issues/issueListParams";
@@ -30,7 +31,13 @@ export default async function EpicPage({ params, searchParams }: PageProps<"/pro
         notFound();
     }
 
-    const [epics, labels] = await Promise.all([fetchEpicOptions(epic.project.id), fetchLabelOptions()]);
+    const [epics, labels, t, tCommon, tSidebar] = await Promise.all([
+        fetchEpicOptions(epic.project.id),
+        fetchLabelOptions(),
+        getTranslations("epics"),
+        getTranslations("common"),
+        getTranslations("sidebar"),
+    ]);
     const project = { ...epic.project, epics };
     const path = `/projects/${project.key}/epics/${epic.id}`;
     const createAction = project.canContribute && <CreateIssueDialog project={project} epicId={epic.id} labels={labels} />;
@@ -39,9 +46,9 @@ export default async function EpicPage({ params, searchParams }: PageProps<"/pro
         <>
             <PageHeader
                 breadcrumbs={[
-                    { label: "Projects", href: "/projects" },
+                    { label: tCommon("projects"), href: "/projects" },
                     { label: project.name, href: `/projects/${project.key}` },
-                    { label: "Epics", href: `/projects/${project.key}/epics` },
+                    { label: tSidebar("epics"), href: `/projects/${project.key}/epics` },
                     { label: epic.name },
                 ]}
             />
@@ -50,7 +57,7 @@ export default async function EpicPage({ params, searchParams }: PageProps<"/pro
                 badge={
                     epic.isDefault && (
                         <Badge variant="outline" className="text-muted-foreground">
-                            Default
+                            {tCommon("default")}
                         </Badge>
                     )
                 }
@@ -75,11 +82,7 @@ export default async function EpicPage({ params, searchParams }: PageProps<"/pro
                 {epic.description ? (
                     <RichTextEditor value={epic.description} readOnly className="max-w-3xl" />
                 ) : (
-                    epic.isDefault && (
-                        <p className="text-muted-foreground text-sm">
-                            Every project has this epic for the issues that belong to no other epic. It cannot be deleted.
-                        </p>
-                    )
+                    epic.isDefault && <p className="text-muted-foreground text-sm">{t("defaultEpicDescription")}</p>
                 )}
                 <IssueListView
                     project={project}

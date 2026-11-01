@@ -2,6 +2,7 @@
 
 import { OptionSelect } from "@src/components/OptionSelect";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { useTransition } from "react";
 
 interface PageSizeSelectProps {
@@ -11,6 +12,7 @@ interface PageSizeSelectProps {
 }
 
 export function PageSizeSelect({ pageSize, hrefs }: PageSizeSelectProps) {
+    const t = useTranslations("pagination");
     const router = useRouter();
     const [pending, startTransition] = useTransition();
 
@@ -31,7 +33,7 @@ export function PageSizeSelect({ pageSize, hrefs }: PageSizeSelectProps) {
             disabled={pending}
             size="sm"
             className="w-18"
-            aria-label="Entries per page"
+            aria-label={t("entriesPerPage")}
         />
     );
 }

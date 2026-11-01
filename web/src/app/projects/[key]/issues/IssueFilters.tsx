@@ -8,14 +8,12 @@ import type { GQLLabelColor } from "@src/graphql.generated";
 import { useDebouncedSearch } from "@src/hooks/useDebouncedSearch";
 import { cn } from "@src/lib/utils";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { useTransition } from "react";
 
 import { isIssueListFiltered, issueListHref, type IssueListParams, parseIssueListParams } from "./issueListParams";
-import { issuePrioritySelectOptions, issueStatusSelectOptions, issueTypeSelectOptions, toEpicSelectOptions } from "./issueSelectOptions";
+import { toEpicSelectOptions, useIssueSelectOptions } from "./issueSelectOptions";
 import { OPEN_ISSUE_STATUSES } from "./issueViews";
-
-// A view shows open issues only
-const openIssueStatusSelectOptions = issueStatusSelectOptions.filter((option) => OPEN_ISSUE_STATUSES.includes(option.value));
 
 interface IssueFiltersProps {
     path: string;
@@ -27,6 +25,11 @@ interface IssueFiltersProps {
 }
 
 export function IssueFilters({ path, params, epics, labels }: IssueFiltersProps) {
+    const t = useTranslations("issues");
+    const tFields = useTranslations("issueFields");
+    const { statusOptions, typeOptions, priorityOptions } = useIssueSelectOptions();
+    // A view shows open issues only
+    const openStatusOptions = statusOptions.filter((option) => OPEN_ISSUE_STATUSES.includes(option.value));
     const router = useRouter();
     const [pending, startTransition] = useTransition();
 
@@ -56,25 +59,25 @@ export function IssueFilters({ path, params, epics, labels }: IssueFiltersProps)
                     clearSearch();
                     applyFilter({ search: undefined });
                 }}
-                placeholder="Search title or key"
-                label="Search issues"
+                placeholder={t("searchPlaceholder")}
+                label={t("searchLabel")}
             />
             <FilterMenu
-                label="Status"
-                options={params.view ? openIssueStatusSelectOptions : issueStatusSelectOptions}
+                label={tFields("status")}
+                options={params.view ? openStatusOptions : statusOptions}
                 selected={params.statuses}
                 onChange={(statuses) => applyFilter({ statuses })}
             />
-            <FilterMenu label="Type" options={issueTypeSelectOptions} selected={params.types} onChange={(types) => applyFilter({ types })} />
+            <FilterMenu label={tFields("type")} options={typeOptions} selected={params.types} onChange={(types) => applyFilter({ types })} />
             <FilterMenu
-                label="Priority"
-                options={issuePrioritySelectOptions}
+                label={tFields("priority")}
+                options={priorityOptions}
                 selected={params.priorities}
                 onChange={(priorities) => applyFilter({ priorities })}
             />
             {epics && (
                 <FilterMenu
-                    label="Epic"
+                    label={tFields("epic")}
                     options={toEpicSelectOptions(epics)}
                     selected={params.epics}
                     onChange={(selected) => applyFilter({ epics: selected })}
@@ -82,7 +85,7 @@ export function IssueFilters({ path, params, epics, labels }: IssueFiltersProps)
             )}
             {labels.length > 0 && (
                 <FilterMenu
-                    label="Label"
+                    label={tFields("label")}
                     options={toLabelSelectOptions(labels)}
                     selected={params.labels}
                     onChange={(selected) => applyFilter({ labels: selected })}

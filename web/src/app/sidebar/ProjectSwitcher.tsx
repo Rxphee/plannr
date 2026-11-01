@@ -18,6 +18,7 @@ import { InputGroupAddon } from "@src/components/ui/InputGroup";
 import { SidebarMenu, SidebarMenuButton, SidebarMenuItem } from "@src/components/ui/Sidebar";
 import { ChevronsUpDownIcon, LayoutGridIcon, SearchIcon } from "lucide-react";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { useRef, useState } from "react";
 
 import { ProjectIcon } from "../projects/ProjectIcon";
@@ -31,14 +32,17 @@ interface ProjectGroup {
 
 // Shows where the user is and switches to another project, found by name or key
 export function ProjectSwitcher({ projects }: { projects: SidebarProject[] }) {
+    const t = useTranslations("projectSwitcher");
+    const tStatus = useTranslations("projectStatus");
+    const tSidebar = useTranslations("sidebar");
     const currentProject = useCurrentProject(projects);
     const [isOpen, setIsOpen] = useState(false);
     const [query, setQuery] = useState("");
     const searchInputRef = useRef<HTMLInputElement>(null);
     const { contains } = ComboboxPrimitive.useFilter();
     const groups: ProjectGroup[] = [
-        { label: "Active", items: projects.filter((project) => project.status === "active") },
-        { label: "Paused", items: projects.filter((project) => project.status === "paused") },
+        { label: tStatus("active"), items: projects.filter((project) => project.status === "active") },
+        { label: tStatus("paused"), items: projects.filter((project) => project.status === "paused") },
     ].filter((group) => group.items.length > 0);
 
     return (
@@ -56,7 +60,7 @@ export function ProjectSwitcher({ projects }: { projects: SidebarProject[] }) {
                     isItemEqualToValue={(project, value) => project.id === value.id}
                     filter={(project, query) => contains(project, query, ({ name }) => name) || contains(project, query, ({ key }) => key)}
                 >
-                    <SidebarMenuButton size="lg" tooltip={currentProject?.name ?? "Choose a project"} render={<ComboboxPrimitive.Trigger />}>
+                    <SidebarMenuButton size="lg" tooltip={currentProject?.name ?? t("chooseProject")} render={<ComboboxPrimitive.Trigger />}>
                         {currentProject ? (
                             <ProjectIcon projectKey={currentProject.key} size="md" />
                         ) : (
@@ -67,13 +71,13 @@ export function ProjectSwitcher({ projects }: { projects: SidebarProject[] }) {
                         <span className="grid flex-1 leading-tight">
                             <span className="font-heading truncate font-semibold">{currentProject?.name ?? "Plannr"}</span>
                             <span className="text-sidebar-foreground/60 truncate text-xs">
-                                {currentProject ? <span className="font-mono">{currentProject.key}</span> : "Choose a project"}
+                                {currentProject ? <span className="font-mono">{currentProject.key}</span> : t("chooseProject")}
                             </span>
                         </span>
                         <ChevronsUpDownIcon className="text-sidebar-foreground/60" />
                     </SidebarMenuButton>
                     <ComboboxContent className="min-w-60">
-                        <ComboboxInput ref={searchInputRef} placeholder="Search projects" showTrigger={false}>
+                        <ComboboxInput ref={searchInputRef} placeholder={t("searchPlaceholder")} showTrigger={false}>
                             <InputGroupAddon>
                                 <SearchIcon />
                             </InputGroupAddon>
@@ -89,7 +93,7 @@ export function ProjectSwitcher({ projects }: { projects: SidebarProject[] }) {
                                 </InputGroupAddon>
                             )}
                         </ComboboxInput>
-                        <ComboboxEmpty>No projects found</ComboboxEmpty>
+                        <ComboboxEmpty>{t("noResults")}</ComboboxEmpty>
                         <ComboboxList>
                             {(group: ProjectGroup) => (
                                 <ComboboxGroup key={group.label} items={group.items}>
@@ -119,7 +123,7 @@ export function ProjectSwitcher({ projects }: { projects: SidebarProject[] }) {
                                 className="hover:bg-accent hover:text-accent-foreground flex items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-hidden [&_svg]:size-4"
                             >
                                 <LayoutGridIcon />
-                                All projects
+                                {tSidebar("allProjects")}
                             </Link>
                         </div>
                     </ComboboxContent>

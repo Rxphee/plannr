@@ -13,11 +13,12 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import type { GQLIssuePriority, GQLIssueType, GQLLabelColor } from "@src/graphql.generated";
 import { FORM_ERROR } from "final-form";
 import { PlusIcon } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 
 import { createIssue } from "./actions";
 import { ISSUE_TITLE_MAX_LENGTH } from "./issueOptions";
-import { issuePrioritySelectOptions, issueTypeSelectOptions, toEpicSelectOptions } from "./issueSelectOptions";
+import { toEpicSelectOptions, useIssueSelectOptions } from "./issueSelectOptions";
 
 interface CreateIssueDialogProps {
     project: { id: string; key: string; epics: { id: string; name: string }[] };
@@ -38,13 +39,14 @@ interface CreateIssueFormValues {
 }
 
 export function CreateIssueDialog({ project, epicId, labels }: CreateIssueDialogProps) {
+    const t = useTranslations("createIssue");
     const [open, setOpen] = useState(false);
 
     return (
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger render={<Button />}>
                 <PlusIcon />
-                New issue
+                {t("trigger")}
             </DialogTrigger>
             <DialogContent className="sm:max-w-2xl">
                 <CreateIssueForm project={project} epicId={epicId} labels={labels} onCreated={() => setOpen(false)} />
@@ -54,6 +56,9 @@ export function CreateIssueDialog({ project, epicId, labels }: CreateIssueDialog
 }
 
 function CreateIssueForm({ project, epicId, labels, onCreated }: CreateIssueDialogProps & { onCreated: () => void }) {
+    const t = useTranslations("createIssue");
+    const tFields = useTranslations("issueFields");
+    const { typeOptions, priorityOptions } = useIssueSelectOptions();
     const handleSubmit = async ({ dueDate, labelIds = [], description = "", ...values }: CreateIssueFormValues) => {
         const { error } = await createIssue({ ...values, projectId: project.id, dueDate: dueDate || null, labelIds, description });
         if (error) {
@@ -67,32 +72,30 @@ function CreateIssueForm({ project, epicId, labels, onCreated }: CreateIssueDial
             {({ submitting }) => (
                 <>
                     <DialogHeader>
-                        <DialogTitle>New issue</DialogTitle>
-                        <DialogDescription>
-                            The issue gets the next number of {project.key}, e.g. {project.key}-42.
-                        </DialogDescription>
+                        <DialogTitle>{t("title")}</DialogTitle>
+                        <DialogDescription>{t("description", { key: project.key })}</DialogDescription>
                     </DialogHeader>
-                    <TextField name="title" label="Title" required maxLength={ISSUE_TITLE_MAX_LENGTH} />
+                    <TextField name="title" label={tFields("title")} required maxLength={ISSUE_TITLE_MAX_LENGTH} />
                     <div className="grid gap-4 sm:grid-cols-2">
-                        <SelectField name="type" label="Type" required options={issueTypeSelectOptions} />
-                        <SelectField name="priority" label="Priority" required options={issuePrioritySelectOptions} />
-                        <SelectField name="epicId" label="Epic" required options={toEpicSelectOptions(project.epics)} />
-                        <DateField name="dueDate" label="Due date" placeholder="No due date" />
+                        <SelectField name="type" label={tFields("type")} required options={typeOptions} />
+                        <SelectField name="priority" label={tFields("priority")} required options={priorityOptions} />
+                        <SelectField name="epicId" label={tFields("epic")} required options={toEpicSelectOptions(project.epics)} />
+                        <DateField name="dueDate" label={tFields("dueDate")} placeholder={tFields("noDueDate")} />
                     </div>
                     {labels.length > 0 && (
                         <MultiSelectField
                             name="labelIds"
-                            label="Labels"
+                            label={tFields("labels")}
                             options={toLabelSelectOptions(labels)}
-                            placeholder="Add labels"
-                            emptyText="No matching label"
+                            placeholder={tFields("addLabels")}
+                            emptyText={tFields("noMatchingLabel")}
                         />
                     )}
-                    <RichTextField name="description" label="Description" placeholder="What needs to be done? Checklists replace sub-tasks." />
+                    <RichTextField name="description" label={tFields("description")} placeholder={t("descriptionPlaceholder")} />
                     <FormSubmitError />
                     <DialogFooter>
                         <Button type="submit" disabled={submitting}>
-                            Create issue
+                            {t("submit")}
                         </Button>
                     </DialogFooter>
                 </>

@@ -6,12 +6,14 @@ import { Button } from "@src/components/ui/Button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@src/components/ui/Dialog";
 import { FORM_ERROR } from "final-form";
 import { PlusIcon } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 
 import { createEpic } from "./actions";
 import { EpicFields, type EpicFormValues } from "./EpicFields";
 
 export function CreateEpicDialog({ projectId }: { projectId: string }) {
+    const t = useTranslations("epics");
     const [open, setOpen] = useState(false);
 
     const handleSubmit = async ({ name, description = "" }: EpicFormValues) => {
@@ -26,23 +28,21 @@ export function CreateEpicDialog({ projectId }: { projectId: string }) {
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger render={<Button />}>
                 <PlusIcon />
-                New epic
+                {t("newEpic")}
             </DialogTrigger>
             <DialogContent className="sm:max-w-2xl">
                 <FinalForm<EpicFormValues> onSubmit={handleSubmit} className="grid gap-4">
                     {({ submitting }) => (
                         <>
                             <DialogHeader>
-                                <DialogTitle>New epic</DialogTitle>
-                                <DialogDescription>
-                                    An epic groups the issues of one part of the project, like the design or the launch.
-                                </DialogDescription>
+                                <DialogTitle>{t("newEpic")}</DialogTitle>
+                                <DialogDescription>{t("newEpicDescription")}</DialogDescription>
                             </DialogHeader>
                             <EpicFields />
                             <FormSubmitError />
                             <DialogFooter>
                                 <Button type="submit" disabled={submitting}>
-                                    Create epic
+                                    {t("createEpic")}
                                 </Button>
                             </DialogFooter>
                         </>

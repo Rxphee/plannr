@@ -4,6 +4,7 @@ import { Input } from "@src/components/ui/Input";
 import { Label } from "@src/components/ui/Label";
 import { Textarea } from "@src/components/ui/Textarea";
 import type { FieldValidator } from "final-form";
+import { useTranslations } from "next-intl";
 import { useId } from "react";
 import { Field } from "react-final-form";
 
@@ -23,12 +24,13 @@ interface TextFieldProps {
 
 // A text input or, with multiline, a textarea for react-final-form, with label and error message
 export function TextField({ name, label, required, validate, parse, onValueChange, multiline, rows, maxLength, className }: TextFieldProps) {
+    const t = useTranslations("common");
     const id = useId();
     const errorId = `${id}-error`;
 
     const validateField: FieldValidator<string | undefined> = (value, allValues, meta) => {
         if (required && !value?.trim()) {
-            return "Required";
+            return t("required");
         }
         return validate?.(value, allValues, meta);
     };

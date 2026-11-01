@@ -1,15 +1,8 @@
-import type { SelectOption } from "@src/components/OptionSelect";
-
 export type ApiTokenExpiry = "30" | "90" | "365" | "never";
 
-export const DEFAULT_API_TOKEN_EXPIRY: ApiTokenExpiry = "90";
+export const API_TOKEN_EXPIRIES: ApiTokenExpiry[] = ["30", "90", "365", "never"];
 
-export const apiTokenExpiryOptions: SelectOption<ApiTokenExpiry>[] = [
-    { value: "30", label: "30 days" },
-    { value: "90", label: "90 days" },
-    { value: "365", label: "1 year" },
-    { value: "never", label: "No expiry" },
-];
+export const DEFAULT_API_TOKEN_EXPIRY: ApiTokenExpiry = "90";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
