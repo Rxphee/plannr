@@ -21,6 +21,7 @@ import type {
     GQLProjectSettingsUsersQuery,
     GQLProjectSettingsUsersQueryVariables,
 } from "./page.gql.generated";
+import { ProjectAdminAccessList } from "./ProjectAdminAccessList";
 import { ProjectMemberList } from "./ProjectMemberList";
 import { ProjectStatusActions } from "./ProjectStatusActions";
 import { SettingsSection } from "./SettingsSection";
@@ -96,6 +97,9 @@ export default async function ProjectSettingsPage({ params, searchParams }: Page
                                 <p className="text-muted-foreground rounded-lg border border-dashed px-3 py-6 text-center text-sm">
                                     No member matches the search.
                                 </p>
+                            )}
+                            {project.adminsWithoutMembership.length > 0 && (
+                                <ProjectAdminAccessList projectId={project.id} admins={project.adminsWithoutMembership} />
                             )}
                         </div>
                     </SettingsSection>

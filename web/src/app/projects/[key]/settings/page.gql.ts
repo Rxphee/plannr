@@ -18,8 +18,16 @@ export const projectSettingsQuery = gql`
                         firstName
                         lastName
                         email
+                        instanceRole
                     }
                 }
+            }
+            adminsWithoutMembership {
+                id
+                firstName
+                lastName
+                email
+                instanceRole
             }
         }
     }
@@ -33,6 +41,7 @@ export const projectSettingsUsersQuery = gql`
                 id
                 firstName
                 lastName
+                instanceRole
             }
         }
     }
