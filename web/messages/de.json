@@ -59,6 +59,14 @@
         "title": "API-Tokens",
         "token": "API-Token"
     },
+    "assigneeSelect": {
+        "adminsWithoutMembership": "Admins, noch keine Mitglieder",
+        "confirm": "Hinzufügen und zuweisen",
+        "confirmDescription": "{name} sieht {project} als Admin, ist aber kein Mitglied. Zuweisen lassen sich nur Mitglieder, deshalb kommt {name} als Member dazu und sieht das Issue auch ohne Admin-Rechte.",
+        "confirmTitle": "{name} zum Projekt hinzufügen?",
+        "members": "Mitglieder",
+        "unassigned": "Niemand"
+    },
     "commandMenu": {
         "actions": "Aktionen",
         "allProjects": "Alle Projekte",
@@ -200,7 +208,6 @@
         "description": "Beschreibung",
         "dueDate": "Fällig am",
         "epic": "Epic",
-        "joinsAsMember": "{name} (wird Mitglied)",
         "label": "Label",
         "labels": "Labels",
         "noDueDate": "Kein Datum",

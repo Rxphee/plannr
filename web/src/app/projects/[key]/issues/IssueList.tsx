@@ -23,7 +23,7 @@ interface IssueListProps {
         priority: GQLIssuePriority;
         dueDate: string | null;
         epic: { name: string };
-        assignee: { firstName: string; lastName: string } | null;
+        assignee: { id: string; firstName: string; lastName: string } | null;
         labels: { id: string; name: string; color: GQLLabelColor }[];
         links: { kind: string }[];
     }[];

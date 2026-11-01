@@ -17,13 +17,13 @@ import { useTranslations } from "next-intl";
 import { useState } from "react";
 
 import { createIssue } from "./actions";
-import { toAssigneeId, UNASSIGNED, useAssigneeSelectOptions } from "./assigneeSelectOptions";
+import { AssigneeField } from "./AssigneeField";
 import type { Assignee } from "./fetchAssigneeOptions";
 import { ISSUE_TITLE_MAX_LENGTH } from "./issueOptions";
 import { toEpicSelectOptions, useIssueSelectOptions } from "./issueSelectOptions";
 
 interface CreateIssueDialogProps {
-    project: { id: string; key: string; epics: { id: string; name: string }[] };
+    project: { id: string; key: string; name: string; epics: { id: string; name: string }[] };
     // Preselected, e.g. the epic whose page is open
     epicId: string;
     // Without labels the label field is hidden
@@ -36,7 +36,7 @@ interface CreateIssueFormValues {
     type: GQLIssueType;
     priority: GQLIssuePriority;
     epicId: string;
-    assigneeId: string;
+    assigneeId: string | null;
     dueDate?: string | null;
     labelIds?: string[];
     description?: string;
@@ -63,12 +63,11 @@ function CreateIssueForm({ project, epicId, labels, assignees, onCreated }: Crea
     const t = useTranslations("createIssue");
     const tFields = useTranslations("issueFields");
     const { typeOptions, priorityOptions } = useIssueSelectOptions();
-    const assigneeOptions = useAssigneeSelectOptions(assignees);
     const handleSubmit = async ({ assigneeId, dueDate, labelIds = [], description = "", ...values }: CreateIssueFormValues) => {
         const { error } = await createIssue({
             ...values,
             projectId: project.id,
-            assigneeId: toAssigneeId(assigneeId),
+            assigneeId,
             dueDate: dueDate || null,
             labelIds,
             description,
@@ -82,7 +81,7 @@ function CreateIssueForm({ project, epicId, labels, assignees, onCreated }: Crea
     return (
         <FinalForm<CreateIssueFormValues>
             onSubmit={handleSubmit}
-            initialValues={{ type: "task", priority: "normal", epicId, assigneeId: UNASSIGNED }}
+            initialValues={{ type: "task", priority: "normal", epicId, assigneeId: null }}
             className="grid gap-4"
         >
             {({ submitting }) => (
@@ -96,7 +95,7 @@ function CreateIssueForm({ project, epicId, labels, assignees, onCreated }: Crea
                         <SelectField name="type" label={tFields("type")} required options={typeOptions} />
                         <SelectField name="priority" label={tFields("priority")} required options={priorityOptions} />
                         <SelectField name="epicId" label={tFields("epic")} required options={toEpicSelectOptions(project.epics)} />
-                        <SelectField name="assigneeId" label={tFields("assignee")} options={assigneeOptions} />
+                        <AssigneeField name="assigneeId" label={tFields("assignee")} assignees={assignees} projectName={project.name} />
                         <DateField name="dueDate" label={tFields("dueDate")} placeholder={tFields("noDueDate")} />
                     </div>
                     {labels.length > 0 && (

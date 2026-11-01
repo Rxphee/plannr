@@ -19,7 +19,7 @@ import Link from "next/link";
 import { useTranslations } from "next-intl";
 
 interface UserMenuProps {
-    user: { firstName: string; lastName: string; email: string; instanceRole: GQLInstanceRole };
+    user: { id: string; firstName: string; lastName: string; email: string; instanceRole: GQLInstanceRole };
 }
 
 export function UserMenu({ user }: UserMenuProps) {

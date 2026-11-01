@@ -59,6 +59,14 @@
         "title": "API tokens",
         "token": "API token"
     },
+    "assigneeSelect": {
+        "adminsWithoutMembership": "Admins, not members yet",
+        "confirm": "Add and assign",
+        "confirmDescription": "{name} sees {project} as an admin, but is not a member. Only members can be assigned, so {name} joins as member and keeps seeing the issue even without admin rights.",
+        "confirmTitle": "Add {name} to the project?",
+        "members": "Members",
+        "unassigned": "Unassigned"
+    },
     "commandMenu": {
         "actions": "Actions",
         "allProjects": "All projects",
@@ -200,7 +208,6 @@
         "description": "Description",
         "dueDate": "Due date",
         "epic": "Epic",
-        "joinsAsMember": "{name} (joins as member)",
         "label": "Label",
         "labels": "Labels",
         "noDueDate": "No due date",
