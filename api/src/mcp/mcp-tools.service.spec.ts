@@ -47,7 +47,7 @@ const issue = Object.assign(new Issue(), {
 
 describe("McpToolsService", () => {
     const projectsService = { findAllVisibleTo: vi.fn(), findOneVisibleTo: vi.fn(), findAssignableUsers: vi.fn() };
-    const epicsService = { findAll: vi.fn(), findOneInProject: vi.fn() };
+    const epicsService = { findAll: vi.fn(), findOneInProject: vi.fn(), create: vi.fn(), update: vi.fn() };
     const issuesService = {
         findAll: vi.fn(),
         findOneByKeyVisibleTo: vi.fn(),
@@ -83,6 +83,62 @@ describe("McpToolsService", () => {
                 expect.objectContaining({ statuses: [ProjectStatus.active, ProjectStatus.paused], offset: 0, limit: 25 }),
                 user,
             );
+        });
+    });
+
+    describe("createEpic", () => {
+        it("creates the epic in the project without a description unless given", async () => {
+            epicsService.create.mockResolvedValue(Object.assign(new Epic(), { id: "4c1d", name: "Launch" }));
+
+            await expect(tools.createEpic({ project: "web", name: " Launch " }, user)).resolves.toBe("Created Launch · 0/0 done · id 4c1d");
+            expect(epicsService.create).toHaveBeenCalledWith(
+                expect.objectContaining({ projectId: project.id, name: "Launch", description: "" }),
+                user,
+            );
+        });
+
+        it("checks the name with the rules of the GraphQL input", async () => {
+            await expect(tools.createEpic({ project: "WEB", name: "  " }, user)).rejects.toThrow(BadRequestException);
+            expect(epicsService.create).not.toHaveBeenCalled();
+        });
+    });
+
+    describe("updateEpic", () => {
+        const describedEpic = Object.assign(new Epic(), { ...designEpic, description: "Colors and fonts", issueCount: 4, doneIssueCount: 1 });
+
+        beforeEach(() => {
+            epicsService.findAll.mockResolvedValue({ nodes: [describedEpic], totalCount: 1 });
+            epicsService.update.mockImplementation(async (_id: string, input: object) => Object.assign(new Epic(), describedEpic, input));
+        });
+
+        it("renames the epic found by name and keeps its description", async () => {
+            await expect(tools.updateEpic({ project: "WEB", epic: "design", name: "Design System" }, user)).resolves.toBe(
+                `Updated Design System · 1/4 done · id ${designEpic.id}`,
+            );
+            expect(epicsService.update).toHaveBeenCalledWith(
+                designEpic.id,
+                expect.objectContaining({ name: "Design System", description: "Colors and fonts" }),
+                user,
+            );
+        });
+
+        it("replaces the description and keeps the name", async () => {
+            epicsService.findOneInProject.mockResolvedValue(describedEpic);
+
+            await tools.updateEpic({ project: "WEB", epic: designEpic.id, description: "Only the colors" }, user);
+            expect(epicsService.findOneInProject).toHaveBeenCalledWith(designEpic.id, project);
+            expect(epicsService.update).toHaveBeenCalledWith(
+                designEpic.id,
+                expect.objectContaining({ name: "Design", description: "Only the colors" }),
+                user,
+            );
+        });
+
+        it("changes nothing for an epic the project does not have", async () => {
+            await expect(tools.updateEpic({ project: "WEB", epic: "Marketing", name: "Ads" }, user)).rejects.toThrow(
+                'The project WEB has no epic "Marketing"',
+            );
+            expect(epicsService.update).not.toHaveBeenCalled();
         });
     });
 

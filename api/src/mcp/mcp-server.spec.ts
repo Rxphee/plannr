@@ -54,6 +54,8 @@ describe("handleMcpRequest", () => {
         expect(toolDefinitions.map(({ name }) => name)).toEqual([
             "list_projects",
             "list_epics",
+            "create_epic",
+            "update_epic",
             "list_issues",
             "get_issue",
             "create_issue",

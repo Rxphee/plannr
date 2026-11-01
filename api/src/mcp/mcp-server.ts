@@ -82,6 +82,31 @@ function createMcpServer(tools: McpToolsService, user: User): McpServer {
     );
 
     server.registerTool(
+        "create_epic",
+        {
+            description: "Create an epic, which groups the issues of a feature or topic",
+            inputSchema: { project: projectKey, name: z.string(), description: z.string().optional().describe("Markdown") },
+            annotations: { openWorldHint: false },
+        },
+        async (args) => runTool(() => tools.createEpic(args, user)),
+    );
+
+    server.registerTool(
+        "update_epic",
+        {
+            description: "Rename an epic or change its description. Only the given fields change",
+            inputSchema: {
+                project: projectKey,
+                epic,
+                name: z.string().optional(),
+                description: z.string().optional().describe("Markdown, replaces the old one"),
+            },
+            annotations: { idempotentHint: true, openWorldHint: false },
+        },
+        async (args) => runTool(() => tools.updateEpic(args, user)),
+    );
+
+    server.registerTool(
         "list_issues",
         {
             description: "List issues, newest first. Line: key · type · priority · status · due date · title · @assignee · #labels",
