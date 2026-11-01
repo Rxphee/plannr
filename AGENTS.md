@@ -208,7 +208,7 @@ After making code changes, always run `npm --prefix <package> run lint:fix` for 
 
 ### API Module Structure
 
-A feature module holds `entities/`, `dto/` (inputs), a service with the business logic and thin resolvers that only call the service. The service layer is the core that the MCP interface shares with GraphQL. Errors the user can correct are thrown as `BadRequestException`; the web app shows their message. A field of another module's type that needs this module's service lives in a resolver of this module, so modules never depend on each other in a circle.
+A feature module holds `entities/`, `dto/` (inputs), a service with the business logic and thin resolvers that only call the service. The service layer is the core that the MCP interface shares with GraphQL. Errors the user can correct are thrown as `UserError` (`common/user-error.ts`), a `BadRequestException` with a `reason` and `params`: the message stays English for MCP and the logs, `formatError` adds reason and params to the GraphQL error, and the web app shows its own text for the reason (`apiErrors` in `web/messages/`). A new reason gets a text in both message files. A field of another module's type that needs this module's service lives in a resolver of this module, so modules never depend on each other in a circle.
 
 ### Pagination
 
@@ -274,7 +274,7 @@ The web app speaks English and German through next-intl, without the locale in t
 - Server Components that are `async`, Server Actions and pages use `getTranslations`/`getFormatter` from `next-intl/server`, all other components `useTranslations`/`useFormatter`. Messages use ICU syntax: `{name}` for values, `plural` for counts, tags like `<code>` with `t.rich`.
 - Option lists keep only their values (e.g. `ISSUE_STATUSES`), the labels come from a namespace named like the type (`issueStatus.todo`); `useIssueSelectOptions` builds the translated select options of issues.
 - Dates use the named formats of `i18n/formats.ts`: `date` for moments like `createdAt`, `day` for days without time like due dates (in UTC, so they never shift).
-- Error messages of the API (`BAD_REQUEST`) stay in English for now; only the fallback messages of the Server Actions are translated (namespace `errors`).
+- Input errors of the API come with a `reason` and `params` (see API Module Structure); `runMutation` shows them through `translateApiError` with the text of `apiErrors.<reason>`, lists in `params` (e.g. names) formatted for the language. A reason without a text keeps the English message of the API. The fallback messages of the Server Actions are the namespace `errors`.
 
 ### File Naming
 
