@@ -44,6 +44,11 @@ export class UpdateIssueInput {
     dueDate?: string | null;
 
     @IsOptional()
+    @IsUUID("4")
+    @Field(() => ID, { nullable: true, description: "A member of the project, or an admin, who becomes a member; null unassigns the issue" })
+    assigneeId?: string | null;
+
+    @IsOptional()
     @IsUUID("4", { each: true })
     @Field(() => [ID], { nullable: true, description: "Replaces the labels of the issue, an empty list removes all of them" })
     labelIds?: string[];

@@ -1,4 +1,5 @@
 import { LabelBadge } from "@src/app/labels/LabelBadge";
+import { UserAvatar } from "@src/components/UserAvatar";
 import type { GQLIssuePriority, GQLIssueStatus, GQLIssueType, GQLLabelColor } from "@src/graphql.generated";
 import { cn } from "@src/lib/utils";
 import { CalendarIcon, GitPullRequestIcon } from "lucide-react";
@@ -22,6 +23,7 @@ interface IssueListProps {
         priority: GQLIssuePriority;
         dueDate: string | null;
         epic: { name: string };
+        assignee: { id: string; firstName: string; lastName: string } | null;
         labels: { id: string; name: string; color: GQLLabelColor }[];
         links: { kind: string }[];
     }[];
@@ -77,6 +79,8 @@ export function IssueList({ projectKey, issues, hideEpic }: IssueListProps) {
                                     {format.dateTime(new Date(issue.dueDate), "day")}
                                 </span>
                             )}
+                            {/* Also empty, so the avatars line up */}
+                            <span className="hidden w-6 shrink-0 sm:flex">{issue.assignee && <UserAvatar user={issue.assignee} size="sm" />}</span>
                             <IssueStatusDot status={issue.status} className="sm:hidden" />
                             {/* As wide as the widest status, so the columns before it line up */}
                             <span className="hidden w-28 shrink-0 justify-end sm:flex">

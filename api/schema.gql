@@ -41,6 +41,9 @@ input CreateEpicInput {
 }
 
 input CreateIssueInput {
+  """A member of the project, or an admin, who becomes a member"""
+  assigneeId: ID
+
   """Markdown"""
   description: String! = ""
   dueDate: LocalDate
@@ -111,6 +114,8 @@ enum InstanceRole {
 }
 
 type Issue {
+  assignee: User
+
   """When the issue was done or canceled, empty while it is open"""
   completedAt: DateTime
   createdAt: DateTime!
@@ -203,6 +208,9 @@ enum IssueType {
 }
 
 enum IssueView {
+  """Open issues assigned to the current user"""
+  assignedToMe
+
   """Open bugs"""
   bugs
 
@@ -377,6 +385,10 @@ type Project {
 }
 
 type ProjectMember {
+  """
+  Issues of the project assigned to the member, which lose their assignee when the member is removed
+  """
+  assignedIssueCount: Int!
   createdAt: DateTime!
   project: Project!
   role: ProjectMemberRole!
@@ -489,6 +501,11 @@ input UpdateEpicInput {
 }
 
 input UpdateIssueInput {
+  """
+  A member of the project, or an admin, who becomes a member; null unassigns the issue
+  """
+  assigneeId: ID
+
   """Markdown"""
   description: String
 

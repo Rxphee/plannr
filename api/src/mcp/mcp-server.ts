@@ -25,6 +25,7 @@ const pagination = {
 };
 const labelNames = z.array(z.string()).optional();
 const dueDate = z.string().nullable().optional().describe("YYYY-MM-DD, null removes it");
+const assignee = z.string().describe('"me", email or full name of a project member');
 
 const readOnly = { readOnlyHint: true, openWorldHint: false };
 
@@ -83,13 +84,15 @@ function createMcpServer(tools: McpToolsService, user: User): McpServer {
     server.registerTool(
         "list_issues",
         {
-            description: "List issues, newest first. Line: key · type · priority · status · due date · title · #labels",
+            description: "List issues, newest first. Line: key · type · priority · status · due date · title · @assignee · #labels",
             inputSchema: {
                 project: projectKey.optional().describe("Project key; without, all active and paused projects"),
                 view: z
                     .enum(IssueView)
                     .optional()
-                    .describe("Open issues only. focus: high priority, due: soonest first, pullRequests: with a PR link"),
+                    .describe(
+                        "Open issues only. focus: high priority, due: soonest first, pullRequests: with a PR link, assignedToMe: assigned to you",
+                    ),
                 epic: epic.optional(),
                 statuses: z.array(z.enum(IssueStatus)).optional().describe("Default todo and inProgress, none with a view"),
                 types: z.array(z.enum(IssueType)).optional(),
@@ -106,7 +109,7 @@ function createMcpServer(tools: McpToolsService, user: User): McpServer {
     server.registerTool(
         "get_issue",
         {
-            description: "Get an issue with epic, links and Markdown description",
+            description: "Get an issue with epic, assignee, links and Markdown description",
             inputSchema: { key: issueKey },
             annotations: readOnly,
         },
@@ -121,6 +124,7 @@ function createMcpServer(tools: McpToolsService, user: User): McpServer {
                 project: projectKey,
                 title: z.string(),
                 epic: epic.optional(),
+                assignee: assignee.optional(),
                 type: z.enum(IssueType).optional().describe("Default task"),
                 priority: z.enum(IssuePriority).optional().describe("Default normal"),
                 dueDate,
@@ -140,6 +144,7 @@ function createMcpServer(tools: McpToolsService, user: User): McpServer {
                 key: issueKey,
                 title: z.string().optional(),
                 epic: epic.optional(),
+                assignee: assignee.nullable().optional().describe('"me", email or full name of a project member, null unassigns'),
                 type: z.enum(IssueType).optional(),
                 status: z.enum(IssueStatus).optional(),
                 priority: z.enum(IssuePriority).optional(),

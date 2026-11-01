@@ -22,10 +22,14 @@ describe("CreateIssueInput", () => {
         expect(validate({}).invalidProperties).toEqual([]);
     });
 
-    it("accepts an epic, a due date and labels", () => {
+    it("accepts an epic, a due date, labels and an assignee", () => {
         expect(
-            validate({ epicId: "6e2d9c41-8a3b-4b7f-a1e5-3c9d7f2b8e60", dueDate: "2026-11-05", labelIds: ["9c4e2a71-3b5d-4f8e-a6c2-1d7b9e3f5a80"] })
-                .invalidProperties,
+            validate({
+                epicId: "6e2d9c41-8a3b-4b7f-a1e5-3c9d7f2b8e60",
+                dueDate: "2026-11-05",
+                labelIds: ["9c4e2a71-3b5d-4f8e-a6c2-1d7b9e3f5a80"],
+                assigneeId: "0b7f3a52-5c1e-4f0e-9d39-2f4a8e6b1c7d",
+            }).invalidProperties,
         ).toEqual([]);
     });
 
@@ -42,6 +46,7 @@ describe("CreateIssueInput", () => {
         ["priority", { priority: "urgent" }],
         ["epicId", { epicId: "42" }],
         ["labelIds", { labelIds: ["42"] }],
+        ["assigneeId", { assigneeId: "max@plannr.localhost" }],
         ["dueDate", { dueDate: "2026-11-05T10:00:00Z" }],
     ])("rejects an invalid %s", (property, data) => {
         expect(validate(data).invalidProperties).toEqual([property]);

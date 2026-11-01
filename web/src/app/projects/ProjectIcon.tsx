@@ -1,7 +1,6 @@
 import { cn } from "@src/lib/utils";
+import { hueFor } from "@src/util/hueFor";
 import type { CSSProperties } from "react";
-
-import { projectHue } from "./projectHue";
 
 interface ProjectIconProps {
     projectKey: string;
@@ -21,7 +20,7 @@ export function ProjectIcon({ projectKey, size = "sm", className }: ProjectIconP
     return (
         <span
             aria-hidden="true"
-            style={{ "--project-hue": projectHue(projectKey) } as CSSProperties}
+            style={{ "--project-hue": hueFor(projectKey) } as CSSProperties}
             className={cn(
                 "flex shrink-0 items-center justify-center bg-linear-to-br from-[oklch(0.7_0.15_var(--project-hue))] to-[oklch(0.55_0.17_var(--project-hue))] font-semibold text-white shadow-xs",
                 sizeClasses[size],

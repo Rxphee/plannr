@@ -1,6 +1,8 @@
 import type { EntityManager } from "@mikro-orm/postgresql";
 import { ForbiddenException } from "@nestjs/common";
+import { UserError } from "@src/common/user-error.js";
 import { InstanceRolesService } from "@src/instance-roles/instance-roles.service.js";
+import { Issue } from "@src/issues/entities/issue.entity.js";
 import { User } from "@src/users/user.entity.js";
 import { describe, expect, it, vi } from "vitest";
 
@@ -110,5 +112,74 @@ describe("ProjectsService.assertCanContribute", () => {
         await expect(createService(ProjectMemberRole.viewer).assertCanContribute(createProject(ProjectStatus.active), user)).rejects.toThrow(
             "Viewers can only read the epics and issues of the project",
         );
+    });
+});
+
+describe("ProjectsService.prepareAssignee", () => {
+    const project = createProject(ProjectStatus.active);
+
+    it("takes a member of the project", async () => {
+        const membership = Object.assign(new ProjectMember(), { user: { getEntity: () => user } });
+        const entityManager = { findOne: vi.fn().mockResolvedValueOnce(membership), create: vi.fn() };
+        const service = new ProjectsService(entityManager as unknown as EntityManager, instanceRoles);
+
+        await expect(service.prepareAssignee(project, user.id)).resolves.toBe(user);
+        expect(entityManager.create).not.toHaveBeenCalled();
+    });
+
+    it.each([
+        ["an admin", admin],
+        ["the super-admin", superAdmin],
+    ])("makes %s without membership a member", async (_, adminUser) => {
+        const entityManager = { findOne: vi.fn().mockResolvedValueOnce(null).mockResolvedValueOnce(adminUser), create: vi.fn() };
+        const service = new ProjectsService(entityManager as unknown as EntityManager, instanceRoles);
+
+        await expect(service.prepareAssignee(project, adminUser.id)).resolves.toBe(adminUser);
+        expect(entityManager.create).toHaveBeenCalledWith(ProjectMember, { project, user: adminUser, role: ProjectMemberRole.member });
+    });
+
+    it.each([
+        ["a user outside the project", user],
+        ["a user that does not exist", null],
+    ])("refuses %s", async (_, outsider) => {
+        const entityManager = { findOne: vi.fn().mockResolvedValueOnce(null).mockResolvedValueOnce(outsider), create: vi.fn() };
+        const service = new ProjectsService(entityManager as unknown as EntityManager, instanceRoles);
+
+        const assignment = service.prepareAssignee(project, user.id);
+        await expect(assignment).rejects.toThrow(UserError);
+        await expect(assignment).rejects.toMatchObject({ reason: "assigneeNotAMember" });
+        expect(entityManager.create).not.toHaveBeenCalled();
+    });
+});
+
+describe("ProjectsService.removeMember", () => {
+    it("unassigns the issues of the former member in the project", async () => {
+        const project = createProject(ProjectStatus.active);
+        const membership = Object.assign(new ProjectMember(), { role: ProjectMemberRole.member });
+        const entityManager = {
+            transactional: vi.fn(async (work: () => Promise<unknown>) => work()),
+            findOne: vi.fn().mockResolvedValueOnce(project).mockResolvedValueOnce(membership),
+            lock: vi.fn(),
+            remove: vi.fn(),
+            nativeUpdate: vi.fn(),
+        };
+        const service = new ProjectsService(entityManager as unknown as EntityManager, instanceRoles);
+
+        await service.removeMember(project.id, user.id, admin);
+
+        expect(entityManager.remove).toHaveBeenCalledWith(membership);
+        expect(entityManager.nativeUpdate).toHaveBeenCalledWith(Issue, { project, assignee: user.id }, { assignee: null });
+    });
+});
+
+describe("ProjectsService.countAssignedIssues", () => {
+    it("counts the issues of the project assigned to the member", async () => {
+        const project = createProject(ProjectStatus.active);
+        const membership = Object.assign(new ProjectMember(), { project, user });
+        const count = vi.fn().mockResolvedValue(3);
+        const service = new ProjectsService({ count } as unknown as EntityManager, instanceRoles);
+
+        await expect(service.countAssignedIssues(membership)).resolves.toBe(3);
+        expect(count).toHaveBeenCalledWith(Issue, { project, assignee: user });
     });
 });

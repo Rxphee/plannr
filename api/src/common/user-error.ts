@@ -8,6 +8,7 @@ export type UserErrorReason =
     | "userNotFound"
     | "alreadyMembers"
     | "notAMember"
+    | "assigneeNotAMember"
     | "lastOwner"
     | "labelNotFound"
     | "labelNameTaken"

@@ -11,6 +11,7 @@
     },
     "apiErrors": {
         "alreadyMembers": "{count, plural, one {{names} ist schon Mitglied des Projekts.} other {{names} sind schon Mitglieder des Projekts.}}",
+        "assigneeNotAMember": "Zuweisen lassen sich nur Mitglieder des Projekts.",
         "defaultEpicNotDeletable": "Das Epic {epic} lässt sich nicht löschen, jedes Projekt behält es für die Issues ohne anderes Epic.",
         "epicNotInProject": "Das Epic gibt es in diesem Projekt nicht.",
         "issueLinkExists": "Das Issue hat diesen Link schon.",
@@ -57,6 +58,14 @@
         "revokeTrigger": "{token} widerrufen",
         "title": "API-Tokens",
         "token": "API-Token"
+    },
+    "assigneeSelect": {
+        "adminsWithoutMembership": "Admins, noch keine Mitglieder",
+        "confirm": "Hinzufügen und zuweisen",
+        "confirmDescription": "{name} sieht {project} als Admin, ist aber kein Mitglied. Zuweisen lassen sich nur Mitglieder, deshalb kommt {name} als Member dazu und sieht das Issue auch ohne Admin-Rechte.",
+        "confirmTitle": "{name} zum Projekt hinzufügen?",
+        "members": "Mitglieder",
+        "unassigned": "Niemand"
     },
     "commandMenu": {
         "actions": "Aktionen",
@@ -195,6 +204,7 @@
     },
     "issueFields": {
         "addLabels": "Labels hinzufügen",
+        "assignee": "Zugewiesen",
         "description": "Beschreibung",
         "dueDate": "Fällig am",
         "epic": "Epic",
@@ -206,7 +216,8 @@
         "priority": "Priorität",
         "status": "Status",
         "title": "Titel",
-        "type": "Typ"
+        "type": "Typ",
+        "unassigned": "Niemand"
     },
     "issuePriority": {
         "high": "Hoch",
@@ -225,6 +236,11 @@
         "task": "Aufgabe"
     },
     "issueViews": {
+        "assignedToMe": {
+            "emptyDescription": "Hier erscheinen offene Issues, die dir zugewiesen sind.",
+            "emptyTitle": "Dir ist nichts zugewiesen",
+            "label": "Mir zugewiesen"
+        },
         "bugs": {
             "emptyDescription": "Hier erscheinen offene Issues vom Typ Bug.",
             "emptyTitle": "Keine offenen Bugs",
@@ -383,6 +399,12 @@
         "project": "Projekt",
         "submit": "Issue erstellen",
         "title": "Issue erfassen"
+    },
+    "removeProjectMember": {
+        "assignedIssues": "{count, plural, one {Ein Issue ist {name} zugewiesen. Es ist danach niemandem mehr zugewiesen.} other {# Issues sind {name} zugewiesen. Sie sind danach niemandem mehr zugewiesen.}}",
+        "noAssignedIssues": "{name} ist keinem Issue des Projekts zugewiesen.",
+        "submit": "Mitglied entfernen",
+        "title": "{name} aus {project} entfernen?"
     },
     "richText": {
         "bold": "Fett",

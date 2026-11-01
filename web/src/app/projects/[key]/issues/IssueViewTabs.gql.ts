@@ -18,5 +18,8 @@ export const issueViewCountsQuery = gql`
         pullRequests: issues(projectId: $projectId, view: pullRequests, filter: $viewFilter, limit: 1) {
             totalCount
         }
+        assignedToMe: issues(projectId: $projectId, view: assignedToMe, filter: $viewFilter, limit: 1) {
+            totalCount
+        }
     }
 `;

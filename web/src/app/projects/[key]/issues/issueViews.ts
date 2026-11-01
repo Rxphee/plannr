@@ -4,7 +4,7 @@ import type { GQLIssueStatus, GQLIssueView } from "@src/graphql.generated";
 export const OPEN_ISSUE_STATUSES: GQLIssueStatus[] = ["todo", "inProgress"];
 
 // In the order of the tabs; label and empty state of each are under issueViews in the messages
-export const ISSUE_VIEWS: GQLIssueView[] = ["focus", "due", "bugs", "pullRequests"];
+export const ISSUE_VIEWS: GQLIssueView[] = ["focus", "due", "bugs", "pullRequests", "assignedToMe"];
 
 export function isIssueView(value: unknown): value is GQLIssueView {
     return ISSUE_VIEWS.includes(value as GQLIssueView);

@@ -10,6 +10,7 @@ import { notFound } from "next/navigation";
 import { getFormatter, getTranslations } from "next-intl/server";
 
 import { fetchEpicOptions } from "../../epics/fetchEpicOptions";
+import { fetchAssigneeOptions } from "../fetchAssigneeOptions";
 import { IssueStatusBadge } from "../IssueStatusBadge";
 import { IssueTypeIcon } from "../IssueTypeIcon";
 import { DeleteIssueDialog } from "./DeleteIssueDialog";
@@ -30,9 +31,11 @@ export default async function IssuePage({ params }: PageProps<"/projects/[key]/i
         notFound();
     }
 
-    const [epics, labels, t, tCommon, tSidebar, format] = await Promise.all([
+    const [epics, labels, assignees, t, tCommon, tSidebar, format] = await Promise.all([
         fetchEpicOptions(issue.project.id),
         fetchLabelOptions(),
+        // Only needed to change the assignee
+        issue.project.canContribute ? fetchAssigneeOptions(issue.project.key) : [],
         getTranslations("issue"),
         getTranslations("common"),
         getTranslations("sidebar"),
@@ -104,7 +107,7 @@ export default async function IssuePage({ params }: PageProps<"/projects/[key]/i
                             <CardTitle>{t("details")}</CardTitle>
                         </CardHeader>
                         <CardContent>
-                            <IssueProperties issue={issue} project={project} labels={labels} />
+                            <IssueProperties issue={issue} project={project} labels={labels} assignees={assignees} />
                         </CardContent>
                     </Card>
                     <Card>

@@ -17,6 +17,11 @@ export const issueListQuery = gql`
                     id
                     name
                 }
+                assignee {
+                    id
+                    firstName
+                    lastName
+                }
                 labels {
                     id
                     name

@@ -11,6 +11,7 @@
     },
     "apiErrors": {
         "alreadyMembers": "{count, plural, one {{names} is already a member of the project.} other {{names} are already members of the project.}}",
+        "assigneeNotAMember": "Only members of the project can be assigned.",
         "defaultEpicNotDeletable": "The epic {epic} cannot be deleted, every project keeps it for the issues without another epic.",
         "epicNotInProject": "The epic does not exist in the project.",
         "issueLinkExists": "The issue already has this link.",
@@ -57,6 +58,14 @@
         "revokeTrigger": "Revoke {token}",
         "title": "API tokens",
         "token": "API token"
+    },
+    "assigneeSelect": {
+        "adminsWithoutMembership": "Admins, not members yet",
+        "confirm": "Add and assign",
+        "confirmDescription": "{name} sees {project} as an admin, but is not a member. Only members can be assigned, so {name} joins as member and keeps seeing the issue even without admin rights.",
+        "confirmTitle": "Add {name} to the project?",
+        "members": "Members",
+        "unassigned": "Unassigned"
     },
     "commandMenu": {
         "actions": "Actions",
@@ -195,6 +204,7 @@
     },
     "issueFields": {
         "addLabels": "Add labels",
+        "assignee": "Assignee",
         "description": "Description",
         "dueDate": "Due date",
         "epic": "Epic",
@@ -206,7 +216,8 @@
         "priority": "Priority",
         "status": "Status",
         "title": "Title",
-        "type": "Type"
+        "type": "Type",
+        "unassigned": "Unassigned"
     },
     "issuePriority": {
         "high": "High",
@@ -225,6 +236,11 @@
         "task": "Task"
     },
     "issueViews": {
+        "assignedToMe": {
+            "emptyDescription": "Open issues assigned to you show up here.",
+            "emptyTitle": "Nothing assigned to you",
+            "label": "Assigned to me"
+        },
         "bugs": {
             "emptyDescription": "Open issues of the type bug show up here.",
             "emptyTitle": "No open bugs",
@@ -383,6 +399,12 @@
         "project": "Project",
         "submit": "Create issue",
         "title": "Capture issue"
+    },
+    "removeProjectMember": {
+        "assignedIssues": "{count, plural, one {One issue is assigned to {name}. It will be assigned to nobody afterwards.} other {# issues are assigned to {name}. They will be assigned to nobody afterwards.}}",
+        "noAssignedIssues": "No issue of the project is assigned to {name}.",
+        "submit": "Remove member",
+        "title": "Remove {name} from {project}?"
     },
     "richText": {
         "bold": "Bold",

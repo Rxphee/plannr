@@ -57,8 +57,8 @@ export class IssuesService {
 
         // The numbers only count up within a project, across projects the creation time and the ID decide
         const newestFirst: QueryOrderMap<Issue> = projectId ? { number: "desc" } : { createdAt: "desc", id: "desc" };
-        const [nodes, totalCount] = await this.entityManager.findAndCount(Issue, view ? { $and: [where, issueViewCondition(view)] } : where, {
-            populate: ["epic", "links", "labels"],
+        const [nodes, totalCount] = await this.entityManager.findAndCount(Issue, view ? { $and: [where, issueViewCondition(view, user)] } : where, {
+            populate: ["epic", "links", "labels", "assignee"],
             orderBy: view === IssueView.due ? { dueDate: "asc", ...newestFirst } : newestFirst,
             offset,
             limit,
@@ -78,28 +78,30 @@ export class IssuesService {
         });
     }
 
-    async create({ projectId, epicId, labelIds, ...input }: CreateIssueInput, user: User): Promise<Issue> {
+    async create({ projectId, epicId, labelIds, assigneeId, ...input }: CreateIssueInput, user: User): Promise<Issue> {
         return this.entityManager.transactional(async () => {
             const project = await this.projectsService.findOneVisibleById(projectId, user);
             await this.projectsService.assertCanContribute(project, user);
             const epic = epicId ? await this.epicsService.findOneInProject(epicId, project) : await this.epicsService.findDefault(project);
             const labels = await this.labelsService.findByIds(labelIds);
+            const assignee = assigneeId ? await this.projectsService.prepareAssignee(project, assigneeId) : null;
 
             // Locks the project until the transaction ends and reads its current counter, so two new issues never get the same number
             await this.entityManager.findOneOrFail(Project, project.id, { lockMode: LockMode.PESSIMISTIC_WRITE, refresh: true });
             project.issueCounter += 1;
 
-            return this.entityManager.create(Issue, { ...input, project, epic, labels, number: project.issueCounter, createdBy: user });
+            return this.entityManager.create(Issue, { ...input, project, epic, labels, assignee, number: project.issueCounter, createdBy: user });
         });
     }
 
-    async update(id: string, { epicId, status, dueDate, labelIds, ...fields }: UpdateIssueInput, user: User): Promise<Issue> {
+    async update(id: string, { epicId, status, dueDate, labelIds, assigneeId, ...fields }: UpdateIssueInput, user: User): Promise<Issue> {
         const issue = await this.findOneContributableBy(id, user);
+        const project = await issue.project.loadOrFail();
 
         // Fields that are not given stay as they are
         this.entityManager.assign(issue, Object.fromEntries(Object.entries(fields).filter(([, value]) => value !== undefined)));
         if (epicId) {
-            issue.epic = ref(await this.epicsService.findOneInProject(epicId, await issue.project.loadOrFail()));
+            issue.epic = ref(await this.epicsService.findOneInProject(epicId, project));
         }
         if (status) {
             issue.changeStatus(status);
@@ -109,6 +111,9 @@ export class IssuesService {
         }
         if (labelIds) {
             issue.labels.set(await this.labelsService.findByIds(labelIds));
+        }
+        if (assigneeId !== undefined) {
+            issue.assignee = assigneeId ? ref(await this.projectsService.prepareAssignee(project, assigneeId)) : null;
         }
 
         await this.entityManager.flush();

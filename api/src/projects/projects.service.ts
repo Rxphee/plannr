@@ -5,6 +5,7 @@ import { containsPattern } from "@src/db/contains-pattern.js";
 import { Epic } from "@src/epics/entities/epic.entity.js";
 import { DEFAULT_EPIC_NAME } from "@src/epics/epic-constraints.js";
 import { InstanceRolesService } from "@src/instance-roles/instance-roles.service.js";
+import { Issue } from "@src/issues/entities/issue.entity.js";
 import { User } from "@src/users/user.entity.js";
 
 import type { AddProjectMembersInput } from "./dto/add-project-members.input.js";
@@ -88,6 +89,36 @@ export class ProjectsService {
         const memberships = await this.entityManager.find(ProjectMember, { project, user: { $in: admins } });
         const memberIds = new Set(memberships.map((membership) => membership.user.id));
         return admins.filter((admin) => !memberIds.has(admin.id));
+    }
+
+    // Who an issue of the project can be assigned to: its members and the admins without membership, who become members on their first assignment
+    async findAssignableUsers(project: Project): Promise<User[]> {
+        const memberships = await this.entityManager.find(ProjectMember, { project }, { populate: ["user"] });
+        const users = [...memberships.map((membership) => membership.user.getEntity()), ...(await this.findAdminsWithoutMembership(project))];
+        return users.sort(
+            (first, second) =>
+                first.firstName.localeCompare(second.firstName) || first.lastName.localeCompare(second.lastName) || first.id.localeCompare(second.id),
+        );
+    }
+
+    // All issues of the project assigned to the member, done and canceled ones included, since removing the member unassigns them all
+    async countAssignedIssues(member: ProjectMember): Promise<number> {
+        return this.entityManager.count(Issue, { project: member.project, assignee: member.user });
+    }
+
+    // The assignee of an issue must be a member, so they keep seeing the issue. An admin without membership becomes a member,
+    // so the issue stays visible to them once their admin rights end.
+    async prepareAssignee(project: Project, userId: string): Promise<User> {
+        const membership = await this.entityManager.findOne(ProjectMember, { project, user: userId }, { populate: ["user"] });
+        if (membership) {
+            return membership.user.getEntity();
+        }
+        const user = await this.entityManager.findOne(User, userId);
+        if (!user || !this.instanceRoles.hasAdminRights(user)) {
+            throw new UserError("assigneeNotAMember", "Only members of the project can be assigned");
+        }
+        this.entityManager.create(ProjectMember, { project, user, role: ProjectMemberRole.member });
+        return user;
     }
 
     // Settings, status, deletion and members are up to the owners of a project and the admins
@@ -200,6 +231,8 @@ export class ProjectsService {
             const member = await this.findMember(project, userId);
             await this.assertProjectKeepsAnOwner(project, member);
             this.entityManager.remove(member);
+            // Only members can be assigned, so the issues of the former member lose their assignee
+            await this.entityManager.nativeUpdate(Issue, { project, assignee: userId }, { assignee: null });
         });
     }
 

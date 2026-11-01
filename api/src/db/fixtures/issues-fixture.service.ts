@@ -20,6 +20,7 @@ interface FixtureIssue {
     description?: string;
     labels?: Label[];
     links?: string[];
+    assignee?: User;
 }
 
 const websitePages = ["Home", "About", "Services", "Case studies", "Team", "Careers", "Blog", "Pricing", "Contact", "Imprint", "Privacy", "FAQ"];
@@ -36,17 +37,26 @@ function daysFromToday(days: number): string {
 export class IssuesFixtureService {
     constructor(private readonly issuesService: IssuesService) {}
 
-    async generateIssues(epics: FixtureEpics, { developmentUser, team }: FixtureUsers, labels: FixtureLabels): Promise<void> {
+    async generateIssues(epics: FixtureEpics, { developmentUser, otherUser, team }: FixtureUsers, labels: FixtureLabels): Promise<void> {
         const { design, content, launch, general } = epics.website;
+        // Some issues stay unassigned
+        const designers = [developmentUser, team[1], team[2], undefined];
 
         // Enough issues for more than one page of the issue list
         const pageIssues = websitePages.flatMap((page, index): FixtureIssue[] => [
-            { epic: design, title: `Design the ${page} page`, status: statusCycle[index % statusCycle.length], labels: [labels.design] },
+            {
+                epic: design,
+                title: `Design the ${page} page`,
+                status: statusCycle[index % statusCycle.length],
+                labels: [labels.design],
+                assignee: designers[index % designers.length],
+            },
             {
                 epic: content,
                 title: `Write the copy for the ${page} page`,
                 priority: priorityCycle[index % priorityCycle.length],
                 labels: [labels.customer],
+                assignee: otherUser,
             },
             { epic: content, title: `Review the ${page} page with marketing`, status: index < 4 ? IssueStatus.done : IssueStatus.todo },
             { epic: launch, title: `Set up redirects from the old ${page} page`, priority: IssuePriority.low },
@@ -73,6 +83,7 @@ export class IssuesFixtureService {
                 description:
                     "Between 768 and 900 pixels the menu items wrap into two lines.\n\n**Steps**\n\n1. Open the home page on an iPad in portrait\n2. Look at the header",
                 links: ["https://github.com/Rxphee/plannr/pull/12", "obsidian://open?vault=SecondBrain&file=Website%20Relaunch"],
+                assignee: developmentUser,
             },
             { epic: content, title: "Collect photos of the team", dueInDays: -3, priority: IssuePriority.high },
             {
@@ -82,8 +93,9 @@ export class IssuesFixtureService {
                 dueInDays: -1,
                 priority: IssuePriority.high,
                 labels: [labels.backend, labels.customer],
+                assignee: team[2],
             },
-            { epic: launch, title: "Plan the launch date with the client", priority: IssuePriority.high, dueInDays: 14 },
+            { epic: launch, title: "Plan the launch date with the client", priority: IssuePriority.high, dueInDays: 14, assignee: developmentUser },
             { epic: launch, title: "Move the DNS records to the new server", dueInDays: 21 },
             { epic: general, title: "Ask for the new logo files" },
             { epic: general, title: "Footer links point to the staging site", type: IssueType.bug, labels: [labels.frontend] },
@@ -98,8 +110,9 @@ export class IssuesFixtureService {
                     title: "Store changes locally while offline",
                     status: IssueStatus.inProgress,
                     description: "Use a local queue and send it once the app is online again.",
+                    assignee: developmentUser,
                 },
-                { epic: offline, title: "Resolve conflicts after syncing", priority: IssuePriority.high },
+                { epic: offline, title: "Resolve conflicts after syncing", priority: IssuePriority.high, assignee: team[2] },
                 {
                     epic: offline,
                     title: "App crashes when the connection drops during upload",
@@ -134,6 +147,7 @@ export class IssuesFixtureService {
             description = "",
             labels = [],
             links = [],
+            assignee,
         }: FixtureIssue,
         user: User,
     ): Promise<Issue> {
@@ -147,6 +161,7 @@ export class IssuesFixtureService {
                 dueDate: dueInDays === undefined ? null : daysFromToday(dueInDays),
                 description,
                 labelIds: labels.map((label) => label.id),
+                assigneeId: assignee?.id,
             },
             user,
         );

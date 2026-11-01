@@ -2,6 +2,7 @@ import type { Epic } from "@src/epics/entities/epic.entity.js";
 import type { Issue } from "@src/issues/entities/issue.entity.js";
 import { type IssueLink, IssueLinkKind } from "@src/issues/entities/issue-link.entity.js";
 import type { Project } from "@src/projects/entities/project.entity.js";
+import type { User } from "@src/users/user.entity.js";
 
 // Tool answers are short lines instead of JSON, so an answer costs a few hundred tokens
 
@@ -15,8 +16,8 @@ export function formatEpicLine({ id, name, isDefault, issueCount, doneIssueCount
     return [name + (isDefault ? " (default)" : ""), `${doneIssueCount}/${issueCount} done`, `id ${id}`].join(SEPARATOR);
 }
 
-// The labels must be loaded
-export function formatIssueLine(projectKey: string, { number, type, priority, status, dueDate, title, labels }: Issue): string {
+// The labels and the assignee must be loaded
+export function formatIssueLine(projectKey: string, { number, type, priority, status, dueDate, title, assignee, labels }: Issue): string {
     // By name like the API, also for an issue that was just created with its labels in another order
     const labelNames = labels
         .getItems()
@@ -30,6 +31,7 @@ export function formatIssueLine(projectKey: string, { number, type, priority, st
         status,
         ...(dueDate ? [`due ${dueDate}`] : []),
         title,
+        ...(assignee ? [`@${formatName(assignee.getEntity())}`] : []),
         ...(labelNames.length > 0 ? [labelNames.join(" ")] : []),
     ].join(SEPARATOR);
 }
@@ -50,6 +52,7 @@ export function formatIssueDetails({ projectKey, issue, epicName, links }: Issue
     const lines = [
         formatIssueLine(projectKey, issue),
         `Epic: ${epicName}`,
+        ...(issue.assignee ? [`Assignee: ${formatUser(issue.assignee.getEntity())}`] : []),
         `Created ${formatDay(issue.createdAt)}, updated ${formatDay(issue.updatedAt)}${issue.completedAt ? `, closed ${formatDay(issue.completedAt)}` : ""}`,
     ];
     if (links.length > 0) {
@@ -78,6 +81,15 @@ export function formatPage({ noun, offset, lines, totalCount }: Page): string {
     const end = offset + lines.length;
     const header = `${noun[0].toUpperCase()}${noun.slice(1)} ${offset + 1}-${end} of ${totalCount}${end < totalCount ? ` (next: offset ${end})` : ""}`;
     return [header, ...lines].join("\n");
+}
+
+// With the email, which identifies the user for the assignee of an issue
+export function formatUser(user: User): string {
+    return `${formatName(user)} <${user.email}>`;
+}
+
+function formatName({ firstName, lastName }: User): string {
+    return `${firstName} ${lastName}`;
 }
 
 function formatDay(date: Date): string {

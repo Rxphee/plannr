@@ -9,6 +9,7 @@ import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 
 import { CreateIssueDialog } from "../../issues/CreateIssueDialog";
+import { fetchAssigneeOptions } from "../../issues/fetchAssigneeOptions";
 import { parseIssueListParams } from "../../issues/issueListParams";
 import { IssueListView } from "../../issues/IssueListView";
 import { EpicProgress } from "../EpicProgress";
@@ -31,16 +32,18 @@ export default async function EpicPage({ params, searchParams }: PageProps<"/pro
         notFound();
     }
 
-    const [epics, labels, t, tCommon, tSidebar] = await Promise.all([
+    const [epics, labels, assignees, t, tCommon, tSidebar] = await Promise.all([
         fetchEpicOptions(epic.project.id),
         fetchLabelOptions(),
+        // Only needed to create issues
+        epic.project.canContribute ? fetchAssigneeOptions(epic.project.key) : [],
         getTranslations("epics"),
         getTranslations("common"),
         getTranslations("sidebar"),
     ]);
     const project = { ...epic.project, epics };
     const path = `/projects/${project.key}/epics/${epic.id}`;
-    const createAction = project.canContribute && <CreateIssueDialog project={project} epicId={epic.id} labels={labels} />;
+    const createAction = project.canContribute && <CreateIssueDialog project={project} epicId={epic.id} labels={labels} assignees={assignees} />;
 
     return (
         <>
