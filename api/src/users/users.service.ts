@@ -1,5 +1,6 @@
 import { EntityManager, type FilterQuery, UniqueConstraintViolationException } from "@mikro-orm/postgresql";
-import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
+import { ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
+import { UserError } from "@src/common/user-error.js";
 import { containsPattern } from "@src/db/contains-pattern.js";
 import { InstanceRolesService } from "@src/instance-roles/instance-roles.service.js";
 
@@ -48,7 +49,11 @@ export class UsersService {
             throw new NotFoundException("The user does not exist");
         }
         if (this.instanceRoles.isSuperAdmin(user)) {
-            throw new BadRequestException(`${user.firstName} ${user.lastName} is super-admin through SUPER_ADMIN_EMAILS and always has admin rights`);
+            throw new UserError(
+                "superAdminAlwaysAdmin",
+                `${user.firstName} ${user.lastName} is super-admin through SUPER_ADMIN_EMAILS and always has admin rights`,
+                { name: `${user.firstName} ${user.lastName}` },
+            );
         }
         user.isAdmin = isAdmin;
         await this.entityManager.flush();

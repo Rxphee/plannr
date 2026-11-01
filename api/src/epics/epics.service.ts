@@ -1,5 +1,6 @@
 import { EntityManager, type FilterQuery } from "@mikro-orm/postgresql";
-import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
+import { ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
+import { UserError } from "@src/common/user-error.js";
 import { containsPattern } from "@src/db/contains-pattern.js";
 import { InstanceRolesService } from "@src/instance-roles/instance-roles.service.js";
 import { Issue } from "@src/issues/entities/issue.entity.js";
@@ -48,7 +49,7 @@ export class EpicsService {
     async findOneInProject(id: string, project: Project): Promise<Epic> {
         const epic = await this.entityManager.findOne(Epic, { id, project });
         if (!epic) {
-            throw new BadRequestException("The epic does not exist in the project");
+            throw new UserError("epicNotInProject", "The epic does not exist in the project");
         }
         return epic;
     }
@@ -81,12 +82,16 @@ export class EpicsService {
                 throw new ForbiddenException("Only owners and admins can delete epics");
             }
             if (epic.isDefault) {
-                throw new BadRequestException(`The epic ${epic.name} cannot be deleted, every project keeps it for the issues without another epic`);
+                throw new UserError(
+                    "defaultEpicNotDeletable",
+                    `The epic ${epic.name} cannot be deleted, every project keeps it for the issues without another epic`,
+                    { epic: epic.name },
+                );
             }
 
             if (moveIssuesToEpicId) {
                 if (moveIssuesToEpicId === epic.id) {
-                    throw new BadRequestException("Choose another epic to move the issues to");
+                    throw new UserError("moveIssuesToOtherEpic", "Choose another epic to move the issues to");
                 }
                 const targetEpic = await this.findOneInProject(moveIssuesToEpicId, project);
                 await this.entityManager.nativeUpdate(Issue, { epic }, { epic: targetEpic });

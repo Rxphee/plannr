@@ -5,6 +5,7 @@ import { GraphQLError } from "graphql";
 
 import { ApiTokensModule } from "./api-tokens/api-tokens.module.js";
 import { AuthModule } from "./auth/auth.module.js";
+import { withUserErrorReason } from "./common/user-error.js";
 import type { Config } from "./config/config.js";
 import { DbModule } from "./db/db.module.js";
 import { FixturesModule } from "./db/fixtures/fixtures.module.js";
@@ -34,12 +35,12 @@ export class AppModule {
                     // Prevents writing the schema.gql file in production. Necessary for environments with a read-only file system
                     autoSchemaFile: process.env.NODE_ENV === "development" ? "schema.gql" : true,
                     sortSchema: true,
-                    formatError: (error) => {
+                    formatError: (formattedError, error) => {
                         // Disable GraphQL field suggestions in production
-                        if (!config.debug && error.extensions?.code === "GRAPHQL_VALIDATION_FAILED") {
+                        if (!config.debug && formattedError.extensions?.code === "GRAPHQL_VALIDATION_FAILED") {
                             return new GraphQLError("Invalid request.");
                         }
-                        return error;
+                        return withUserErrorReason(formattedError, error);
                     },
                 }),
                 HealthcheckModule,
