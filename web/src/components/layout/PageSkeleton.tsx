@@ -1,4 +1,5 @@
 import { Skeleton } from "@src/components/ui/Skeleton";
+import { useTranslations } from "next-intl";
 
 import { PageContent } from "./PageContent";
 import { PageHeader } from "./PageHeader";
@@ -10,8 +11,10 @@ interface PageSkeletonProps {
 
 // Shown at once while a page loads on the server, so every click answers right away
 export function PageSkeleton({ variant }: PageSkeletonProps) {
+    const t = useTranslations("common");
+
     return (
-        <div aria-busy="true" aria-label="Loading">
+        <div aria-busy="true" aria-label={t("loading")}>
             <PageHeader breadcrumbs={[]} />
             <div className="border-b">
                 <div className="mx-auto grid w-full max-w-6xl gap-3 px-4 pt-8 pb-6 md:px-8">

@@ -5,13 +5,12 @@ import { DatePicker } from "@src/components/DatePicker";
 import { OptionSelect } from "@src/components/OptionSelect";
 import type { GQLIssuePriority, GQLIssueStatus, GQLIssueType, GQLLabelColor, GQLUpdateIssueInput } from "@src/graphql.generated";
 import Link from "next/link";
+import { useFormatter, useTranslations } from "next-intl";
 import { type ReactNode, useState, useTransition } from "react";
 
 import { updateIssue } from "../actions";
-import { formatDueDate } from "../dueDate";
-import { issuePriorityLabels, issueTypeLabels } from "../issueOptions";
 import { IssuePriorityIcon } from "../IssuePriorityIcon";
-import { issuePrioritySelectOptions, issueStatusSelectOptions, issueTypeSelectOptions, toEpicSelectOptions } from "../issueSelectOptions";
+import { toEpicSelectOptions, useIssueSelectOptions } from "../issueSelectOptions";
 import { IssueStatusBadge } from "../IssueStatusBadge";
 import { IssueTypeIcon } from "../IssueTypeIcon";
 import { IssueLabelsSelect } from "./IssueLabelsSelect";
@@ -35,6 +34,12 @@ interface IssuePropertiesProps {
 
 // Each property saves on its own as soon as it changes
 export function IssueProperties({ issue, project, labels }: IssuePropertiesProps) {
+    const t = useTranslations("issueFields");
+    const tCommon = useTranslations("common");
+    const tType = useTranslations("issueType");
+    const tPriority = useTranslations("issuePriority");
+    const format = useFormatter();
+    const { statusOptions, typeOptions, priorityOptions } = useIssueSelectOptions();
     const [error, setError] = useState<string>();
     const [pending, startTransition] = useTransition();
 
@@ -48,22 +53,22 @@ export function IssueProperties({ issue, project, labels }: IssuePropertiesProps
     if (!project.canContribute) {
         return (
             <dl className="grid gap-3 text-sm">
-                <Property label="Status">
+                <Property label={t("status")}>
                     <IssueStatusBadge status={issue.status} />
                 </Property>
-                <Property label="Priority">
+                <Property label={t("priority")}>
                     <span className="flex items-center gap-1.5">
                         <IssuePriorityIcon priority={issue.priority} />
-                        {issuePriorityLabels[issue.priority]}
+                        {tPriority(issue.priority)}
                     </span>
                 </Property>
-                <Property label="Type">
+                <Property label={t("type")}>
                     <span className="flex items-center gap-1.5">
                         <IssueTypeIcon type={issue.type} />
-                        {issueTypeLabels[issue.type]}
+                        {tType(issue.type)}
                     </span>
                 </Property>
-                <Property label="Epic">
+                <Property label={t("epic")}>
                     <Link
                         href={`/projects/${project.key}/epics/${issue.epic.id}`}
                         className="hover:text-foreground truncate underline-offset-4 hover:underline"
@@ -71,8 +76,8 @@ export function IssueProperties({ issue, project, labels }: IssuePropertiesProps
                         {issue.epic.name}
                     </Link>
                 </Property>
-                <Property label="Due date">{issue.dueDate ? formatDueDate(issue.dueDate) : "None"}</Property>
-                <Property label="Labels">
+                <Property label={t("dueDate")}>{issue.dueDate ? format.dateTime(new Date(issue.dueDate), "day") : tCommon("none")}</Property>
+                <Property label={t("labels")}>
                     {issue.labels.length > 0 ? (
                         <span className="flex flex-wrap gap-1">
                             {issue.labels.map((label) => (
@@ -80,7 +85,7 @@ export function IssueProperties({ issue, project, labels }: IssuePropertiesProps
                             ))}
                         </span>
                     ) : (
-                        "None"
+                        tCommon("none")
                     )}
                 </Property>
             </dl>
@@ -90,58 +95,58 @@ export function IssueProperties({ issue, project, labels }: IssuePropertiesProps
     return (
         <div className="grid gap-3">
             <dl className="grid gap-2 text-sm">
-                <Property label="Status">
+                <Property label={t("status")}>
                     <OptionSelect
                         size="sm"
-                        aria-label="Status"
-                        options={issueStatusSelectOptions}
+                        aria-label={t("status")}
+                        options={statusOptions}
                         value={issue.status}
                         disabled={pending}
                         onChange={(status) => save({ status })}
                     />
                 </Property>
-                <Property label="Priority">
+                <Property label={t("priority")}>
                     <OptionSelect
                         size="sm"
-                        aria-label="Priority"
-                        options={issuePrioritySelectOptions}
+                        aria-label={t("priority")}
+                        options={priorityOptions}
                         value={issue.priority}
                         disabled={pending}
                         onChange={(priority) => save({ priority })}
                     />
                 </Property>
-                <Property label="Type">
+                <Property label={t("type")}>
                     <OptionSelect
                         size="sm"
-                        aria-label="Type"
-                        options={issueTypeSelectOptions}
+                        aria-label={t("type")}
+                        options={typeOptions}
                         value={issue.type}
                         disabled={pending}
                         onChange={(type) => save({ type })}
                     />
                 </Property>
-                <Property label="Epic">
+                <Property label={t("epic")}>
                     <OptionSelect
                         size="sm"
-                        aria-label="Epic"
+                        aria-label={t("epic")}
                         options={toEpicSelectOptions(project.epics)}
                         value={issue.epic.id}
                         disabled={pending}
                         onChange={(epicId) => save({ epicId })}
                     />
                 </Property>
-                <Property label="Due date">
+                <Property label={t("dueDate")}>
                     <DatePicker
                         size="sm"
-                        aria-label="Due date"
+                        aria-label={t("dueDate")}
                         value={issue.dueDate}
-                        placeholder="No due date"
+                        placeholder={t("noDueDate")}
                         disabled={pending}
                         onChange={(dueDate) => save({ dueDate })}
                     />
                 </Property>
                 {labels.length > 0 && (
-                    <Property label="Labels">
+                    <Property label={t("labels")}>
                         <IssueLabelsSelect labels={labels} selected={issue.labels} disabled={pending} onChange={(labelIds) => save({ labelIds })} />
                     </Property>
                 )}

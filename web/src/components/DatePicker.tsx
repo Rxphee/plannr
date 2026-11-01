@@ -5,9 +5,11 @@ import { Calendar } from "@src/components/ui/Calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@src/components/ui/Popover";
 import { cn } from "@src/lib/utils";
 import { CalendarIcon } from "lucide-react";
+import { useFormatter, useLocale, useTranslations } from "next-intl";
 import { useState } from "react";
+import { de, enUS } from "react-day-picker/locale";
 
-const dateFormat = new Intl.DateTimeFormat("en", { dateStyle: "medium" });
+const calendarLocales = { en: enUS, de };
 
 interface DatePickerProps {
     // A day like 2026-10-29, as the API stores dates without time
@@ -31,7 +33,10 @@ function toValue(date: Date): string {
     return [date.getFullYear(), date.getMonth() + 1, date.getDate()].map((part) => String(part).padStart(2, "0")).join("-");
 }
 
-export function DatePicker({ value, onChange, placeholder = "Pick a date", disabled, size, id, className, ...ariaProps }: DatePickerProps) {
+export function DatePicker({ value, onChange, placeholder, disabled, size, id, className, ...ariaProps }: DatePickerProps) {
+    const t = useTranslations("datePicker");
+    const format = useFormatter();
+    const locale = useLocale();
     const [open, setOpen] = useState(false);
     const selectedDate = value ? toDate(value) : undefined;
 
@@ -57,24 +62,25 @@ export function DatePicker({ value, onChange, placeholder = "Pick a date", disab
                 }
             >
                 <CalendarIcon className="text-muted-foreground" />
-                {selectedDate ? dateFormat.format(selectedDate) : placeholder}
+                <span className="min-w-0 truncate">{value ? format.dateTime(new Date(value), "day") : (placeholder ?? t("placeholder"))}</span>
             </PopoverTrigger>
             <PopoverContent align="start" className="w-auto gap-0 p-0">
                 <Calendar
                     mode="single"
                     selected={selectedDate}
                     defaultMonth={selectedDate}
+                    locale={calendarLocales[locale]}
                     weekStartsOn={1}
                     onSelect={(date) => choose(date ? toValue(date) : null)}
                     autoFocus
                 />
                 <div className="flex justify-between gap-2 border-t p-2">
                     <Button variant="ghost" size="sm" onClick={() => choose(toValue(new Date()))}>
-                        Today
+                        {t("today")}
                     </Button>
                     {value && (
                         <Button variant="ghost" size="sm" className="text-muted-foreground" onClick={() => choose(null)}>
-                            Clear
+                            {t("clear")}
                         </Button>
                     )}
                 </div>

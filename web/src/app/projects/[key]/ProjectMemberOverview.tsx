@@ -5,9 +5,10 @@ import { UserAvatar } from "@src/components/UserAvatar";
 import type { GQLProjectMemberRole } from "@src/graphql.generated";
 import { cn } from "@src/lib/utils";
 import { ChevronDownIcon } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 
-import { projectMemberRoleLabels, projectMemberRoleOptions } from "./projectMemberRoles";
+import { PROJECT_MEMBER_ROLES } from "./projectMemberRoles";
 
 const PREVIEW_COUNT = 5;
 
@@ -18,9 +19,10 @@ interface ProjectMemberOverviewProps {
 
 // Owners first and only a few members at first, so the card stays short in large projects
 export function ProjectMemberOverview({ members }: ProjectMemberOverviewProps) {
+    const t = useTranslations("project");
+    const tRole = useTranslations("projectMemberRole");
     const [isExpanded, setIsExpanded] = useState(false);
-    const roleOrder = projectMemberRoleOptions.map(({ value }) => value);
-    const sortedMembers = [...members].sort((first, second) => roleOrder.indexOf(first.role) - roleOrder.indexOf(second.role));
+    const sortedMembers = [...members].sort((first, second) => PROJECT_MEMBER_ROLES.indexOf(first.role) - PROJECT_MEMBER_ROLES.indexOf(second.role));
     const visibleMembers = isExpanded ? sortedMembers : sortedMembers.slice(0, PREVIEW_COUNT);
     const hiddenCount = members.length - PREVIEW_COUNT;
 
@@ -33,13 +35,13 @@ export function ProjectMemberOverview({ members }: ProjectMemberOverviewProps) {
                         <span className="flex-1 truncate font-medium">
                             {user.firstName} {user.lastName}
                         </span>
-                        <span className="text-muted-foreground text-sm">{projectMemberRoleLabels[role]}</span>
+                        <span className="text-muted-foreground text-sm">{tRole(role)}</span>
                     </li>
                 ))}
             </ul>
             {hiddenCount > 0 && (
                 <Button variant="ghost" size="sm" className="text-muted-foreground w-full" onClick={() => setIsExpanded(!isExpanded)}>
-                    {isExpanded ? "Show less" : `Show all ${members.length} members`}
+                    {isExpanded ? t("showLess") : t("showAllMembers", { count: members.length })}
                     <ChevronDownIcon className={cn("transition-transform", isExpanded && "rotate-180")} />
                 </Button>
             )}

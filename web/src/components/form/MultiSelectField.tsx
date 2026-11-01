@@ -14,6 +14,7 @@ import {
     useComboboxAnchor,
 } from "@src/components/ui/Combobox";
 import { Label } from "@src/components/ui/Label";
+import { useTranslations } from "next-intl";
 import { useId } from "react";
 import { Field } from "react-final-form";
 
@@ -29,12 +30,13 @@ interface MultiSelectFieldProps {
 
 // Several values from a long list for react-final-form: the selected ones as chips, the others found by typing
 export function MultiSelectField({ name, label, options, required, placeholder, emptyText }: MultiSelectFieldProps) {
+    const t = useTranslations("common");
     const id = useId();
     const errorId = `${id}-error`;
     const anchor = useComboboxAnchor();
 
     return (
-        <Field<string[]> name={name} validate={(value) => (required && !value?.length ? "Required" : undefined)}>
+        <Field<string[]> name={name} validate={(value) => (required && !value?.length ? t("required") : undefined)}>
             {({ input, meta }) => {
                 const error: string | undefined = meta.touched ? meta.error : undefined;
                 const selectedValues: string[] = input.value || [];

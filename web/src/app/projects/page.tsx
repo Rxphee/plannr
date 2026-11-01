@@ -12,6 +12,7 @@ import { pageCountOf, type Pagination, paginationHref, parsePagination, toOffset
 import { parseSearch } from "@src/util/search";
 import { FolderKanbanIcon, PlusIcon, SearchXIcon } from "lucide-react";
 import { redirect } from "next/navigation";
+import { getTranslations } from "next-intl/server";
 
 import { CreateProjectDialog } from "./CreateProjectDialog";
 import { NewProjectCard } from "./NewProjectCard";
@@ -20,10 +21,10 @@ import type { GQLProjectsQuery, GQLProjectsQueryVariables } from "./page.gql.gen
 import { ProjectCard } from "./ProjectCard";
 
 const views = {
-    open: { label: "Open", statuses: ["active", "paused"] },
-    archived: { label: "Archived", statuses: ["archived"] },
-    all: { label: "All", statuses: ["active", "paused", "archived"] },
-} satisfies Record<string, { label: string; statuses: GQLProjectStatus[] }>;
+    open: { statuses: ["active", "paused"] },
+    archived: { statuses: ["archived"] },
+    all: { statuses: ["active", "paused", "archived"] },
+} satisfies Record<string, { statuses: GQLProjectStatus[] }>;
 
 type View = keyof typeof views;
 
@@ -40,11 +41,15 @@ export default async function ProjectsPage({ searchParams }: PageProps<"/project
     const currentView: View = isView(resolvedSearchParams.view) ? resolvedSearchParams.view : "open";
     const pagination = parsePagination(resolvedSearchParams);
     const search = parseSearch(resolvedSearchParams);
-    const { projects, ...counts } = await graphQLFetch<GQLProjectsQuery, GQLProjectsQueryVariables>(projectsQuery, {
-        statuses: views[currentView].statuses,
-        search,
-        ...toOffsetAndLimit(pagination),
-    });
+    const [{ projects, ...counts }, t, tCommon] = await Promise.all([
+        graphQLFetch<GQLProjectsQuery, GQLProjectsQueryVariables>(projectsQuery, {
+            statuses: views[currentView].statuses,
+            search,
+            ...toOffsetAndLimit(pagination),
+        }),
+        getTranslations("projects"),
+        getTranslations("common"),
+    ]);
     // A page behind the last one, e.g. after archiving projects, shows the last one instead
     const pageCount = pageCountOf(projects.totalCount, pagination);
     if (pagination.page > pageCount) {
@@ -53,24 +58,24 @@ export default async function ProjectsPage({ searchParams }: PageProps<"/project
     const newProjectButton = (
         <Button>
             <PlusIcon />
-            New project
+            {t("newProject")}
         </Button>
     );
 
     return (
         <>
-            <PageHeader breadcrumbs={[{ label: "Projects" }]} />
+            <PageHeader breadcrumbs={[{ label: tCommon("projects") }]} />
             <PageIntro
-                title="Projects"
-                description="Each project holds the epics and issues of one goal. Open one to see what is going on."
+                title={tCommon("projects")}
+                description={t("description")}
                 actions={<CreateProjectDialog trigger={newProjectButton} />}
                 tabs={
                     <ViewTabs
-                        tabs={Object.entries(views).map(([view, { label }]) => ({
-                            label,
+                        tabs={(Object.keys(views) as View[]).map((view) => ({
+                            label: t(`views.${view}`),
                             // Another view starts on its first page, with the same page size and search
-                            href: viewHref(view as View, { ...pagination, page: 1 }, search),
-                            count: counts[view as View].totalCount,
+                            href: viewHref(view, { ...pagination, page: 1 }, search),
+                            count: counts[view].totalCount,
                             isActive: view === currentView,
                         }))}
                     />
@@ -84,15 +89,13 @@ export default async function ProjectsPage({ searchParams }: PageProps<"/project
                         </EmptyMedia>
                         {currentView === "archived" ? (
                             <>
-                                <EmptyTitle>No archived projects</EmptyTitle>
-                                <EmptyDescription>Archive a project in its settings once it is done, it then waits here.</EmptyDescription>
+                                <EmptyTitle>{t("noArchivedTitle")}</EmptyTitle>
+                                <EmptyDescription>{t("noArchivedDescription")}</EmptyDescription>
                             </>
                         ) : (
                             <>
-                                <EmptyTitle>No projects yet</EmptyTitle>
-                                <EmptyDescription>
-                                    Projects hold the epics and issues of one goal, like a website relaunch or an app.
-                                </EmptyDescription>
+                                <EmptyTitle>{t("noProjectsTitle")}</EmptyTitle>
+                                <EmptyDescription>{t("noProjectsDescription")}</EmptyDescription>
                             </>
                         )}
                     </EmptyHeader>
@@ -104,15 +107,15 @@ export default async function ProjectsPage({ searchParams }: PageProps<"/project
                 </Empty>
             ) : (
                 <PageContent className="grid gap-6">
-                    <ListSearch placeholder="Search name or key" label="Search projects" />
+                    <ListSearch placeholder={t("searchPlaceholder")} label={t("searchLabel")} />
                     {projects.totalCount === 0 && search ? (
                         <Empty className="rounded-xl border border-dashed">
                             <EmptyHeader>
                                 <EmptyMedia variant="icon">
                                     <SearchXIcon />
                                 </EmptyMedia>
-                                <EmptyTitle>No matching projects</EmptyTitle>
-                                <EmptyDescription>Search for another name or key, or look in another view.</EmptyDescription>
+                                <EmptyTitle>{t("noMatchesTitle")}</EmptyTitle>
+                                <EmptyDescription>{t("noMatchesDescription")}</EmptyDescription>
                             </EmptyHeader>
                         </Empty>
                     ) : (

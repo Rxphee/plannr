@@ -1,0 +1,420 @@
+{
+    "addProjectMembers": {
+        "description": "Choose everyone who joins with the same role. Only people who have logged in to Plannr at least once can be added.",
+        "noPeopleFound": "No one found",
+        "people": "People",
+        "peoplePlaceholder": "Search by name",
+        "role": "Role",
+        "submit": "{count, plural, =0 {Add member} one {Add member} other {Add # members}}",
+        "title": "Add members",
+        "trigger": "Add members"
+    },
+    "apiTokens": {
+        "copied": "Copied",
+        "copy": "Copy token",
+        "copyDescription": "You will not see it again. Send it as <code>{header}</code> with every request.",
+        "copyTitle": "Copy your API token",
+        "createDescription": "The token acts as you, with all your rights in every project. Give it a name to recognize it later.",
+        "createSubmit": "Create token",
+        "createTitle": "New API token",
+        "created": "Created {date}",
+        "description": "Personal tokens let scripts and AI agents like Claude Code use Plannr as you, e.g. through the API or MCP.",
+        "done": "Done",
+        "expired": "Expired",
+        "expiredOn": "Expired {date}",
+        "expiresAfter": "Expires after",
+        "expiresOn": "Expires {date}",
+        "expiry": {
+            "30": "30 days",
+            "365": "1 year",
+            "90": "90 days",
+            "never": "No expiry"
+        },
+        "lastUsed": "Last used {date}",
+        "neverUsed": "Never used",
+        "newToken": "New token",
+        "noExpiry": "No expiry",
+        "noTokensDescription": "Create a token for each tool that should work with Plannr, so you can revoke them one by one.",
+        "noTokensTitle": "No API tokens yet",
+        "revokeDescription": "Every tool that uses this token loses its access at once. This cannot be undone, but you can create a new token any time.",
+        "revokeSubmit": "Revoke token",
+        "revokeTitle": "Revoke {token}",
+        "revokeTrigger": "Revoke {token}",
+        "title": "API tokens",
+        "token": "API token"
+    },
+    "commandMenu": {
+        "actions": "Actions",
+        "allProjects": "All projects",
+        "createIssue": "Create issue",
+        "description": "Find issues by key or title and projects by name or key",
+        "issues": "Issues",
+        "noResults": "No issues or projects found.",
+        "placeholder": "Search issues and projects…",
+        "projects": "Projects",
+        "searching": "Searching…",
+        "title": "Search"
+    },
+    "common": {
+        "clearSearch": "Clear search",
+        "close": "Close",
+        "created": "Created {date}",
+        "default": "Default",
+        "description": "Description",
+        "edit": "Edit",
+        "loading": "Loading",
+        "name": "Name",
+        "noDescriptionYet": "No description yet.",
+        "none": "None",
+        "projects": "Projects",
+        "required": "Required",
+        "reset": "Reset",
+        "save": "Save"
+    },
+    "createIssue": {
+        "description": "The issue gets the next number of {key}, e.g. {key}-42.",
+        "descriptionPlaceholder": "What needs to be done? Checklists replace sub-tasks.",
+        "submit": "Create issue",
+        "title": "New issue",
+        "trigger": "New issue"
+    },
+    "createProject": {
+        "description": "The key prefixes every issue ID, e.g. {key}-42. It cannot be changed later.",
+        "descriptionPlaceholder": "What is the goal of the project?",
+        "key": "Key",
+        "keyPattern": "2 to 5 uppercase letters",
+        "submit": "Create project",
+        "title": "New project"
+    },
+    "datePicker": {
+        "clear": "Clear",
+        "placeholder": "Pick a date",
+        "today": "Today"
+    },
+    "deleteEpic": {
+        "deleteWarning": "The issues of the epic are deleted for good, including the done ones.",
+        "deleteWithEpic": "Delete them with the epic",
+        "description": "Deleting the epic cannot be undone. Choose what happens with its issues.",
+        "issueTarget": "Issues of the epic",
+        "moveTo": "Move them to {epic}",
+        "submit": "Delete epic",
+        "title": "Delete {epic}",
+        "trigger": "Delete epic"
+    },
+    "deleteIssue": {
+        "description": "This deletes the issue with its links. It cannot be undone. To keep it for the record, set its status to Canceled instead.",
+        "submit": "Delete issue",
+        "title": "Delete {issue}",
+        "trigger": "Delete issue"
+    },
+    "deleteProject": {
+        "confirmation": "Type “{project}” to confirm",
+        "description": "This deletes {project} with everything in it. It cannot be undone.",
+        "submit": "Delete project",
+        "title": "Delete project"
+    },
+    "epics": {
+        "createEpic": "Create epic",
+        "defaultEpicDescription": "Every project has this epic for the issues that belong to no other epic. It cannot be deleted.",
+        "description": "Epics split the project into parts. Issues without another epic stay in General.",
+        "descriptionPlaceholder": "What belongs to this epic, and when is it done?",
+        "doneCount": "{done} of {total} done",
+        "editEpic": "Edit epic",
+        "newEpic": "New epic",
+        "newEpicDescription": "An epic groups the issues of one part of the project, like the design or the launch.",
+        "noIssuesYet": "No issues yet",
+        "noMatchesDescription": "Search for another name to see more epics.",
+        "noMatchesTitle": "No matching epics",
+        "progress": "Progress",
+        "searchLabel": "Search epics",
+        "searchPlaceholder": "Search name"
+    },
+    "errors": {
+        "addLink": "The link could not be added.",
+        "addMembers": "The members could not be added.",
+        "changeProjectStatus": "The status could not be changed.",
+        "changeRole": "The role could not be changed.",
+        "createApiToken": "The API token could not be created.",
+        "createEpic": "The epic could not be created.",
+        "createIssue": "The issue could not be created.",
+        "createLabel": "The label could not be created.",
+        "createProject": "The project could not be created.",
+        "deleteEpic": "The epic could not be deleted.",
+        "deleteIssue": "The issue could not be deleted.",
+        "deleteLabel": "The label could not be deleted.",
+        "deleteProject": "The project could not be deleted.",
+        "makeAdmin": "The user could not be made an admin.",
+        "removeAdmin": "The admin rights could not be removed.",
+        "removeLink": "The link could not be removed.",
+        "removeMember": "The member could not be removed.",
+        "revokeApiToken": "The API token could not be revoked.",
+        "saveEpic": "The epic could not be saved.",
+        "saveIssue": "The issue could not be saved.",
+        "saveLabel": "The label could not be saved.",
+        "saveProject": "The project could not be saved."
+    },
+    "filterMenu": {
+        "clear": "Clear filter",
+        "selectedCount": "{count} selected"
+    },
+    "instanceRole": {
+        "admin": "Admin",
+        "superAdmin": "Super-admin"
+    },
+    "issue": {
+        "add": "Add",
+        "addLink": "Add link",
+        "canceledOn": "Canceled on {date}",
+        "createdBy": "Created by {name} on {date}",
+        "description": "Description",
+        "descriptionPlaceholder": "Add a description. Checklists replace sub-tasks.",
+        "details": "Details",
+        "discard": "Discard",
+        "doneOn": "Done on {date}",
+        "editTitle": "Edit title",
+        "linkUrlPattern": "Starts with http://, https:// or obsidian://",
+        "links": "Links",
+        "noDescription": "No description.",
+        "noLinks": "No links yet. Pull requests on GitHub are recognized as such.",
+        "removeLink": "Remove {url}"
+    },
+    "issueFields": {
+        "addLabels": "Add labels",
+        "description": "Description",
+        "dueDate": "Due date",
+        "epic": "Epic",
+        "label": "Label",
+        "labels": "Labels",
+        "noDueDate": "No due date",
+        "noLabels": "No labels",
+        "noMatchingLabel": "No matching label",
+        "priority": "Priority",
+        "status": "Status",
+        "title": "Title",
+        "type": "Type"
+    },
+    "issuePriority": {
+        "high": "High",
+        "iconLabel": "{priority} priority",
+        "low": "Low",
+        "normal": "Normal"
+    },
+    "issueStatus": {
+        "canceled": "Canceled",
+        "done": "Done",
+        "inProgress": "In progress",
+        "todo": "Todo"
+    },
+    "issueType": {
+        "bug": "Bug",
+        "task": "Task"
+    },
+    "issueViews": {
+        "bugs": {
+            "emptyDescription": "Open issues of the type bug show up here.",
+            "emptyTitle": "No open bugs",
+            "label": "Bugs"
+        },
+        "due": {
+            "emptyDescription": "Open issues with a due date show up here, the soonest first.",
+            "emptyTitle": "Nothing due",
+            "label": "Due"
+        },
+        "focus": {
+            "emptyDescription": "Open issues with priority high show up here.",
+            "emptyTitle": "Nothing in focus",
+            "label": "Focus"
+        },
+        "pullRequests": {
+            "emptyDescription": "Open issues with a link to a pull request on GitHub show up here.",
+            "emptyTitle": "No open pull requests",
+            "label": "Open PRs"
+        }
+    },
+    "issues": {
+        "allView": "All",
+        "descriptionDue": "The tasks and bugs of {project}, the soonest due first.",
+        "descriptionNewest": "The tasks and bugs of {project}, newest first.",
+        "noMatchesDescription": "Change the filters or the search to see more issues.",
+        "noMatchesTitle": "No matching issues",
+        "noOpenDescription": "Issues are the tasks and bugs of the project. Done ones are under the status filter.",
+        "noOpenTitle": "No open issues",
+        "pullRequest": "Pull request",
+        "searchLabel": "Search issues",
+        "searchPlaceholder": "Search title or key",
+        "title": "Issues"
+    },
+    "labelColor": {
+        "amber": "Amber",
+        "blue": "Blue",
+        "gray": "Gray",
+        "green": "Green",
+        "orange": "Orange",
+        "pink": "Pink",
+        "red": "Red",
+        "teal": "Teal",
+        "violet": "Violet"
+    },
+    "labels": {
+        "color": "Color",
+        "createLabel": "Create label",
+        "deleteDescription": "This removes the label from all issues in all projects. It cannot be undone.",
+        "deleteLabel": "Delete label",
+        "deleteName": "Delete {label}",
+        "description": "Labels tag issues across all projects, e.g. upstream for bugs in third-party code. Admins manage them.",
+        "dialogDescription": "Labels are shared by all projects, so keep the name short and general.",
+        "editLabel": "Edit label",
+        "editName": "Edit {label}",
+        "newLabel": "New label",
+        "noLabelsDescription": "Admins create the labels for all projects.",
+        "noLabelsDescriptionAdmin": "Create the first label, then pick it on any issue.",
+        "noLabelsTitle": "No labels yet",
+        "preview": "Preview",
+        "previewPlaceholder": "label",
+        "title": "Labels"
+    },
+    "languageSwitcher": {
+        "label": "Language",
+        "system": "System"
+    },
+    "metadata": {
+        "description": "A lean, self-hosted issue tracker"
+    },
+    "pagination": {
+        "entriesPerPage": "Entries per page",
+        "label": "Pages",
+        "next": "Next page",
+        "perPage": "Per page",
+        "previous": "Previous page",
+        "range": "{first}–{last} of {total}"
+    },
+    "project": {
+        "about": "About",
+        "archivedDescription": "Its epics and issues are read-only until an owner or admin sets the project back to active.",
+        "manage": "Manage",
+        "memberCount": "{count, plural, one {# member} other {# members}}",
+        "members": "Members",
+        "noDescription": "No description yet. Describe the goal of the project, so everyone knows what it is about.",
+        "showAllMembers": "Show all {count} members",
+        "showLess": "Show less"
+    },
+    "projectMemberRole": {
+        "member": "Member",
+        "owner": "Owner",
+        "viewer": "Viewer"
+    },
+    "projectSettings": {
+        "addAsMember": "Add as member",
+        "addNameAsMember": "Add {name} as member",
+        "adminAccessDescription": "Admins see and change every project without being a member. Add them to keep their access once their admin rights end.",
+        "adminAccessTitle": "Access through admin rights",
+        "archive": "Archive",
+        "archiveFirst": "Archive the project first to delete it.",
+        "deleteDescription": "Deletes the project with everything in it. This cannot be undone.",
+        "deleteTitle": "Delete project",
+        "description": "Name, members and status of {project}.",
+        "generalDescription": "Name and description of the project.",
+        "generalTitle": "General",
+        "key": "Key",
+        "keyDescription": "Fixed, because every issue ID starts with it, e.g. <mono>{key}-42</mono>.",
+        "membersDescription": "Owners manage the project, members work on epics and issues, viewers only read.",
+        "membersTitle": "Members",
+        "noMemberMatches": "No member matches the search.",
+        "pause": "Pause",
+        "remove": "Remove {name}",
+        "restore": "Restore",
+        "resume": "Resume",
+        "roleOf": "Role of {name}",
+        "searchMembersLabel": "Search members",
+        "searchMembersPlaceholder": "Search name or email",
+        "statusActive": "The project is active.",
+        "statusArchived": "The project is archived. Restore it to work on it again, or delete it below.",
+        "statusDescription": "Pause a project while it waits, archive it when it is done.",
+        "statusPaused": "The project is paused. Resume it when the work goes on.",
+        "statusTitle": "Status",
+        "title": "Settings"
+    },
+    "projectStatus": {
+        "active": "Active",
+        "archived": "Archived",
+        "paused": "Paused"
+    },
+    "projectSwitcher": {
+        "chooseProject": "Choose a project",
+        "noResults": "No projects found",
+        "searchPlaceholder": "Search projects"
+    },
+    "projects": {
+        "description": "Each project holds the epics and issues of one goal. Open one to see what is going on.",
+        "newProject": "New project",
+        "noArchivedDescription": "Archive a project in its settings once it is done, it then waits here.",
+        "noArchivedTitle": "No archived projects",
+        "noMatchesDescription": "Search for another name or key, or look in another view.",
+        "noMatchesTitle": "No matching projects",
+        "noProjectsDescription": "Projects hold the epics and issues of one goal, like a website relaunch or an app.",
+        "noProjectsTitle": "No projects yet",
+        "searchLabel": "Search projects",
+        "searchPlaceholder": "Search name or key",
+        "views": {
+            "all": "All",
+            "archived": "Archived",
+            "open": "Open"
+        }
+    },
+    "quickCapture": {
+        "chooseProject": "Choose a project",
+        "description": "Lands in the epic General of the project, add the details later.",
+        "descriptionInProject": "Lands in the epic General of {project}, add the details later.",
+        "project": "Project",
+        "submit": "Create issue",
+        "title": "Capture issue"
+    },
+    "richText": {
+        "bold": "Bold",
+        "bulletList": "Bulleted list",
+        "code": "Code",
+        "heading1": "Heading 1",
+        "heading2": "Heading 2",
+        "heading3": "Heading 3",
+        "italic": "Italic",
+        "orderedList": "Numbered list",
+        "taskList": "Checklist"
+    },
+    "sidebar": {
+        "allProjects": "All projects",
+        "epics": "Epics",
+        "issues": "Issues",
+        "labels": "Labels",
+        "mobileDescription": "Displays the mobile sidebar.",
+        "mobileTitle": "Sidebar",
+        "overview": "Overview",
+        "project": "Project",
+        "search": "Search",
+        "settings": "Settings",
+        "toggle": "Toggle sidebar",
+        "users": "Users",
+        "workspace": "Workspace"
+    },
+    "themeSwitcher": {
+        "dark": "Dark",
+        "label": "Theme",
+        "light": "Light",
+        "system": "System"
+    },
+    "userMenu": {
+        "apiTokens": "API tokens",
+        "instanceRole": "Instance role",
+        "signOut": "Sign out"
+    },
+    "users": {
+        "admin": "Admin",
+        "adminRightsOf": "Admin rights of {name}",
+        "description": "Everyone who has logged in. Admins see and manage all projects and labels; only you as super-admin appoint them.",
+        "noMatchesDescription": "Search for another name or email to see more users.",
+        "noMatchesTitle": "No matching users",
+        "searchLabel": "Search users",
+        "searchPlaceholder": "Search name or email",
+        "superAdminAlwaysAdmin": "The super-admin always has admin rights",
+        "title": "Users"
+    }
+}

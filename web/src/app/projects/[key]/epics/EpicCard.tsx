@@ -1,5 +1,6 @@
 import { Badge } from "@src/components/ui/Badge";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 
 import { EpicProgress } from "./EpicProgress";
 
@@ -9,6 +10,8 @@ interface EpicCardProps {
 }
 
 export function EpicCard({ projectKey, epic }: EpicCardProps) {
+    const t = useTranslations("common");
+
     return (
         <Link
             href={`/projects/${projectKey}/epics/${epic.id}`}
@@ -18,7 +21,7 @@ export function EpicCard({ projectKey, epic }: EpicCardProps) {
                 <span className="font-heading min-w-0 truncate font-semibold">{epic.name}</span>
                 {epic.isDefault && (
                     <Badge variant="outline" className="text-muted-foreground shrink-0">
-                        Default
+                        {t("default")}
                     </Badge>
                 )}
             </div>

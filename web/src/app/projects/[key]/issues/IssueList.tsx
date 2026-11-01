@@ -3,8 +3,9 @@ import type { GQLIssuePriority, GQLIssueStatus, GQLIssueType, GQLLabelColor } fr
 import { cn } from "@src/lib/utils";
 import { CalendarIcon, GitPullRequestIcon } from "lucide-react";
 import Link from "next/link";
+import { useFormatter, useTranslations } from "next-intl";
 
-import { formatDueDate, isOverdue } from "./dueDate";
+import { isOverdue } from "./dueDate";
 import { IssuePriorityIcon } from "./IssuePriorityIcon";
 import { IssueStatusBadge, IssueStatusDot } from "./IssueStatusBadge";
 import { IssueTypeIcon } from "./IssueTypeIcon";
@@ -29,6 +30,9 @@ interface IssueListProps {
 }
 
 export function IssueList({ projectKey, issues, hideEpic }: IssueListProps) {
+    const t = useTranslations("issues");
+    const format = useFormatter();
+
     return (
         <ul className="bg-card ring-foreground/10 divide-y overflow-hidden rounded-xl shadow-xs ring-1">
             {issues.map((issue) => {
@@ -55,7 +59,7 @@ export function IssueList({ projectKey, issues, hideEpic }: IssueListProps) {
                                 )}
                             </span>
                             {hasPullRequest && (
-                                <GitPullRequestIcon role="img" aria-label="Pull request" className="text-muted-foreground size-4 shrink-0" />
+                                <GitPullRequestIcon role="img" aria-label={t("pullRequest")} className="text-muted-foreground size-4 shrink-0" />
                             )}
                             {!hideEpic && (
                                 <span className="text-muted-foreground hidden max-w-40 shrink-0 truncate rounded-md border px-2 text-xs leading-5 md:inline">
@@ -70,7 +74,7 @@ export function IssueList({ projectKey, issues, hideEpic }: IssueListProps) {
                                     )}
                                 >
                                     <CalendarIcon className="size-3.5" />
-                                    {formatDueDate(issue.dueDate)}
+                                    {format.dateTime(new Date(issue.dueDate), "day")}
                                 </span>
                             )}
                             <IssueStatusDot status={issue.status} className="sm:hidden" />

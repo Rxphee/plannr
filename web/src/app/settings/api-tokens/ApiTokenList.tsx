@@ -1,5 +1,6 @@
 import { Badge } from "@src/components/ui/Badge";
 import { KeyRoundIcon } from "lucide-react";
+import { useFormatter, useTranslations } from "next-intl";
 
 import { isExpired } from "./apiTokenExpiry";
 import { RevokeApiTokenDialog } from "./RevokeApiTokenDialog";
@@ -13,13 +14,11 @@ interface ApiToken {
     lastUsedAt: string | null;
 }
 
-const dateFormat = new Intl.DateTimeFormat("en", { dateStyle: "medium" });
-
-function formatDate(date: string): string {
-    return dateFormat.format(new Date(date));
-}
-
 export function ApiTokenList({ apiTokens }: { apiTokens: ApiToken[] }) {
+    const t = useTranslations("apiTokens");
+    const format = useFormatter();
+    const formatDate = (date: string) => format.dateTime(new Date(date), "date");
+
     return (
         <ul className="divide-y rounded-lg border">
             {apiTokens.map((apiToken) => {
@@ -33,11 +32,14 @@ export function ApiTokenList({ apiTokens }: { apiTokens: ApiToken[] }) {
                             <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
                                 <span className="truncate text-sm font-medium">{name}</span>
                                 <code className="text-muted-foreground text-xs">{prefix}…</code>
-                                {hasExpired && <Badge variant="destructive">Expired</Badge>}
+                                {hasExpired && <Badge variant="destructive">{t("expired")}</Badge>}
                             </div>
                             <span className="text-muted-foreground text-sm">
-                                Created {formatDate(createdAt)} · {lastUsedAt ? `Last used ${formatDate(lastUsedAt)}` : "Never used"} ·{" "}
-                                {expiresAt ? `${hasExpired ? "Expired" : "Expires"} ${formatDate(expiresAt)}` : "No expiry"}
+                                {[
+                                    t("created", { date: formatDate(createdAt) }),
+                                    lastUsedAt ? t("lastUsed", { date: formatDate(lastUsedAt) }) : t("neverUsed"),
+                                    expiresAt ? t(hasExpired ? "expiredOn" : "expiresOn", { date: formatDate(expiresAt) }) : t("noExpiry"),
+                                ].join(" · ")}
                             </span>
                         </div>
                         <RevokeApiTokenDialog apiToken={apiToken} />

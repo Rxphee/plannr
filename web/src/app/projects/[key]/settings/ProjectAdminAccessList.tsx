@@ -5,6 +5,7 @@ import { Button } from "@src/components/ui/Button";
 import { UserAvatar } from "@src/components/UserAvatar";
 import type { GQLInstanceRole } from "@src/graphql.generated";
 import { UserPlusIcon } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { useState, useTransition } from "react";
 
 import { addProjectMembers } from "./actions";
@@ -16,6 +17,7 @@ interface ProjectAdminAccessListProps {
 
 // Admins who are not a member, so it is clear that more people than the members can see and change the project
 export function ProjectAdminAccessList({ projectId, admins }: ProjectAdminAccessListProps) {
+    const t = useTranslations("projectSettings");
     const [error, setError] = useState<string>();
     const [pending, startTransition] = useTransition();
 
@@ -29,10 +31,8 @@ export function ProjectAdminAccessList({ projectId, admins }: ProjectAdminAccess
     return (
         <div className="grid gap-2">
             <div className="grid gap-0.5">
-                <h3 className="text-sm font-medium">Access through admin rights</h3>
-                <p className="text-muted-foreground text-sm">
-                    Admins see and change every project without being a member. Add them to keep their access once their admin rights end.
-                </p>
+                <h3 className="text-sm font-medium">{t("adminAccessTitle")}</h3>
+                <p className="text-muted-foreground text-sm">{t("adminAccessDescription")}</p>
             </div>
             <ul className="divide-y rounded-lg border border-dashed">
                 {admins.map((admin) => {
@@ -52,11 +52,11 @@ export function ProjectAdminAccessList({ projectId, admins }: ProjectAdminAccess
                                 variant="outline"
                                 size="sm"
                                 disabled={pending}
-                                aria-label={`Add ${name} as member`}
+                                aria-label={t("addNameAsMember", { name })}
                                 onClick={() => addAsMember(admin.id)}
                             >
                                 <UserPlusIcon />
-                                <span className="hidden sm:inline">Add as member</span>
+                                <span className="hidden sm:inline">{t("addAsMember")}</span>
                             </Button>
                         </li>
                     );

@@ -6,6 +6,7 @@ import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTi
 import { fetchAllPages } from "@src/util/fetchAllPages";
 import { graphQLFetch } from "@src/util/graphQLFetch";
 import { KeyRoundIcon, PlusIcon } from "lucide-react";
+import { getTranslations } from "next-intl/server";
 
 import { ApiTokenList } from "./ApiTokenList";
 import { CreateApiTokenDialog } from "./CreateApiTokenDialog";
@@ -14,35 +15,32 @@ import type { GQLApiTokensPageQuery, GQLApiTokensPageQueryVariables } from "./pa
 
 export default async function ApiTokensPage() {
     // A person has a few tokens at most, so they are shown in one list
-    const apiTokens = await fetchAllPages(async (pagination) => {
-        const data = await graphQLFetch<GQLApiTokensPageQuery, GQLApiTokensPageQueryVariables>(apiTokensPageQuery, pagination);
-        return data.apiTokens;
-    });
+    const [apiTokens, t] = await Promise.all([
+        fetchAllPages(async (pagination) => {
+            const data = await graphQLFetch<GQLApiTokensPageQuery, GQLApiTokensPageQueryVariables>(apiTokensPageQuery, pagination);
+            return data.apiTokens;
+        }),
+        getTranslations("apiTokens"),
+    ]);
     const newTokenButton = (
         <Button>
             <PlusIcon />
-            New token
+            {t("newToken")}
         </Button>
     );
 
     return (
         <>
-            <PageHeader breadcrumbs={[{ label: "API tokens" }]} />
-            <PageIntro
-                title="API tokens"
-                description="Personal tokens let scripts and AI agents like Claude Code use Plannr as you, e.g. through the API or MCP."
-                actions={<CreateApiTokenDialog trigger={newTokenButton} />}
-            />
+            <PageHeader breadcrumbs={[{ label: t("title") }]} />
+            <PageIntro title={t("title")} description={t("description")} actions={<CreateApiTokenDialog trigger={newTokenButton} />} />
             {apiTokens.length === 0 ? (
                 <Empty className="flex-1">
                     <EmptyHeader>
                         <EmptyMedia variant="icon">
                             <KeyRoundIcon />
                         </EmptyMedia>
-                        <EmptyTitle>No API tokens yet</EmptyTitle>
-                        <EmptyDescription>
-                            Create a token for each tool that should work with Plannr, so you can revoke them one by one.
-                        </EmptyDescription>
+                        <EmptyTitle>{t("noTokensTitle")}</EmptyTitle>
+                        <EmptyDescription>{t("noTokensDescription")}</EmptyDescription>
                     </EmptyHeader>
                     <EmptyContent>
                         <CreateApiTokenDialog trigger={newTokenButton} />

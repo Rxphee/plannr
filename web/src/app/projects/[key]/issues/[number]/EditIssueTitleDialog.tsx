@@ -7,6 +7,7 @@ import { Button } from "@src/components/ui/Button";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@src/components/ui/Dialog";
 import { FORM_ERROR } from "final-form";
 import { PencilIcon } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 
 import { updateIssue } from "../actions";
@@ -17,6 +18,9 @@ interface EditIssueTitleDialogProps {
 }
 
 export function EditIssueTitleDialog({ issue }: EditIssueTitleDialogProps) {
+    const t = useTranslations("issue");
+    const tCommon = useTranslations("common");
+    const tFields = useTranslations("issueFields");
     const [open, setOpen] = useState(false);
 
     const handleSubmit = async ({ title }: { title: string }) => {
@@ -31,20 +35,20 @@ export function EditIssueTitleDialog({ issue }: EditIssueTitleDialogProps) {
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger render={<Button variant="outline" />}>
                 <PencilIcon />
-                Edit title
+                {t("editTitle")}
             </DialogTrigger>
             <DialogContent>
                 <FinalForm<{ title: string }> onSubmit={handleSubmit} initialValues={{ title: issue.title }} className="grid gap-4">
                     {({ pristine, submitting }) => (
                         <>
                             <DialogHeader>
-                                <DialogTitle>Edit title</DialogTitle>
+                                <DialogTitle>{t("editTitle")}</DialogTitle>
                             </DialogHeader>
-                            <TextField name="title" label="Title" required maxLength={ISSUE_TITLE_MAX_LENGTH} />
+                            <TextField name="title" label={tFields("title")} required maxLength={ISSUE_TITLE_MAX_LENGTH} />
                             <FormSubmitError />
                             <DialogFooter>
                                 <Button type="submit" disabled={pristine || submitting}>
-                                    Save
+                                    {tCommon("save")}
                                 </Button>
                             </DialogFooter>
                         </>

@@ -8,10 +8,11 @@ import { Button } from "@src/components/ui/Button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@src/components/ui/Dialog";
 import type { GQLIssuePriority, GQLIssueType } from "@src/graphql.generated";
 import { FORM_ERROR } from "final-form";
+import { useTranslations } from "next-intl";
 
 import { createIssue } from "../projects/[key]/issues/actions";
 import { ISSUE_TITLE_MAX_LENGTH } from "../projects/[key]/issues/issueOptions";
-import { issuePrioritySelectOptions, issueTypeSelectOptions } from "../projects/[key]/issues/issueSelectOptions";
+import { useIssueSelectOptions } from "../projects/[key]/issues/issueSelectOptions";
 import { ProjectIcon } from "../projects/ProjectIcon";
 import { useCurrentProject } from "../sidebar/useCurrentProject";
 import type { QuickCaptureProject } from "./AppCommands";
@@ -33,6 +34,9 @@ interface QuickCaptureFormValues {
 // Captures an issue with only a title in the epic General, without leaving the page.
 // In a project it lands there, elsewhere the user picks the project.
 export function QuickCaptureDialog({ projects, open, onOpenChange }: QuickCaptureDialogProps) {
+    const t = useTranslations("quickCapture");
+    const tFields = useTranslations("issueFields");
+    const { typeOptions, priorityOptions } = useIssueSelectOptions();
     const currentProject = useCurrentProject(projects);
 
     const handleSubmit = async ({ projectId, title, type, priority }: QuickCaptureFormValues) => {
@@ -54,20 +58,18 @@ export function QuickCaptureDialog({ projects, open, onOpenChange }: QuickCaptur
                     {({ submitting }) => (
                         <>
                             <DialogHeader>
-                                <DialogTitle>Capture issue</DialogTitle>
+                                <DialogTitle>{t("title")}</DialogTitle>
                                 <DialogDescription>
-                                    {currentProject
-                                        ? `Lands in the epic General of ${currentProject.name}, add the details later.`
-                                        : "Lands in the epic General of the project, add the details later."}
+                                    {currentProject ? t("descriptionInProject", { project: currentProject.name }) : t("description")}
                                 </DialogDescription>
                             </DialogHeader>
-                            <TextField name="title" label="Title" required maxLength={ISSUE_TITLE_MAX_LENGTH} />
+                            <TextField name="title" label={tFields("title")} required maxLength={ISSUE_TITLE_MAX_LENGTH} />
                             {!currentProject && (
                                 <SelectField
                                     name="projectId"
-                                    label="Project"
+                                    label={t("project")}
                                     required
-                                    placeholder="Choose a project"
+                                    placeholder={t("chooseProject")}
                                     options={projects.map((project) => ({
                                         value: project.id,
                                         label: project.name,
@@ -76,13 +78,13 @@ export function QuickCaptureDialog({ projects, open, onOpenChange }: QuickCaptur
                                 />
                             )}
                             <div className="grid gap-4 sm:grid-cols-2">
-                                <SelectField name="type" label="Type" required options={issueTypeSelectOptions} />
-                                <SelectField name="priority" label="Priority" required options={issuePrioritySelectOptions} />
+                                <SelectField name="type" label={tFields("type")} required options={typeOptions} />
+                                <SelectField name="priority" label={tFields("priority")} required options={priorityOptions} />
                             </div>
                             <FormSubmitError />
                             <DialogFooter>
                                 <Button type="submit" disabled={submitting}>
-                                    Create issue
+                                    {t("submit")}
                                 </Button>
                             </DialogFooter>
                         </>

@@ -16,12 +16,14 @@ import { UserAvatar } from "@src/components/UserAvatar";
 import type { GQLInstanceRole } from "@src/graphql.generated";
 import { ChevronsUpDownIcon, KeyRoundIcon, LogOutIcon } from "lucide-react";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 
 interface UserMenuProps {
     user: { firstName: string; lastName: string; email: string; instanceRole: GQLInstanceRole };
 }
 
 export function UserMenu({ user }: UserMenuProps) {
+    const t = useTranslations("userMenu");
     const name = `${user.firstName} ${user.lastName}`;
 
     return (
@@ -39,7 +41,7 @@ export function UserMenu({ user }: UserMenuProps) {
                     <>
                         <DropdownMenuGroup>
                             <DropdownMenuLabel className="flex items-center justify-between gap-2">
-                                Instance role
+                                {t("instanceRole")}
                                 <InstanceRoleBadge role={user.instanceRole} />
                             </DropdownMenuLabel>
                         </DropdownMenuGroup>
@@ -48,12 +50,12 @@ export function UserMenu({ user }: UserMenuProps) {
                 )}
                 <DropdownMenuItem render={<Link href="/settings/api-tokens" />}>
                     <KeyRoundIcon />
-                    API tokens
+                    {t("apiTokens")}
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={() => signOut()}>
                     <LogOutIcon />
-                    Sign out
+                    {t("signOut")}
                 </DropdownMenuItem>
             </DropdownMenuContent>
         </DropdownMenu>

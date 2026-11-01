@@ -6,9 +6,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { UserAvatar } from "@src/components/UserAvatar";
 import type { GQLInstanceRole, GQLProjectMemberRole } from "@src/graphql.generated";
 import { XIcon } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { useState, useTransition } from "react";
 
-import { projectMemberRoleOptions } from "../projectMemberRoles";
+import { PROJECT_MEMBER_ROLES } from "../projectMemberRoles";
 import { changeProjectMemberRole, removeProjectMember } from "./actions";
 
 interface ProjectMemberListProps {
@@ -23,6 +24,9 @@ interface ProjectMemberListProps {
 }
 
 export function ProjectMemberList({ project }: ProjectMemberListProps) {
+    const t = useTranslations("projectSettings");
+    const tRole = useTranslations("projectMemberRole");
+    const roleOptions = PROJECT_MEMBER_ROLES.map((role) => ({ value: role, label: tRole(role) }));
     const [error, setError] = useState<string>();
     const [pending, startTransition] = useTransition();
 
@@ -51,7 +55,7 @@ export function ProjectMemberList({ project }: ProjectMemberListProps) {
                                 <span className="text-muted-foreground truncate text-sm">{user.email}</span>
                             </div>
                             <Select
-                                items={projectMemberRoleOptions}
+                                items={roleOptions}
                                 value={role}
                                 disabled={pending}
                                 onValueChange={(newRole) => {
@@ -60,11 +64,11 @@ export function ProjectMemberList({ project }: ProjectMemberListProps) {
                                     }
                                 }}
                             >
-                                <SelectTrigger className="w-28" aria-label={`Role of ${name}`}>
+                                <SelectTrigger className="w-28" aria-label={t("roleOf", { name })}>
                                     <SelectValue />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {projectMemberRoleOptions.map((option) => (
+                                    {roleOptions.map((option) => (
                                         <SelectItem key={option.value} value={option.value}>
                                             {option.label}
                                         </SelectItem>
@@ -75,7 +79,7 @@ export function ProjectMemberList({ project }: ProjectMemberListProps) {
                                 variant="ghost"
                                 size="icon"
                                 disabled={pending}
-                                aria-label={`Remove ${name}`}
+                                aria-label={t("remove", { name })}
                                 onClick={() => run(() => removeProjectMember(project.key, member))}
                             >
                                 <XIcon />

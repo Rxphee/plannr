@@ -1,12 +1,4 @@
 import type { GQLProjectMemberRole } from "@src/graphql.generated";
 
-export const projectMemberRoleOptions: { value: GQLProjectMemberRole; label: string }[] = [
-    { value: "owner", label: "Owner" },
-    { value: "member", label: "Member" },
-    { value: "viewer", label: "Viewer" },
-];
-
-export const projectMemberRoleLabels = Object.fromEntries(projectMemberRoleOptions.map(({ value, label }) => [value, label])) as Record<
-    GQLProjectMemberRole,
-    string
->;
+// Ordered from the most rights to the fewest
+export const PROJECT_MEMBER_ROLES: GQLProjectMemberRole[] = ["owner", "member", "viewer"];

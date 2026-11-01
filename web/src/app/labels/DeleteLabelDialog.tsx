@@ -6,11 +6,13 @@ import { Button } from "@src/components/ui/Button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@src/components/ui/Dialog";
 import { FORM_ERROR } from "final-form";
 import { Trash2Icon } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 
 import { deleteLabel } from "./actions";
 
 export function DeleteLabelDialog({ label }: { label: { id: string; name: string } }) {
+    const t = useTranslations("labels");
     const [open, setOpen] = useState(false);
 
     const handleSubmit = async () => {
@@ -29,8 +31,8 @@ export function DeleteLabelDialog({ label }: { label: { id: string; name: string
                         variant="ghost"
                         size="icon-sm"
                         className="hover:text-destructive"
-                        aria-label={`Delete ${label.name}`}
-                        title="Delete label"
+                        aria-label={t("deleteName", { label: label.name })}
+                        title={t("deleteLabel")}
                     />
                 }
             >
@@ -41,13 +43,13 @@ export function DeleteLabelDialog({ label }: { label: { id: string; name: string
                     {({ submitting }) => (
                         <>
                             <DialogHeader>
-                                <DialogTitle>Delete {label.name}</DialogTitle>
-                                <DialogDescription>This removes the label from all issues in all projects. It cannot be undone.</DialogDescription>
+                                <DialogTitle>{t("deleteName", { label: label.name })}</DialogTitle>
+                                <DialogDescription>{t("deleteDescription")}</DialogDescription>
                             </DialogHeader>
                             <FormSubmitError />
                             <DialogFooter>
                                 <Button type="submit" variant="destructive" disabled={submitting}>
-                                    Delete label
+                                    {t("deleteLabel")}
                                 </Button>
                             </DialogFooter>
                         </>

@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@src/components/ui/Car
 import { graphQLFetch } from "@src/util/graphQLFetch";
 import { CalendarCheckIcon, CalendarIcon } from "lucide-react";
 import { notFound } from "next/navigation";
+import { getFormatter, getTranslations } from "next-intl/server";
 
 import { fetchEpicOptions } from "../../epics/fetchEpicOptions";
 import { IssueStatusBadge } from "../IssueStatusBadge";
@@ -19,8 +20,6 @@ import { IssueProperties } from "./IssueProperties";
 import { issuePageQuery } from "./page.gql";
 import type { GQLIssuePageQuery, GQLIssuePageQueryVariables } from "./page.gql.generated";
 
-const dateFormat = new Intl.DateTimeFormat("en", { dateStyle: "medium" });
-
 export default async function IssuePage({ params }: PageProps<"/projects/[key]/issues/[number]">) {
     const { key, number } = await params;
     if (!/^[1-9]\d*$/.test(number)) {
@@ -31,16 +30,23 @@ export default async function IssuePage({ params }: PageProps<"/projects/[key]/i
         notFound();
     }
 
-    const [epics, labels] = await Promise.all([fetchEpicOptions(issue.project.id), fetchLabelOptions()]);
+    const [epics, labels, t, tCommon, tSidebar, format] = await Promise.all([
+        fetchEpicOptions(issue.project.id),
+        fetchLabelOptions(),
+        getTranslations("issue"),
+        getTranslations("common"),
+        getTranslations("sidebar"),
+        getFormatter(),
+    ]);
     const project = { ...issue.project, epics };
 
     return (
         <>
             <PageHeader
                 breadcrumbs={[
-                    { label: "Projects", href: "/projects" },
+                    { label: tCommon("projects"), href: "/projects" },
                     { label: project.name, href: `/projects/${project.key}` },
-                    { label: "Issues", href: `/projects/${project.key}/issues` },
+                    { label: tSidebar("issues"), href: `/projects/${project.key}/issues` },
                     { label: issue.key },
                 ]}
             />
@@ -53,12 +59,17 @@ export default async function IssuePage({ params }: PageProps<"/projects/[key]/i
                         <span className="font-mono">{issue.key}</span>
                         <span className="flex items-center gap-1">
                             <CalendarIcon className="size-4" />
-                            Created by {issue.createdBy.firstName} {issue.createdBy.lastName} on {dateFormat.format(new Date(issue.createdAt))}
+                            {t("createdBy", {
+                                name: `${issue.createdBy.firstName} ${issue.createdBy.lastName}`,
+                                date: format.dateTime(new Date(issue.createdAt), "date"),
+                            })}
                         </span>
                         {issue.completedAt && (
                             <span className="flex items-center gap-1">
                                 <CalendarCheckIcon className="size-4" />
-                                {issue.status === "canceled" ? "Canceled" : "Done"} on {dateFormat.format(new Date(issue.completedAt))}
+                                {t(issue.status === "canceled" ? "canceledOn" : "doneOn", {
+                                    date: format.dateTime(new Date(issue.completedAt), "date"),
+                                })}
                             </span>
                         )}
                     </>
@@ -75,7 +86,7 @@ export default async function IssuePage({ params }: PageProps<"/projects/[key]/i
             <PageContent className="grid items-start gap-4 lg:grid-cols-[1fr_20rem]">
                 <Card>
                     <CardHeader>
-                        <CardTitle>Description</CardTitle>
+                        <CardTitle>{t("description")}</CardTitle>
                     </CardHeader>
                     <CardContent>
                         {project.canContribute ? (
@@ -83,14 +94,14 @@ export default async function IssuePage({ params }: PageProps<"/projects/[key]/i
                         ) : issue.description ? (
                             <RichTextEditor value={issue.description} readOnly />
                         ) : (
-                            <p className="text-muted-foreground">No description.</p>
+                            <p className="text-muted-foreground">{t("noDescription")}</p>
                         )}
                     </CardContent>
                 </Card>
                 <div className="grid grid-cols-1 gap-4">
                     <Card>
                         <CardHeader>
-                            <CardTitle>Details</CardTitle>
+                            <CardTitle>{t("details")}</CardTitle>
                         </CardHeader>
                         <CardContent>
                             <IssueProperties issue={issue} project={project} labels={labels} />
@@ -98,7 +109,7 @@ export default async function IssuePage({ params }: PageProps<"/projects/[key]/i
                     </Card>
                     <Card>
                         <CardHeader>
-                            <CardTitle>Links</CardTitle>
+                            <CardTitle>{t("links")}</CardTitle>
                         </CardHeader>
                         <CardContent>
                             <IssueLinks issue={issue} canEdit={project.canContribute} />

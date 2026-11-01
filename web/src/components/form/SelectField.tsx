@@ -2,6 +2,7 @@
 
 import { OptionSelect, type SelectOption } from "@src/components/OptionSelect";
 import { Label } from "@src/components/ui/Label";
+import { useTranslations } from "next-intl";
 import { useId } from "react";
 import { Field } from "react-final-form";
 
@@ -15,11 +16,12 @@ interface SelectFieldProps {
 
 // A select for react-final-form, with label and error message
 export function SelectField({ name, label, options, required, placeholder }: SelectFieldProps) {
+    const t = useTranslations("common");
     const id = useId();
     const errorId = `${id}-error`;
 
     return (
-        <Field<string | undefined> name={name} validate={(value) => (required && !value ? "Required" : undefined)}>
+        <Field<string | undefined> name={name} validate={(value) => (required && !value ? t("required") : undefined)}>
             {({ input, meta }) => {
                 // The trigger loses focus as soon as the popup opens, so the field gets no onBlur and only a submit marks it as touched
                 const error: string | undefined = meta.touched ? meta.error : undefined;

@@ -7,6 +7,7 @@ import { Button } from "@src/components/ui/Button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@src/components/ui/Dialog";
 import { FORM_ERROR } from "final-form";
 import { Trash2Icon } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 import { deleteProject } from "./actions";
 
@@ -15,12 +16,14 @@ interface DeleteProjectDialogProps {
 }
 
 export function DeleteProjectDialog({ project }: DeleteProjectDialogProps) {
+    const t = useTranslations("deleteProject");
+
     return (
         <div>
             <Dialog>
                 <DialogTrigger render={<Button variant="destructive" />}>
                     <Trash2Icon />
-                    Delete project
+                    {t("title")}
                 </DialogTrigger>
                 <DialogContent>
                     <DeleteProjectForm project={project} />
@@ -31,6 +34,8 @@ export function DeleteProjectDialog({ project }: DeleteProjectDialogProps) {
 }
 
 function DeleteProjectForm({ project }: DeleteProjectDialogProps) {
+    const t = useTranslations("deleteProject");
+
     // On success the action redirects to the project list
     const handleSubmit = async () => {
         const { error } = await deleteProject(project.id);
@@ -44,14 +49,14 @@ function DeleteProjectForm({ project }: DeleteProjectDialogProps) {
             {({ values, submitting }) => (
                 <>
                     <DialogHeader>
-                        <DialogTitle>Delete project</DialogTitle>
-                        <DialogDescription>This deletes {project.name} with everything in it. It cannot be undone.</DialogDescription>
+                        <DialogTitle>{t("title")}</DialogTitle>
+                        <DialogDescription>{t("description", { project: project.name })}</DialogDescription>
                     </DialogHeader>
-                    <TextField name="confirmation" label={`Type “${project.name}” to confirm`} />
+                    <TextField name="confirmation" label={t("confirmation", { project: project.name })} />
                     <FormSubmitError />
                     <DialogFooter>
                         <Button type="submit" variant="destructive" disabled={values.confirmation !== project.name || submitting}>
-                            Delete project
+                            {t("submit")}
                         </Button>
                     </DialogFooter>
                 </>

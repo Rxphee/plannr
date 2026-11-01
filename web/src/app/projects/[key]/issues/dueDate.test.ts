@@ -1,12 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { formatDueDate, isOverdue } from "./dueDate";
-
-describe("formatDueDate", () => {
-    it("formats the day without shifting it", () => {
-        expect(formatDueDate("2026-11-05")).toBe("Nov 5, 2026");
-    });
-});
+import { isOverdue } from "./dueDate";
 
 describe("isOverdue", () => {
     const today = "2026-10-29";

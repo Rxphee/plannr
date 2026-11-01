@@ -6,6 +6,7 @@ import { Button } from "@src/components/ui/Button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@src/components/ui/Dialog";
 import { FORM_ERROR } from "final-form";
 import { Trash2Icon } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 import { deleteIssue } from "../actions";
 
@@ -15,6 +16,7 @@ interface DeleteIssueDialogProps {
 }
 
 export function DeleteIssueDialog({ projectKey, issue }: DeleteIssueDialogProps) {
+    const t = useTranslations("deleteIssue");
     // On success the action redirects to the issue list
     const handleSubmit = async () => {
         const { error } = await deleteIssue(projectKey, issue.id);
@@ -25,7 +27,7 @@ export function DeleteIssueDialog({ projectKey, issue }: DeleteIssueDialogProps)
 
     return (
         <Dialog>
-            <DialogTrigger render={<Button variant="destructive" size="icon" aria-label="Delete issue" title="Delete issue" />}>
+            <DialogTrigger render={<Button variant="destructive" size="icon" aria-label={t("trigger")} title={t("trigger")} />}>
                 <Trash2Icon />
             </DialogTrigger>
             <DialogContent>
@@ -33,16 +35,13 @@ export function DeleteIssueDialog({ projectKey, issue }: DeleteIssueDialogProps)
                     {({ submitting }) => (
                         <>
                             <DialogHeader>
-                                <DialogTitle>Delete {issue.key}</DialogTitle>
-                                <DialogDescription>
-                                    This deletes the issue with its links. It cannot be undone. To keep it for the record, set its status to Canceled
-                                    instead.
-                                </DialogDescription>
+                                <DialogTitle>{t("title", { issue: issue.key })}</DialogTitle>
+                                <DialogDescription>{t("description")}</DialogDescription>
                             </DialogHeader>
                             <FormSubmitError />
                             <DialogFooter>
                                 <Button type="submit" variant="destructive" disabled={submitting}>
-                                    Delete issue
+                                    {t("submit")}
                                 </Button>
                             </DialogFooter>
                         </>

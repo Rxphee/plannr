@@ -2,21 +2,19 @@
 
 import { Button } from "@src/components/ui/Button";
 import type { GQLProjectStatus } from "@src/graphql.generated";
+import { useTranslations } from "next-intl";
 import { useState, useTransition } from "react";
 
 import { changeProjectStatus } from "./actions";
 
-const statusDescriptions: Record<GQLProjectStatus, string> = {
-    active: "The project is active.",
-    paused: "The project is paused. Resume it when the work goes on.",
-    archived: "The project is archived. Restore it to work on it again, or delete it below.",
-};
+const statusDescriptionKeys = { active: "statusActive", paused: "statusPaused", archived: "statusArchived" } as const;
 
 interface ProjectStatusActionsProps {
     project: { id: string; status: GQLProjectStatus };
 }
 
 export function ProjectStatusActions({ project }: ProjectStatusActionsProps) {
+    const t = useTranslations("projectSettings");
     const [error, setError] = useState<string>();
     const [pending, startTransition] = useTransition();
 
@@ -29,25 +27,25 @@ export function ProjectStatusActions({ project }: ProjectStatusActionsProps) {
 
     return (
         <div className="grid gap-3">
-            <p className="text-sm">{statusDescriptions[project.status]}</p>
+            <p className="text-sm">{t(statusDescriptionKeys[project.status])}</p>
             <div className="flex gap-2">
                 {project.status === "active" && (
                     <Button variant="outline" disabled={pending} onClick={() => changeStatus("paused")}>
-                        Pause
+                        {t("pause")}
                     </Button>
                 )}
                 {project.status === "paused" && (
                     <Button variant="outline" disabled={pending} onClick={() => changeStatus("active")}>
-                        Resume
+                        {t("resume")}
                     </Button>
                 )}
                 {project.status === "archived" ? (
                     <Button variant="outline" disabled={pending} onClick={() => changeStatus("active")}>
-                        Restore
+                        {t("restore")}
                     </Button>
                 ) : (
                     <Button variant="outline" disabled={pending} onClick={() => changeStatus("archived")}>
-                        Archive
+                        {t("archive")}
                     </Button>
                 )}
             </div>

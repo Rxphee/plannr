@@ -9,10 +9,11 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import type { GQLCreateProjectInput } from "@src/graphql.generated";
 import { FORM_ERROR } from "final-form";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { type ReactElement, useRef, useState } from "react";
 
 import { createProject } from "./actions";
-import { PROJECT_KEY_MAX_LENGTH, PROJECT_NAME_MAX_LENGTH, validateProjectKey } from "./projectValidation";
+import { isValidProjectKey, PROJECT_KEY_MAX_LENGTH, PROJECT_NAME_MAX_LENGTH } from "./projectValidation";
 import { suggestProjectKey } from "./suggestProjectKey";
 
 // The trigger differs by place, e.g. a button in the page header or an icon in the sidebar
@@ -31,6 +32,8 @@ export function CreateProjectDialog({ trigger }: { trigger: ReactElement }) {
 }
 
 function CreateProjectForm({ onCreated }: { onCreated: () => void }) {
+    const t = useTranslations("createProject");
+    const tCommon = useTranslations("common");
     const router = useRouter();
     // The key follows the name until the user edits it
     const keyWasEdited = useRef(false);
@@ -49,14 +52,12 @@ function CreateProjectForm({ onCreated }: { onCreated: () => void }) {
             {({ form, values, submitting }) => (
                 <>
                     <DialogHeader>
-                        <DialogTitle>New project</DialogTitle>
-                        <DialogDescription>
-                            The key prefixes every issue ID, e.g. {values.key || "KEY"}-42. It cannot be changed later.
-                        </DialogDescription>
+                        <DialogTitle>{t("title")}</DialogTitle>
+                        <DialogDescription>{t("description", { key: values.key || "KEY" })}</DialogDescription>
                     </DialogHeader>
                     <TextField
                         name="name"
-                        label="Name"
+                        label={tCommon("name")}
                         required
                         maxLength={PROJECT_NAME_MAX_LENGTH}
                         onValueChange={(name) => {
@@ -67,21 +68,21 @@ function CreateProjectForm({ onCreated }: { onCreated: () => void }) {
                     />
                     <TextField
                         name="key"
-                        label="Key"
+                        label={t("key")}
                         required
                         maxLength={PROJECT_KEY_MAX_LENGTH}
                         className="font-mono uppercase"
                         parse={(key) => key.toUpperCase()}
-                        validate={validateProjectKey}
+                        validate={(key) => (isValidProjectKey(key) ? undefined : t("keyPattern"))}
                         onValueChange={() => {
                             keyWasEdited.current = true;
                         }}
                     />
-                    <RichTextField name="description" label="Description" placeholder="What is the goal of the project?" />
+                    <RichTextField name="description" label={tCommon("description")} placeholder={t("descriptionPlaceholder")} />
                     <FormSubmitError />
                     <DialogFooter>
                         <Button type="submit" disabled={submitting}>
-                            Create project
+                            {t("submit")}
                         </Button>
                     </DialogFooter>
                 </>

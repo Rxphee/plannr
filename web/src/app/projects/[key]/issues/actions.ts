@@ -4,6 +4,7 @@ import type { GQLCreateIssueInput, GQLIssueLinkInput, GQLUpdateIssueInput } from
 import { graphQLFetch } from "@src/util/graphQLFetch";
 import { runMutation } from "@src/util/runMutation";
 import { redirect } from "next/navigation";
+import { getTranslations } from "next-intl/server";
 
 import { addIssueLinkMutation, createIssueMutation, deleteIssueMutation, removeIssueLinkMutation, updateIssueMutation } from "./actions.gql";
 import type {
@@ -20,32 +21,37 @@ import type {
 } from "./actions.gql.generated";
 
 export async function createIssue(input: GQLCreateIssueInput): Promise<{ error?: string }> {
+    const t = await getTranslations("errors");
     return runMutation(() => graphQLFetch<GQLCreateIssueMutation, GQLCreateIssueMutationVariables>(createIssueMutation, { input }), {
-        errorMessage: "The issue could not be created.",
+        errorMessage: t("createIssue"),
     });
 }
 
 export async function updateIssue(id: string, input: GQLUpdateIssueInput): Promise<{ error?: string }> {
+    const t = await getTranslations("errors");
     return runMutation(() => graphQLFetch<GQLUpdateIssueMutation, GQLUpdateIssueMutationVariables>(updateIssueMutation, { id, input }), {
-        errorMessage: "The issue could not be saved.",
+        errorMessage: t("saveIssue"),
     });
 }
 
 export async function deleteIssue(projectKey: string, id: string): Promise<{ error?: string }> {
+    const t = await getTranslations("errors");
     return runMutation(() => graphQLFetch<GQLDeleteIssueMutation, GQLDeleteIssueMutationVariables>(deleteIssueMutation, { id }), {
-        errorMessage: "The issue could not be deleted.",
+        errorMessage: t("deleteIssue"),
         onSuccess: () => redirect(`/projects/${projectKey}/issues`),
     });
 }
 
 export async function addIssueLink(input: GQLIssueLinkInput): Promise<{ error?: string }> {
+    const t = await getTranslations("errors");
     return runMutation(() => graphQLFetch<GQLAddIssueLinkMutation, GQLAddIssueLinkMutationVariables>(addIssueLinkMutation, { input }), {
-        errorMessage: "The link could not be added.",
+        errorMessage: t("addLink"),
     });
 }
 
 export async function removeIssueLink(id: string): Promise<{ error?: string }> {
+    const t = await getTranslations("errors");
     return runMutation(() => graphQLFetch<GQLRemoveIssueLinkMutation, GQLRemoveIssueLinkMutationVariables>(removeIssueLinkMutation, { id }), {
-        errorMessage: "The link could not be removed.",
+        errorMessage: t("removeLink"),
     });
 }

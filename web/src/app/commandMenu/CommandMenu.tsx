@@ -14,6 +14,7 @@ import { Kbd } from "@src/components/ui/Kbd";
 import { useDebouncedSearch } from "@src/hooks/useDebouncedSearch";
 import { LayoutGridIcon, PlusIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { useRef, useState } from "react";
 
 import { IssueStatusDot } from "../projects/[key]/issues/IssueStatusBadge";
@@ -32,6 +33,7 @@ const noResults: CommandMenuResults = { projects: [], issues: [] };
 
 // Finds issues by key or title and projects by name or key, across all projects the user can see
 export function CommandMenu({ open, onOpenChange, onQuickCapture }: CommandMenuProps) {
+    const t = useTranslations("commandMenu");
     const router = useRouter();
     const [results, setResults] = useState(noResults);
     const [isSearching, setIsSearching] = useState(false);
@@ -75,13 +77,13 @@ export function CommandMenu({ open, onOpenChange, onQuickCapture }: CommandMenuP
     const hasResults = results.issues.length > 0 || results.projects.length > 0;
 
     return (
-        <CommandDialog open={open} onOpenChange={changeOpen} title="Search" description="Find issues by key or title and projects by name or key">
+        <CommandDialog open={open} onOpenChange={changeOpen} title={t("title")} description={t("description")}>
             <Command shouldFilter={false}>
-                <CommandInput value={search} onValueChange={changeSearch} placeholder="Search issues and projects…" />
+                <CommandInput value={search} onValueChange={changeSearch} placeholder={t("placeholder")} />
                 <CommandList>
-                    {hasSearch && !hasResults && <CommandEmpty>{isSearching ? "Searching…" : "No issues or projects found."}</CommandEmpty>}
+                    {hasSearch && !hasResults && <CommandEmpty>{isSearching ? t("searching") : t("noResults")}</CommandEmpty>}
                     {results.issues.length > 0 && (
-                        <CommandGroup heading="Issues">
+                        <CommandGroup heading={t("issues")}>
                             {results.issues.map((issue) => (
                                 <CommandItem
                                     key={issue.id}
@@ -97,7 +99,7 @@ export function CommandMenu({ open, onOpenChange, onQuickCapture }: CommandMenuP
                         </CommandGroup>
                     )}
                     {results.projects.length > 0 && (
-                        <CommandGroup heading="Projects">
+                        <CommandGroup heading={t("projects")}>
                             {results.projects.map((project) => (
                                 <CommandItem
                                     key={project.id}
@@ -112,11 +114,11 @@ export function CommandMenu({ open, onOpenChange, onQuickCapture }: CommandMenuP
                         </CommandGroup>
                     )}
                     {!hasSearch && (
-                        <CommandGroup heading="Actions">
+                        <CommandGroup heading={t("actions")}>
                             {onQuickCapture && (
                                 <CommandItem value="create-issue" onSelect={() => runCommand(onQuickCapture)}>
                                     <PlusIcon />
-                                    Create issue
+                                    {t("createIssue")}
                                     <CommandShortcut>
                                         <Kbd>C</Kbd>
                                     </CommandShortcut>
@@ -124,7 +126,7 @@ export function CommandMenu({ open, onOpenChange, onQuickCapture }: CommandMenuP
                             )}
                             <CommandItem value="all-projects" onSelect={() => runCommand(() => router.push("/projects"))}>
                                 <LayoutGridIcon />
-                                All projects
+                                {t("allProjects")}
                             </CommandItem>
                         </CommandGroup>
                     )}

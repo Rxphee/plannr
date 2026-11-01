@@ -10,6 +10,7 @@ import { Label } from "@src/components/ui/Label";
 import type { GQLUpdateProjectInput } from "@src/graphql.generated";
 import { FORM_ERROR } from "final-form";
 import { LockIcon } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { useId } from "react";
 
 import { ProjectIcon } from "../../ProjectIcon";
@@ -21,6 +22,9 @@ interface EditProjectFormProps {
 }
 
 export function EditProjectForm({ project }: EditProjectFormProps) {
+    const t = useTranslations("projectSettings");
+    const tCommon = useTranslations("common");
+    const tCreate = useTranslations("createProject");
     const keyId = useId();
     const handleSubmit = async (values: GQLUpdateProjectInput) => {
         const { error } = await updateProject(project.id, values);
@@ -38,7 +42,7 @@ export function EditProjectForm({ project }: EditProjectFormProps) {
             {({ pristine, submitting }) => (
                 <>
                     <div className="grid gap-2">
-                        <Label htmlFor={keyId}>Key</Label>
+                        <Label htmlFor={keyId}>{t("key")}</Label>
                         <div className="relative">
                             <ProjectIcon projectKey={project.key} className="pointer-events-none absolute top-1/2 left-2.5 -translate-y-1/2" />
                             <Input
@@ -54,15 +58,15 @@ export function EditProjectForm({ project }: EditProjectFormProps) {
                             />
                         </div>
                         <p id={`${keyId}-description`} className="text-muted-foreground text-sm">
-                            Fixed, because every issue ID starts with it, e.g. <span className="font-mono">{project.key}-42</span>.
+                            {t.rich("keyDescription", { key: project.key, mono: (chunks) => <span className="font-mono">{chunks}</span> })}
                         </p>
                     </div>
-                    <TextField name="name" label="Name" required maxLength={PROJECT_NAME_MAX_LENGTH} />
-                    <RichTextField name="description" label="Description" placeholder="What is the goal of the project?" />
+                    <TextField name="name" label={tCommon("name")} required maxLength={PROJECT_NAME_MAX_LENGTH} />
+                    <RichTextField name="description" label={tCommon("description")} placeholder={tCreate("descriptionPlaceholder")} />
                     <FormSubmitError />
                     <div>
                         <Button type="submit" disabled={pristine || submitting}>
-                            Save
+                            {tCommon("save")}
                         </Button>
                     </div>
                 </>
