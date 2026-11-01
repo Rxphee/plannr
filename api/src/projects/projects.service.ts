@@ -101,6 +101,11 @@ export class ProjectsService {
         );
     }
 
+    // All issues of the project assigned to the member, done and canceled ones included, since removing the member unassigns them all
+    async countAssignedIssues(member: ProjectMember): Promise<number> {
+        return this.entityManager.count(Issue, { project: member.project, assignee: member.user });
+    }
+
     // The assignee of an issue must be a member, so they keep seeing the issue. An admin without membership becomes a member,
     // so the issue stays visible to them once their admin rights end.
     async prepareAssignee(project: Project, userId: string): Promise<User> {

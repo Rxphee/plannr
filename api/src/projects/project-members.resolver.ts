@@ -1,5 +1,5 @@
 import { ParseUUIDPipe } from "@nestjs/common";
-import { Args, ID, Mutation, Parent, ResolveField, Resolver } from "@nestjs/graphql";
+import { Args, ID, Int, Mutation, Parent, ResolveField, Resolver } from "@nestjs/graphql";
 import { CurrentUser } from "@src/auth/current-user.decorator.js";
 import { User } from "@src/users/user.entity.js";
 
@@ -41,5 +41,10 @@ export class ProjectMembersResolver {
     @ResolveField(() => User)
     async user(@Parent() member: ProjectMember): Promise<User> {
         return member.user.loadOrFail();
+    }
+
+    @ResolveField(() => Int, { description: "Issues of the project assigned to the member, which lose their assignee when the member is removed" })
+    async assignedIssueCount(@Parent() member: ProjectMember): Promise<number> {
+        return this.projectsService.countAssignedIssues(member);
     }
 }

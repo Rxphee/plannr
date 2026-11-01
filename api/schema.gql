@@ -385,6 +385,10 @@ type Project {
 }
 
 type ProjectMember {
+  """
+  Issues of the project assigned to the member, which lose their assignee when the member is removed
+  """
+  assignedIssueCount: Int!
   createdAt: DateTime!
   project: Project!
   role: ProjectMemberRole!

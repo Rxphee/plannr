@@ -171,3 +171,15 @@ describe("ProjectsService.removeMember", () => {
         expect(entityManager.nativeUpdate).toHaveBeenCalledWith(Issue, { project, assignee: user.id }, { assignee: null });
     });
 });
+
+describe("ProjectsService.countAssignedIssues", () => {
+    it("counts the issues of the project assigned to the member", async () => {
+        const project = createProject(ProjectStatus.active);
+        const membership = Object.assign(new ProjectMember(), { project, user });
+        const count = vi.fn().mockResolvedValue(3);
+        const service = new ProjectsService({ count } as unknown as EntityManager, instanceRoles);
+
+        await expect(service.countAssignedIssues(membership)).resolves.toBe(3);
+        expect(count).toHaveBeenCalledWith(Issue, { project, assignee: user });
+    });
+});
