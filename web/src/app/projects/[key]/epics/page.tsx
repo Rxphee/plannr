@@ -79,7 +79,7 @@ export default async function EpicsPage({ params, searchParams }: PageProps<"/pr
                     </Empty>
                 ) : (
                     <>
-                        <ul className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                        <ul className="grid grid-cols-[repeat(auto-fill,minmax(min(21rem,100%),1fr))] gap-4">
                             {epics.nodes.map((epic) => (
                                 <li key={epic.id}>
                                     <EpicCard projectKey={project.key} epic={epic} />

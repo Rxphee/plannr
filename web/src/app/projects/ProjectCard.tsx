@@ -41,14 +41,16 @@ export function ProjectCard({ project }: ProjectCardProps) {
             <p className="text-muted-foreground line-clamp-2 min-h-10 text-sm">
                 {project.description ? markdownToPlainText(project.description) : t("noDescriptionYet")}
             </p>
-            <div className="mt-auto flex items-center justify-between gap-3 border-t pt-4">
+            <div className="mt-auto flex flex-wrap items-center justify-between gap-3 border-t pt-4">
                 <AvatarGroup className="-space-x-1.5">
                     {project.members.nodes.map(({ user }) => (
                         <UserAvatar key={user.id} user={user} className="ring-card!" />
                     ))}
                     {hiddenMemberCount > 0 && <AvatarGroupCount className="ring-card! text-xs">+{hiddenMemberCount}</AvatarGroupCount>}
                 </AvatarGroup>
-                <span className="text-muted-foreground text-sm">{t("created", { date: format.dateTime(new Date(project.createdAt), "date") })}</span>
+                <span className="text-muted-foreground text-sm whitespace-nowrap">
+                    {t("created", { date: format.dateTime(new Date(project.createdAt), "date") })}
+                </span>
             </div>
         </Link>
     );

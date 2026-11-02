@@ -42,7 +42,7 @@ export function PageSkeleton({ variant }: PageSkeletonProps) {
                     </div>
                 )}
                 {variant === "cards" && (
-                    <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                    <div className="grid grid-cols-[repeat(auto-fill,minmax(min(21rem,100%),1fr))] gap-4">
                         {Array.from({ length: 3 }, (_, card) => (
                             <Skeleton key={card} className="h-32 rounded-xl" />
                         ))}
