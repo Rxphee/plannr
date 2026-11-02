@@ -12,6 +12,7 @@ import { CreateIssueDialog } from "../../issues/CreateIssueDialog";
 import { fetchAssigneeOptions } from "../../issues/fetchAssigneeOptions";
 import { parseIssueListParams } from "../../issues/issueListParams";
 import { IssueListView } from "../../issues/IssueListView";
+import { IssueViewTabs } from "../../issues/IssueViewTabs";
 import { EpicProgress } from "../EpicProgress";
 import { fetchEpicOptions } from "../fetchEpicOptions";
 import { DeleteEpicDialog } from "./DeleteEpicDialog";
@@ -43,6 +44,7 @@ export default async function EpicPage({ params, searchParams }: PageProps<"/pro
     ]);
     const project = { ...epic.project, epics };
     const path = `/projects/${project.key}/epics/${epic.id}`;
+    const listParams = parseIssueListParams(await searchParams);
     const createAction = project.canContribute && <CreateIssueDialog project={project} epicId={epic.id} labels={labels} assignees={assignees} />;
 
     return (
@@ -80,6 +82,7 @@ export default async function EpicPage({ params, searchParams }: PageProps<"/pro
                         </>
                     )
                 }
+                tabs={<IssueViewTabs projectId={project.id} path={path} params={listParams} epicId={epic.id} />}
             />
             <PageContent className="grid gap-6">
                 {epic.description ? (
@@ -87,14 +90,7 @@ export default async function EpicPage({ params, searchParams }: PageProps<"/pro
                 ) : (
                     epic.isDefault && <p className="text-muted-foreground text-sm">{t("defaultEpicDescription")}</p>
                 )}
-                <IssueListView
-                    project={project}
-                    labels={labels}
-                    path={path}
-                    params={parseIssueListParams(await searchParams)}
-                    epicId={epic.id}
-                    createAction={createAction}
-                />
+                <IssueListView project={project} labels={labels} path={path} params={listParams} epicId={epic.id} createAction={createAction} />
             </PageContent>
         </>
     );
