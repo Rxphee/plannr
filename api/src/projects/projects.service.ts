@@ -18,6 +18,7 @@ import type { ProjectsArgs } from "./dto/projects.args.js";
 import type { UpdateProjectInput } from "./dto/update-project.input.js";
 import { Project, ProjectStatus } from "./entities/project.entity.js";
 import { ProjectMember, ProjectMemberRole } from "./entities/project-member.entity.js";
+import { projectOrder } from "./project-sort.js";
 
 @Injectable()
 export class ProjectsService {
@@ -26,8 +27,7 @@ export class ProjectsService {
         private readonly instanceRoles: InstanceRolesService,
     ) {}
 
-    // Sorted by name, then by ID, so that two projects with the same name keep their order across pages
-    async findAllVisibleTo({ statuses, search, offset, limit }: ProjectsArgs, user: User): Promise<PaginatedProjects> {
+    async findAllVisibleTo({ statuses, search, sort, offset, limit }: ProjectsArgs, user: User): Promise<PaginatedProjects> {
         const where: FilterQuery<Project> = this.instanceRoles.hasAdminRights(user) ? {} : { members: { user } };
         if (statuses?.length) {
             where.status = { $in: statuses };
@@ -36,7 +36,7 @@ export class ProjectsService {
             where.$or = [{ name: { $ilike: containsPattern(search) } }, { key: { $ilike: containsPattern(search) } }];
         }
         const [nodes, totalCount] = await this.entityManager.findAndCount(Project, where, {
-            orderBy: { name: "asc", id: "asc" },
+            orderBy: projectOrder(sort),
             offset,
             limit,
         });

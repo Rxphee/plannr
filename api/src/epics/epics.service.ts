@@ -13,6 +13,7 @@ import type { EpicsArgs } from "./dto/epics.args.js";
 import type { PaginatedEpics } from "./dto/paginated-epics.js";
 import type { UpdateEpicInput } from "./dto/update-epic.input.js";
 import { Epic } from "./entities/epic.entity.js";
+import { epicOrder } from "./epic-sort.js";
 
 @Injectable()
 export class EpicsService {
@@ -22,15 +23,14 @@ export class EpicsService {
         private readonly instanceRoles: InstanceRolesService,
     ) {}
 
-    // General first, then by name and ID, so that two epics with the same name keep their order across pages
-    async findAll({ projectId, search, offset, limit }: EpicsArgs, user: User): Promise<PaginatedEpics> {
+    async findAll({ projectId, search, sort, offset, limit }: EpicsArgs, user: User): Promise<PaginatedEpics> {
         const project = await this.projectsService.findOneVisibleById(projectId, user);
         const where: FilterQuery<Epic> = { project };
         if (search) {
             where.name = { $ilike: containsPattern(search) };
         }
         const [nodes, totalCount] = await this.entityManager.findAndCount(Epic, where, {
-            orderBy: { isDefault: "desc", name: "asc", id: "asc" },
+            orderBy: epicOrder(sort),
             offset,
             limit,
         });

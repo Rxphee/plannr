@@ -5,6 +5,7 @@ import { Transform, Type } from "class-transformer";
 import { IsEnum, IsOptional, IsString, IsUUID, ValidateNested } from "class-validator";
 
 import { IssuePriority, IssueStatus, IssueType } from "../entities/issue.entity.js";
+import { IssueSort } from "../issue-sort.js";
 import { IssueView } from "../issue-views.js";
 
 // Each list matches any of its values, the lists together match all of them
@@ -59,4 +60,10 @@ export class IssuesArgs extends PaginationArgs {
     @Type(() => IssueFilter)
     @Field(() => IssueFilter, { nullable: true })
     filter?: IssueFilter;
+
+    @IsOptional()
+    @ValidateNested()
+    @Type(() => IssueSort)
+    @Field(() => IssueSort, { nullable: true, description: "Without, newest first, the view of due issues the soonest due first" })
+    sort?: IssueSort;
 }
