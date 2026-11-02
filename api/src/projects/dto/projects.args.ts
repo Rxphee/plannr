@@ -1,10 +1,11 @@
 import { ArgsType, Field } from "@nestjs/graphql";
 import { PaginationArgs } from "@src/common/pagination.args.js";
 import { trim } from "@src/common/trim.js";
-import { Transform } from "class-transformer";
-import { IsEnum, IsOptional, IsString } from "class-validator";
+import { Transform, Type } from "class-transformer";
+import { IsEnum, IsOptional, IsString, ValidateNested } from "class-validator";
 
 import { ProjectStatus } from "../entities/project.entity.js";
+import { ProjectSort } from "../project-sort.js";
 
 @ArgsType()
 export class ProjectsArgs extends PaginationArgs {
@@ -18,4 +19,10 @@ export class ProjectsArgs extends PaginationArgs {
     @IsString()
     @Field({ nullable: true, description: "Part of the name or key" })
     search?: string;
+
+    @IsOptional()
+    @ValidateNested()
+    @Type(() => ProjectSort)
+    @Field(() => ProjectSort, { nullable: true, description: "Without, by name" })
+    sort?: ProjectSort;
 }

@@ -33,6 +33,7 @@ export async function IssueListView({ project, labels, path, params, epicId, cre
             projectId: project.id,
             view: params.view ?? null,
             filter: toIssueFilter(epicId ? { ...params, epics: [epicId] } : params),
+            sort: params.sort ?? null,
             ...toOffsetAndLimit(params),
         }),
         getTranslations("issues"),

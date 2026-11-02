@@ -126,6 +126,7 @@ describe("issueListHref", () => {
             epics: [epicId],
             labels: [labelId],
             search: "a,b",
+            sort: { field: "priority", direction: "desc" },
             page: 2,
             pageSize: 100,
             defaultPageSize: 25,
@@ -175,5 +176,27 @@ describe("views", () => {
             view: undefined,
             statuses: ["todo"],
         });
+    });
+});
+
+describe("sort", () => {
+    it("reads the sort", () => {
+        expect(parseIssueListParams({ sort: "dueDate-desc" }).sort).toEqual({ field: "dueDate", direction: "desc" });
+    });
+
+    it("writes a sort other than the order of the view", () => {
+        expect(issueListHref("/issues", { ...openIssues, sort: { field: "title", direction: "asc" } })).toBe("/issues?sort=title-asc");
+    });
+
+    it("leaves out the order the view has anyway", () => {
+        expect(issueListHref("/issues", { ...openIssues, sort: { field: "createdAt", direction: "desc" } })).toBe("/issues");
+        expect(issueListHref("/issues", { ...openIssues, view: "due", sort: { field: "dueDate", direction: "asc" } })).toBe("/issues?view=due");
+    });
+
+    it("is no filter and stays when the view changes", () => {
+        const sorted: IssueListParams = { ...openIssues, sort: { field: "priority", direction: "desc" } };
+
+        expect(isIssueListFiltered(sorted)).toBe(false);
+        expect(withView(sorted, "bugs").sort).toEqual(sorted.sort);
     });
 });

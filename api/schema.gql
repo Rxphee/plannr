@@ -107,6 +107,17 @@ type Epic {
   updatedAt: DateTime!
 }
 
+input EpicSort {
+  direction: SortDirection!
+  field: EpicSortField!
+}
+
+enum EpicSortField {
+  createdAt
+  name
+  updatedAt
+}
+
 enum InstanceRole {
   admin
   superAdmin
@@ -193,6 +204,23 @@ enum IssuePriority {
   high
   low
   normal
+}
+
+input IssueSort {
+  direction: SortDirection!
+  field: IssueSortField!
+}
+
+enum IssueSortField {
+  createdAt
+
+  """Issues without a due date come last in both directions"""
+  dueDate
+
+  """From low to high, so descending puts high first"""
+  priority
+  title
+  updatedAt
 }
 
 enum IssueStatus {
@@ -408,6 +436,18 @@ enum ProjectMemberRole {
   viewer
 }
 
+input ProjectSort {
+  direction: SortDirection!
+  field: ProjectSortField!
+}
+
+enum ProjectSortField {
+  createdAt
+  key
+  name
+  updatedAt
+}
+
 enum ProjectStatus {
   active
   archived
@@ -440,6 +480,9 @@ type Query {
 
     """Part of the name"""
     search: String
+
+    """General always comes first, without a sort the others by name"""
+    sort: EpicSort
   ): PaginatedEpics!
 
   """
@@ -448,7 +491,7 @@ type Query {
   issue(key: String!): Issue
 
   """
-  Issues of a project or of all projects, newest first, the view of due issues the soonest due first
+  Issues of a project or of all projects, newest first unless sorted, the view of due issues the soonest due first
   """
   issues(
     filter: IssueFilter
@@ -459,6 +502,9 @@ type Query {
     Without a project, the issues of all active and paused projects the user can see
     """
     projectId: ID
+
+    """Without, newest first, the view of due issues the soonest due first"""
+    sort: IssueSort
 
     """One of the fixed views, combined with the filter"""
     view: IssueView
@@ -478,6 +524,9 @@ type Query {
     """Part of the name or key"""
     search: String
 
+    """Without, by name"""
+    sort: ProjectSort
+
     """Projects with any of the statuses, all projects without"""
     statuses: [ProjectStatus!]
   ): PaginatedProjects!
@@ -492,6 +541,11 @@ type Query {
     """
     search: String
   ): PaginatedUsers!
+}
+
+enum SortDirection {
+  asc
+  desc
 }
 
 input UpdateEpicInput {

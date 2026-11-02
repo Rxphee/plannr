@@ -19,7 +19,7 @@ export class IssuesResolver {
     constructor(private readonly issuesService: IssuesService) {}
 
     @Query(() => PaginatedIssues, {
-        description: "Issues of a project or of all projects, newest first, the view of due issues the soonest due first",
+        description: "Issues of a project or of all projects, newest first unless sorted, the view of due issues the soonest due first",
     })
     async issues(@Args() args: IssuesArgs, @CurrentUser() user: User): Promise<PaginatedIssues> {
         return this.issuesService.findAll(args, user);

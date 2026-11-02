@@ -1,4 +1,4 @@
-import { EntityManager, type FilterQuery, LockMode, type QueryOrderMap, ref } from "@mikro-orm/postgresql";
+import { EntityManager, type FilterQuery, LockMode, ref } from "@mikro-orm/postgresql";
 import { ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
 import { UserError } from "@src/common/user-error.js";
 import { containsPattern } from "@src/db/contains-pattern.js";
@@ -17,7 +17,8 @@ import type { UpdateIssueInput } from "./dto/update-issue.input.js";
 import { Issue } from "./entities/issue.entity.js";
 import { detectIssueLinkKind, IssueLink } from "./entities/issue-link.entity.js";
 import { findIssueKeyIn, issueKeyCondition, parseIssueKey } from "./issue-key.js";
-import { IssueView, issueViewCondition } from "./issue-views.js";
+import { issueOrder } from "./issue-sort.js";
+import { issueViewCondition } from "./issue-views.js";
 
 @Injectable()
 export class IssuesService {
@@ -29,8 +30,7 @@ export class IssuesService {
         private readonly instanceRoles: InstanceRolesService,
     ) {}
 
-    // Newest first, the view of due issues the soonest due first
-    async findAll({ projectId, view, filter = {}, offset, limit }: IssuesArgs, user: User): Promise<PaginatedIssues> {
+    async findAll({ projectId, view, filter = {}, sort, offset, limit }: IssuesArgs, user: User): Promise<PaginatedIssues> {
         const project = projectId ? await this.projectsService.findOneVisibleById(projectId, user) : this.openProjectsVisibleTo(user);
         const { epicIds, statuses, types, priorities, labelIds, search } = filter;
 
@@ -55,11 +55,9 @@ export class IssuesService {
             where.$or = [{ title: { $ilike: containsPattern(search) } }, ...(issueKey ? [issueKeyCondition(issueKey)] : [])];
         }
 
-        // The numbers only count up within a project, across projects the creation time and the ID decide
-        const newestFirst: QueryOrderMap<Issue> = projectId ? { number: "desc" } : { createdAt: "desc", id: "desc" };
         const [nodes, totalCount] = await this.entityManager.findAndCount(Issue, view ? { $and: [where, issueViewCondition(view, user)] } : where, {
             populate: ["epic", "links", "labels", "assignee"],
-            orderBy: view === IssueView.due ? { dueDate: "asc", ...newestFirst } : newestFirst,
+            orderBy: issueOrder({ sort, view, isWithinProject: Boolean(projectId) }),
             offset,
             limit,
         });

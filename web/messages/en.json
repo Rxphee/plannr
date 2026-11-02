@@ -266,6 +266,7 @@
         "allView": "All",
         "descriptionDue": "The tasks and bugs of {project}, the soonest due first.",
         "descriptionNewest": "The tasks and bugs of {project}, newest first.",
+        "descriptionSorted": "The tasks and bugs of {project}.",
         "noMatchesDescription": "Change the filters or the search to see more issues.",
         "noMatchesTitle": "No matching issues",
         "noOpenDescription": "Issues are the tasks and bugs of the project. Done ones are under the status filter.",
@@ -431,6 +432,38 @@
         "toggle": "Toggle sidebar",
         "users": "Users",
         "workspace": "Workspace"
+    },
+    "sortMenu": {
+        "directions": {
+            "date": {
+                "asc": "Oldest first",
+                "desc": "Newest first"
+            },
+            "deadline": {
+                "asc": "Soonest first",
+                "desc": "Latest first"
+            },
+            "rank": {
+                "asc": "Lowest first",
+                "desc": "Highest first"
+            },
+            "text": {
+                "asc": "A–Z",
+                "desc": "Z–A"
+            }
+        },
+        "fields": {
+            "createdAt": "Created",
+            "dueDate": "Due date",
+            "key": "Key",
+            "name": "Name",
+            "priority": "Priority",
+            "title": "Title",
+            "updatedAt": "Updated"
+        },
+        "order": "Order",
+        "sortBy": "Sort by",
+        "triggerLabel": "Sort by {field}, {direction}"
     },
     "themeSwitcher": {
         "dark": "Dark",

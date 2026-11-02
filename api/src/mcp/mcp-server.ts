@@ -5,9 +5,13 @@ import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/
 import type { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
 import { HttpException, Logger } from "@nestjs/common";
 import { MAX_PAGE_SIZE } from "@src/common/pagination.args.js";
+import { SortDirection } from "@src/common/sort.js";
+import { EpicSortField } from "@src/epics/epic-sort.js";
 import { IssuePriority, IssueStatus, IssueType } from "@src/issues/entities/issue.entity.js";
+import { IssueSortField } from "@src/issues/issue-sort.js";
 import { IssueView } from "@src/issues/issue-views.js";
 import { ProjectStatus } from "@src/projects/entities/project.entity.js";
+import { ProjectSortField } from "@src/projects/project-sort.js";
 import type { User } from "@src/users/user.entity.js";
 import { z } from "zod";
 
@@ -26,6 +30,7 @@ const pagination = {
 const labelNames = z.array(z.string()).optional();
 const dueDate = z.string().nullable().optional().describe("YYYY-MM-DD, null removes it");
 const assignee = z.string().describe('"me", email or full name of a project member');
+const direction = (defaults: string) => z.enum(SortDirection).optional().describe(`Needs sort. Default ${defaults}`);
 
 const readOnly = { readOnlyHint: true, openWorldHint: false };
 
@@ -60,10 +65,12 @@ function createMcpServer(tools: McpToolsService, user: User): McpServer {
     server.registerTool(
         "list_projects",
         {
-            description: "List projects. Line: key · status · name",
+            description: "List projects, by name unless sorted. Line: key · status · name",
             inputSchema: {
                 statuses: z.array(z.enum(ProjectStatus)).optional().describe("Default active and paused"),
                 search: z.string().optional().describe("Part of name or key"),
+                sort: z.enum(ProjectSortField).optional(),
+                direction: direction("asc, desc for dates"),
                 ...pagination,
             },
             annotations: readOnly,
@@ -74,8 +81,14 @@ function createMcpServer(tools: McpToolsService, user: User): McpServer {
     server.registerTool(
         "list_epics",
         {
-            description: "List the epics of a project. Line: name · done/total issues · id",
-            inputSchema: { project: projectKey, search: z.string().optional().describe("Part of the name"), ...pagination },
+            description: "List the epics of a project, General first, then by name unless sorted. Line: name · done/total issues · id",
+            inputSchema: {
+                project: projectKey,
+                search: z.string().optional().describe("Part of the name"),
+                sort: z.enum(EpicSortField).optional(),
+                direction: direction("asc, desc for dates"),
+                ...pagination,
+            },
             annotations: readOnly,
         },
         async (args) => runTool(() => tools.listEpics(args, user)),
@@ -109,7 +122,7 @@ function createMcpServer(tools: McpToolsService, user: User): McpServer {
     server.registerTool(
         "list_issues",
         {
-            description: "List issues, newest first. Line: key · type · priority · status · due date · title · @assignee · #labels",
+            description: "List issues, newest first unless sorted. Line: key · type · priority · status · due date · title · @assignee · #labels",
             inputSchema: {
                 project: projectKey.optional().describe("Project key; without, all active and paused projects"),
                 view: z
@@ -124,6 +137,8 @@ function createMcpServer(tools: McpToolsService, user: User): McpServer {
                 priorities: z.array(z.enum(IssuePriority)).optional(),
                 labels: labelNames.describe("Label names, any of them"),
                 search: z.string().optional().describe("Part of the title, or an issue number"),
+                sort: z.enum(IssueSortField).optional().describe("priority: high first, dueDate: soonest first, without a due date last"),
+                direction: direction("desc, asc for title and dueDate"),
                 ...pagination,
             },
             annotations: readOnly,

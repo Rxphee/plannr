@@ -1,4 +1,5 @@
 import { type EntityManager, ref } from "@mikro-orm/postgresql";
+import { SortDirection } from "@src/common/sort.js";
 import type { EpicsService } from "@src/epics/epics.service.js";
 import { InstanceRolesService } from "@src/instance-roles/instance-roles.service.js";
 import type { LabelsService } from "@src/labels/labels.service.js";
@@ -10,6 +11,7 @@ import { describe, expect, it, vi } from "vitest";
 import type { IssuesArgs } from "./dto/issues.args.js";
 import { Issue, IssuePriority, IssueStatus, IssueType } from "./entities/issue.entity.js";
 import { IssueLinkKind } from "./entities/issue-link.entity.js";
+import { IssueSortField } from "./issue-sort.js";
 import { IssueView } from "./issue-views.js";
 import { IssuesService } from "./issues.service.js";
 
@@ -38,7 +40,7 @@ describe("IssuesService.findAll", () => {
         const { where, orderBy, project } = await findAll({ projectId: "0b7f3a52-5c1e-4f0e-9d39-2f4a8e6b1c7d" });
 
         expect(where).toEqual({ project });
-        expect(orderBy).toEqual({ number: "desc" });
+        expect(orderBy).toEqual([{ number: "desc" }]);
     });
 
     it.each([
@@ -76,14 +78,24 @@ describe("IssuesService.findAll", () => {
     it("sorts the due issues by their due date, then newest first", async () => {
         const { orderBy } = await findAll({ projectId: "0b7f3a52-5c1e-4f0e-9d39-2f4a8e6b1c7d", view: IssueView.due });
 
-        expect(orderBy).toEqual({ dueDate: "asc", number: "desc" });
+        expect(orderBy).toEqual([{ dueDate: "asc" }, { number: "desc" }]);
+    });
+
+    it("sorts by the given field over the order of the view", async () => {
+        const { orderBy } = await findAll({
+            projectId: "0b7f3a52-5c1e-4f0e-9d39-2f4a8e6b1c7d",
+            view: IssueView.due,
+            sort: { field: IssueSortField.title, direction: SortDirection.asc },
+        });
+
+        expect(orderBy).toEqual([{ title: "asc" }, { number: "desc" }]);
     });
 
     it("lists the issues of the active and paused projects of the user without a project", async () => {
         const { where, orderBy, user } = await findAll({});
 
         expect(where).toEqual({ project: { status: { $in: [ProjectStatus.active, ProjectStatus.paused] }, members: { user } } });
-        expect(orderBy).toEqual({ createdAt: "desc", id: "desc" });
+        expect(orderBy).toEqual([{ createdAt: "desc", id: "desc" }]);
     });
 
     it("lists the issues of all active and paused projects for admins", async () => {
