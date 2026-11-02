@@ -13,6 +13,7 @@ import type { PropsWithChildren } from "react";
 
 import { AppCommands } from "./commandMenu/AppCommands";
 import { AppSidebar } from "./sidebar/AppSidebar";
+import { CloseMobileSidebarOnNavigation } from "./sidebar/CloseMobileSidebarOnNavigation";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 
@@ -36,6 +37,7 @@ export default async function RootLayout({ children }: PropsWithChildren) {
                     <SidebarProvider defaultOpen={isSidebarOpen}>
                         <AppCommands>
                             <AppSidebar theme={theme} localePreference={localePreference} />
+                            <CloseMobileSidebarOnNavigation />
                             <SidebarInset className="md:ring-border md:ring-1">{children}</SidebarInset>
                         </AppCommands>
                     </SidebarProvider>

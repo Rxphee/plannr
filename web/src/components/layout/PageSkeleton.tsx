@@ -19,13 +19,13 @@ export function PageSkeleton({ variant }: PageSkeletonProps) {
             <div className="border-b">
                 <div className="mx-auto grid w-full max-w-6xl gap-3 px-4 pt-8 pb-6 md:px-8">
                     <Skeleton className="h-8 w-64" />
-                    <Skeleton className="h-4 w-96 max-w-full" />
+                    <Skeleton className="h-4 w-full max-w-96" />
                 </div>
             </div>
             <PageContent>
                 {variant === "list" && (
                     <div className="grid gap-4">
-                        <div className="flex gap-2">
+                        <div className="flex min-w-0 gap-2">
                             <Skeleton className="h-9 w-60" />
                             <Skeleton className="h-9 w-24" />
                             <Skeleton className="h-9 w-24" />
