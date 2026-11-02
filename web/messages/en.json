@@ -394,10 +394,8 @@
     },
     "quickCapture": {
         "chooseProject": "Choose a project",
-        "created": "Created {key}",
         "description": "Lands in the epic General of the project, add the details later.",
         "descriptionInProject": "Lands in the epic General of {project}, add the details later.",
-        "openIssue": "Open",
         "project": "Project",
         "submit": "Create issue",
         "title": "Capture issue"
@@ -441,8 +439,11 @@
         "system": "System"
     },
     "toasts": {
+        "epicCreated": "Epic {name} created",
         "epicDeleted": "Epic {name} deleted",
+        "issueCreated": "{key} created",
         "issueDeleted": "{key} deleted",
+        "open": "Open",
         "projectDeleted": "Project {name} deleted"
     },
     "userMenu": {

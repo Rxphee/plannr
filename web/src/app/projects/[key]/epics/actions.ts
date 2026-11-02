@@ -15,11 +15,18 @@ import type {
     GQLUpdateEpicMutationVariables,
 } from "./actions.gql.generated";
 
-export async function createEpic(input: GQLCreateEpicInput): Promise<{ error?: string }> {
+// Returns the ID of the new epic, so a toast can link to it
+export async function createEpic(input: GQLCreateEpicInput): Promise<{ error?: string; epicId?: string }> {
     const t = await getTranslations("errors");
-    return runMutation(() => graphQLFetch<GQLCreateEpicMutation, GQLCreateEpicMutationVariables>(createEpicMutation, { input }), {
-        errorMessage: t("createEpic"),
-    });
+    let epicId: string | undefined;
+    const result = await runMutation(
+        async () => {
+            const data = await graphQLFetch<GQLCreateEpicMutation, GQLCreateEpicMutationVariables>(createEpicMutation, { input });
+            epicId = data.createEpic.id;
+        },
+        { errorMessage: t("createEpic") },
+    );
+    return { ...result, epicId };
 }
 
 export async function updateEpic(id: string, input: GQLUpdateEpicInput): Promise<{ error?: string }> {

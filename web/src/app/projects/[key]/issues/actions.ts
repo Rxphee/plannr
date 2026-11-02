@@ -19,7 +19,7 @@ import type {
     GQLUpdateIssueMutationVariables,
 } from "./actions.gql.generated";
 
-// Returns the new issue, so the quick capture can link to it
+// Returns the new issue, so a toast can link to it
 export async function createIssue(input: GQLCreateIssueInput): Promise<{ error?: string; issue?: GQLCreateIssueMutation["createIssue"] }> {
     const t = await getTranslations("errors");
     let issue: GQLCreateIssueMutation["createIssue"] | undefined;

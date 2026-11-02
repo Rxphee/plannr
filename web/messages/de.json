@@ -394,10 +394,8 @@
     },
     "quickCapture": {
         "chooseProject": "Projekt wählen",
-        "created": "{key} erstellt",
         "description": "Landet im Epic General des Projekts, die Details folgen später.",
         "descriptionInProject": "Landet im Epic General von {project}, die Details folgen später.",
-        "openIssue": "Öffnen",
         "project": "Projekt",
         "submit": "Issue erstellen",
         "title": "Issue erfassen"
@@ -441,8 +439,11 @@
         "system": "System"
     },
     "toasts": {
+        "epicCreated": "Epic {name} erstellt",
         "epicDeleted": "Epic {name} gelöscht",
+        "issueCreated": "{key} erstellt",
         "issueDeleted": "{key} gelöscht",
+        "open": "Öffnen",
         "projectDeleted": "Projekt {name} gelöscht"
     },
     "userMenu": {

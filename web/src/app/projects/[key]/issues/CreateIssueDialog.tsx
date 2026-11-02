@@ -21,6 +21,7 @@ import { AssigneeField } from "./AssigneeField";
 import type { Assignee } from "./fetchAssigneeOptions";
 import { ISSUE_TITLE_MAX_LENGTH } from "./issueOptions";
 import { toEpicSelectOptions, useIssueSelectOptions } from "./issueSelectOptions";
+import { useIssueCreatedToast } from "./useIssueCreatedToast";
 
 interface CreateIssueDialogProps {
     project: { id: string; key: string; name: string; epics: { id: string; name: string }[] };
@@ -63,8 +64,9 @@ function CreateIssueForm({ project, epicId, labels, assignees, onCreated }: Crea
     const t = useTranslations("createIssue");
     const tFields = useTranslations("issueFields");
     const { typeOptions, priorityOptions } = useIssueSelectOptions();
+    const showIssueCreated = useIssueCreatedToast();
     const handleSubmit = async ({ assigneeId, dueDate, labelIds = [], description = "", ...values }: CreateIssueFormValues) => {
-        const { error } = await createIssue({
+        const { error, issue } = await createIssue({
             ...values,
             projectId: project.id,
             assigneeId,
@@ -76,6 +78,9 @@ function CreateIssueForm({ project, epicId, labels, assignees, onCreated }: Crea
             return { [FORM_ERROR]: error };
         }
         onCreated();
+        if (issue) {
+            showIssueCreated(issue);
+        }
     };
 
     return (

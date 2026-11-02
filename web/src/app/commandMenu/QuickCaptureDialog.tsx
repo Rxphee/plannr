@@ -8,13 +8,12 @@ import { Button } from "@src/components/ui/Button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@src/components/ui/Dialog";
 import type { GQLIssuePriority, GQLIssueType } from "@src/graphql.generated";
 import { FORM_ERROR } from "final-form";
-import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { toast } from "sonner";
 
 import { createIssue } from "../projects/[key]/issues/actions";
 import { ISSUE_TITLE_MAX_LENGTH } from "../projects/[key]/issues/issueOptions";
 import { useIssueSelectOptions } from "../projects/[key]/issues/issueSelectOptions";
+import { useIssueCreatedToast } from "../projects/[key]/issues/useIssueCreatedToast";
 import { ProjectIcon } from "../projects/ProjectIcon";
 import { useCurrentProject } from "../sidebar/useCurrentProject";
 import type { QuickCaptureProject } from "./AppCommands";
@@ -41,7 +40,7 @@ export function QuickCaptureDialog({ projects, open, onOpenChange }: QuickCaptur
     const tFields = useTranslations("issueFields");
     const { typeOptions, priorityOptions } = useIssueSelectOptions();
     const currentProject = useCurrentProject(projects);
-    const router = useRouter();
+    const showIssueCreated = useIssueCreatedToast();
 
     const handleSubmit = async ({ projectId, title, type, priority }: QuickCaptureFormValues) => {
         const { error, issue } = await createIssue({ projectId, title, type, priority, description: "" });
@@ -50,10 +49,7 @@ export function QuickCaptureDialog({ projects, open, onOpenChange }: QuickCaptur
         }
         onOpenChange(false);
         if (issue) {
-            const issuePath = `/projects/${issue.project.key}/issues/${issue.number}`;
-            toast.success(t("created", { key: issue.key }), {
-                action: { label: t("openIssue"), onClick: () => router.push(issuePath) },
-            });
+            showIssueCreated(issue);
         }
     };
 
