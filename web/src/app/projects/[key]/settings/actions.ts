@@ -2,7 +2,7 @@
 
 import type { GQLAddProjectMembersInput, GQLProjectMemberInput, GQLProjectStatus, GQLUpdateProjectInput } from "@src/graphql.generated";
 import { graphQLFetch } from "@src/util/graphQLFetch";
-import { runMutation } from "@src/util/runMutation";
+import { runMutation, skipRefresh } from "@src/util/runMutation";
 import { refresh } from "next/cache";
 import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
@@ -52,7 +52,7 @@ export async function deleteProject(id: string): Promise<{ error?: string }> {
     const t = await getTranslations("errors");
     return runMutation(() => graphQLFetch<GQLDeleteProjectMutation, GQLDeleteProjectMutationVariables>(deleteProjectMutation, { id }), {
         errorMessage: t("deleteProject"),
-        onSuccess: () => redirect("/projects"),
+        onSuccess: skipRefresh,
     });
 }
 

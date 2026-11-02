@@ -60,7 +60,7 @@ export default async function EpicsPage({ params, searchParams }: PageProps<"/pr
             <PageIntro
                 title={tSidebar("epics")}
                 description={t("description")}
-                actions={project.canContribute && <CreateEpicDialog projectId={project.id} />}
+                actions={project.canContribute && <CreateEpicDialog project={project} />}
             />
             <PageContent className="grid gap-6">
                 <div className="flex flex-wrap items-center justify-between gap-2">

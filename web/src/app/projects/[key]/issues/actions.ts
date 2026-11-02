@@ -2,8 +2,7 @@
 
 import type { GQLCreateIssueInput, GQLIssueLinkInput, GQLUpdateIssueInput } from "@src/graphql.generated";
 import { graphQLFetch } from "@src/util/graphQLFetch";
-import { runMutation } from "@src/util/runMutation";
-import { redirect } from "next/navigation";
+import { runMutation, skipRefresh } from "@src/util/runMutation";
 import { getTranslations } from "next-intl/server";
 
 import { addIssueLinkMutation, createIssueMutation, deleteIssueMutation, removeIssueLinkMutation, updateIssueMutation } from "./actions.gql";
@@ -20,11 +19,18 @@ import type {
     GQLUpdateIssueMutationVariables,
 } from "./actions.gql.generated";
 
-export async function createIssue(input: GQLCreateIssueInput): Promise<{ error?: string }> {
+// Returns the new issue, so a toast can link to it
+export async function createIssue(input: GQLCreateIssueInput): Promise<{ error?: string; issue?: GQLCreateIssueMutation["createIssue"] }> {
     const t = await getTranslations("errors");
-    return runMutation(() => graphQLFetch<GQLCreateIssueMutation, GQLCreateIssueMutationVariables>(createIssueMutation, { input }), {
-        errorMessage: t("createIssue"),
-    });
+    let issue: GQLCreateIssueMutation["createIssue"] | undefined;
+    const result = await runMutation(
+        async () => {
+            const data = await graphQLFetch<GQLCreateIssueMutation, GQLCreateIssueMutationVariables>(createIssueMutation, { input });
+            issue = data.createIssue;
+        },
+        { errorMessage: t("createIssue") },
+    );
+    return { ...result, issue };
 }
 
 export async function updateIssue(id: string, input: GQLUpdateIssueInput): Promise<{ error?: string }> {
@@ -34,11 +40,11 @@ export async function updateIssue(id: string, input: GQLUpdateIssueInput): Promi
     });
 }
 
-export async function deleteIssue(projectKey: string, id: string): Promise<{ error?: string }> {
+export async function deleteIssue(id: string): Promise<{ error?: string }> {
     const t = await getTranslations("errors");
     return runMutation(() => graphQLFetch<GQLDeleteIssueMutation, GQLDeleteIssueMutationVariables>(deleteIssueMutation, { id }), {
         errorMessage: t("deleteIssue"),
-        onSuccess: () => redirect(`/projects/${projectKey}/issues`),
+        onSuccess: skipRefresh,
     });
 }
 

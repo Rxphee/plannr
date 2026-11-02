@@ -471,6 +471,17 @@
         "light": "Light",
         "system": "System"
     },
+    "toasts": {
+        "epicCreated": "Epic {name} created",
+        "epicDeleted": "Epic {name} deleted",
+        "issueCreated": "{key} created",
+        "issueDeleted": "{key} deleted",
+        "labelCreated": "Label {name} created",
+        "membersAdded": "{count, plural, one {Member added} other {# members added}}",
+        "open": "Open",
+        "projectDeleted": "Project {name} deleted",
+        "settingsSaved": "Settings saved"
+    },
     "userMenu": {
         "apiTokens": "API tokens",
         "instanceRole": "Instance role",

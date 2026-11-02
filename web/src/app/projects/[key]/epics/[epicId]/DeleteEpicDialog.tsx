@@ -7,7 +7,9 @@ import { Button } from "@src/components/ui/Button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@src/components/ui/Dialog";
 import { FORM_ERROR } from "final-form";
 import { Trash2Icon } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
+import { toast } from "sonner";
 
 import { deleteEpic } from "../actions";
 
@@ -23,13 +25,16 @@ interface DeleteEpicDialogProps {
 
 export function DeleteEpicDialog({ projectKey, epic, otherEpics }: DeleteEpicDialogProps) {
     const t = useTranslations("deleteEpic");
+    const tToasts = useTranslations("toasts");
+    const router = useRouter();
 
-    // On success the action redirects to the epic list
     const handleSubmit = async ({ issueTarget }: { issueTarget: string }) => {
-        const { error } = await deleteEpic(projectKey, { id: epic.id, moveIssuesToEpicId: issueTarget === DELETE_ISSUES ? null : issueTarget });
+        const { error } = await deleteEpic({ id: epic.id, moveIssuesToEpicId: issueTarget === DELETE_ISSUES ? null : issueTarget });
         if (error) {
             return { [FORM_ERROR]: error };
         }
+        toast.success(tToasts("epicDeleted", { name: epic.name }));
+        router.push(`/projects/${projectKey}/epics`);
     };
 
     const issueTargetOptions = [

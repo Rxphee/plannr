@@ -11,6 +11,7 @@ import { FORM_ERROR } from "final-form";
 import { UserPlusIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
+import { toast } from "sonner";
 
 import { PROJECT_MEMBER_ROLES } from "../projectMemberRoles";
 import { addProjectMembers } from "./actions";
@@ -47,6 +48,7 @@ function AddProjectMembersForm({ projectId, users, onAdded }: AddProjectMembersD
     const t = useTranslations("addProjectMembers");
     const tRole = useTranslations("projectMemberRole");
     const tInstanceRole = useTranslations("instanceRole");
+    const tToasts = useTranslations("toasts");
 
     // Admins can be added, their role takes effect once their admin rights end
     const memberOptionLabel = ({ firstName, lastName, instanceRole }: AddProjectMembersDialogProps["users"][number]): string => {
@@ -60,6 +62,8 @@ function AddProjectMembersForm({ projectId, users, onAdded }: AddProjectMembersD
             return { [FORM_ERROR]: error };
         }
         onAdded();
+        // The member list is paginated by name, so the new members may be on another page
+        toast.success(tToasts("membersAdded", { count: values.userIds.length }));
     };
 
     return (

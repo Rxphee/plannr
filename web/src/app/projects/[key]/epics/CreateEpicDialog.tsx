@@ -6,22 +6,37 @@ import { Button } from "@src/components/ui/Button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@src/components/ui/Dialog";
 import { FORM_ERROR } from "final-form";
 import { PlusIcon } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
+import { toast } from "sonner";
 
 import { createEpic } from "./actions";
 import { EpicFields, type EpicFormValues } from "./EpicFields";
 
-export function CreateEpicDialog({ projectId }: { projectId: string }) {
+interface CreateEpicDialogProps {
+    project: { id: string; key: string };
+}
+
+export function CreateEpicDialog({ project }: CreateEpicDialogProps) {
     const t = useTranslations("epics");
+    const tToasts = useTranslations("toasts");
+    const router = useRouter();
     const [open, setOpen] = useState(false);
 
     const handleSubmit = async ({ name, description = "" }: EpicFormValues) => {
-        const { error } = await createEpic({ projectId, name, description });
+        const { error, epicId } = await createEpic({ projectId: project.id, name, description });
         if (error) {
             return { [FORM_ERROR]: error };
         }
         setOpen(false);
+        // The epics are sorted by name, so the new one may be on another page
+        if (epicId) {
+            const epicPath = `/projects/${project.key}/epics/${epicId}`;
+            toast.success(tToasts("epicCreated", { name: name.trim() }), {
+                action: { label: tToasts("open"), onClick: () => router.push(epicPath) },
+            });
+        }
     };
 
     return (

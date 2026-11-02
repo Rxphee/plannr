@@ -9,6 +9,7 @@ import type { GQLLabelColor } from "@src/graphql.generated";
 import { FORM_ERROR } from "final-form";
 import { useTranslations } from "next-intl";
 import { type ReactElement, useState } from "react";
+import { toast } from "sonner";
 
 import { createLabel, updateLabel } from "./actions";
 import { LabelBadge } from "./LabelBadge";
@@ -29,6 +30,7 @@ interface LabelDialogProps {
 export function LabelDialog({ trigger, label }: LabelDialogProps) {
     const t = useTranslations("labels");
     const tCommon = useTranslations("common");
+    const tToasts = useTranslations("toasts");
     const [open, setOpen] = useState(false);
 
     const handleSubmit = async (values: LabelFormValues) => {
@@ -37,6 +39,10 @@ export function LabelDialog({ trigger, label }: LabelDialogProps) {
             return { [FORM_ERROR]: error };
         }
         setOpen(false);
+        // A changed label is seen in place, a new one may be on another page of the list
+        if (!label) {
+            toast.success(tToasts("labelCreated", { name: values.name.trim() }));
+        }
     };
 
     return (

@@ -471,6 +471,17 @@
         "light": "Hell",
         "system": "System"
     },
+    "toasts": {
+        "epicCreated": "Epic {name} erstellt",
+        "epicDeleted": "Epic {name} gelöscht",
+        "issueCreated": "{key} erstellt",
+        "issueDeleted": "{key} gelöscht",
+        "labelCreated": "Label {name} erstellt",
+        "membersAdded": "{count, plural, one {Mitglied hinzugefügt} other {# Mitglieder hinzugefügt}}",
+        "open": "Öffnen",
+        "projectDeleted": "Projekt {name} gelöscht",
+        "settingsSaved": "Einstellungen gespeichert"
+    },
     "userMenu": {
         "apiTokens": "API-Tokens",
         "instanceRole": "Instanzrolle",
