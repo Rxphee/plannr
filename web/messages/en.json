@@ -394,8 +394,10 @@
     },
     "quickCapture": {
         "chooseProject": "Choose a project",
+        "created": "Created {key}",
         "description": "Lands in the epic General of the project, add the details later.",
         "descriptionInProject": "Lands in the epic General of {project}, add the details later.",
+        "openIssue": "Open",
         "project": "Project",
         "submit": "Create issue",
         "title": "Capture issue"
