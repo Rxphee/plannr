@@ -1,14 +1,18 @@
 import type { EntityManager } from "@mikro-orm/postgresql";
 import { BadRequestException, NotFoundException } from "@nestjs/common";
+import { SortDirection } from "@src/common/sort.js";
 import { Epic } from "@src/epics/entities/epic.entity.js";
+import { EpicSortField } from "@src/epics/epic-sort.js";
 import type { EpicsService } from "@src/epics/epics.service.js";
 import { InstanceRolesService } from "@src/instance-roles/instance-roles.service.js";
 import { Issue, IssuePriority, IssueStatus, IssueType } from "@src/issues/entities/issue.entity.js";
+import { IssueSortField } from "@src/issues/issue-sort.js";
 import { IssueView } from "@src/issues/issue-views.js";
 import { IssuesService } from "@src/issues/issues.service.js";
 import { Label } from "@src/labels/entities/label.entity.js";
 import type { LabelsService } from "@src/labels/labels.service.js";
 import { Project, ProjectStatus } from "@src/projects/entities/project.entity.js";
+import { ProjectSortField } from "@src/projects/project-sort.js";
 import { ProjectsService } from "@src/projects/projects.service.js";
 import { User } from "@src/users/user.entity.js";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -84,6 +88,24 @@ describe("McpToolsService", () => {
                 user,
             );
         });
+
+        it("sorts by the field in its default direction unless one is given", async () => {
+            projectsService.findAllVisibleTo.mockResolvedValue({ nodes: [project], totalCount: 1 });
+
+            await tools.listProjects({ sort: ProjectSortField.createdAt }, user);
+            await tools.listProjects({ sort: ProjectSortField.name, direction: SortDirection.desc }, user);
+            expect(projectsService.findAllVisibleTo.mock.calls.map(([args]) => args.sort)).toEqual([
+                { field: ProjectSortField.createdAt, direction: SortDirection.desc },
+                { field: ProjectSortField.name, direction: SortDirection.desc },
+            ]);
+        });
+    });
+
+    describe("listEpics", () => {
+        it("passes the sort to the epics", async () => {
+            await tools.listEpics({ project: "WEB", sort: EpicSortField.name, direction: SortDirection.desc }, user);
+            expect(epicsService.findAll.mock.calls[0][0]).toMatchObject({ sort: { field: EpicSortField.name, direction: SortDirection.desc } });
+        });
     });
 
     describe("createEpic", () => {
@@ -151,6 +173,16 @@ describe("McpToolsService", () => {
                 projectId: project.id,
                 filter: { statuses: [IssueStatus.todo, IssueStatus.inProgress] },
             });
+        });
+
+        it("sorts the priority high first by default", async () => {
+            await tools.listIssues({ project: "WEB", sort: IssueSortField.priority }, user);
+            expect(issuesService.findAll.mock.calls[0][0]).toMatchObject({ sort: { field: IssueSortField.priority, direction: SortDirection.desc } });
+        });
+
+        it("refuses a direction without a sort field", async () => {
+            await expect(tools.listIssues({ project: "WEB", direction: SortDirection.asc }, user)).rejects.toThrow("A direction needs a sort field");
+            expect(issuesService.findAll).not.toHaveBeenCalled();
         });
 
         it("finds the epic by its name in any case", async () => {

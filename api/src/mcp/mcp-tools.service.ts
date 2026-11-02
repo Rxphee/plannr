@@ -1,21 +1,25 @@
 import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 import { MAX_PAGE_SIZE } from "@src/common/pagination.args.js";
+import type { SortDirection } from "@src/common/sort.js";
 import { CreateEpicInput } from "@src/epics/dto/create-epic.input.js";
 import { EpicsArgs } from "@src/epics/dto/epics.args.js";
 import { UpdateEpicInput } from "@src/epics/dto/update-epic.input.js";
 import type { Epic } from "@src/epics/entities/epic.entity.js";
+import { DEFAULT_EPIC_SORT_DIRECTIONS, type EpicSortField } from "@src/epics/epic-sort.js";
 import { EpicsService } from "@src/epics/epics.service.js";
 import { CreateIssueInput } from "@src/issues/dto/create-issue.input.js";
 import { IssueLinkInput } from "@src/issues/dto/issue-link.input.js";
 import { IssuesArgs } from "@src/issues/dto/issues.args.js";
 import { UpdateIssueInput } from "@src/issues/dto/update-issue.input.js";
 import { type Issue, IssuePriority, IssueStatus, IssueType } from "@src/issues/entities/issue.entity.js";
+import { DEFAULT_ISSUE_SORT_DIRECTIONS, type IssueSortField } from "@src/issues/issue-sort.js";
 import { IssueView } from "@src/issues/issue-views.js";
 import { IssuesService } from "@src/issues/issues.service.js";
 import type { Label } from "@src/labels/entities/label.entity.js";
 import { LabelsService } from "@src/labels/labels.service.js";
 import { ProjectsArgs } from "@src/projects/dto/projects.args.js";
 import { type Project, ProjectStatus } from "@src/projects/entities/project.entity.js";
+import { DEFAULT_PROJECT_SORT_DIRECTIONS, type ProjectSortField } from "@src/projects/project-sort.js";
 import { ProjectsService } from "@src/projects/projects.service.js";
 import type { User } from "@src/users/user.entity.js";
 import { isUUID } from "class-validator";
@@ -32,12 +36,18 @@ interface PageArgs {
     limit?: number;
 }
 
-interface ListProjectsArgs extends PageArgs {
+interface SortArgs<SortField> {
+    sort?: SortField;
+    // Without, the default direction of the field
+    direction?: SortDirection;
+}
+
+interface ListProjectsArgs extends PageArgs, SortArgs<ProjectSortField> {
     statuses?: ProjectStatus[];
     search?: string;
 }
 
-interface ListEpicsArgs extends PageArgs {
+interface ListEpicsArgs extends PageArgs, SortArgs<EpicSortField> {
     project: string;
     search?: string;
 }
@@ -56,7 +66,7 @@ interface UpdateEpicArgs {
     description?: string;
 }
 
-interface ListIssuesArgs extends PageArgs {
+interface ListIssuesArgs extends PageArgs, SortArgs<IssueSortField> {
     // Without a project, the issues of all active and paused projects
     project?: string;
     view?: IssueView;
@@ -117,17 +127,32 @@ export class McpToolsService {
     ) {}
 
     async listProjects(
-        { statuses = UNARCHIVED_STATUSES, search, offset = 0, limit = DEFAULT_TOOL_PAGE_SIZE }: ListProjectsArgs,
+        { statuses = UNARCHIVED_STATUSES, search, sort, direction, offset = 0, limit = DEFAULT_TOOL_PAGE_SIZE }: ListProjectsArgs,
         user: User,
     ): Promise<string> {
-        const args = validateInput(ProjectsArgs, { statuses, search, offset, limit });
+        const args = validateInput(ProjectsArgs, {
+            statuses,
+            search,
+            sort: toSort({ sort, direction }, DEFAULT_PROJECT_SORT_DIRECTIONS),
+            offset,
+            limit,
+        });
         const { nodes, totalCount } = await this.projectsService.findAllVisibleTo(args, user);
         return formatPage({ noun: "projects", offset, lines: nodes.map(formatProjectLine), totalCount });
     }
 
-    async listEpics({ project: projectKey, search, offset = 0, limit = DEFAULT_TOOL_PAGE_SIZE }: ListEpicsArgs, user: User): Promise<string> {
+    async listEpics(
+        { project: projectKey, search, sort, direction, offset = 0, limit = DEFAULT_TOOL_PAGE_SIZE }: ListEpicsArgs,
+        user: User,
+    ): Promise<string> {
         const project = await this.findProject(projectKey, user);
-        const args = validateInput(EpicsArgs, { projectId: project.id, search, offset, limit });
+        const args = validateInput(EpicsArgs, {
+            projectId: project.id,
+            search,
+            sort: toSort({ sort, direction }, DEFAULT_EPIC_SORT_DIRECTIONS),
+            offset,
+            limit,
+        });
         const { nodes, totalCount } = await this.epicsService.findAll(args, user);
         return formatPage({ noun: "epics", offset, lines: nodes.map(formatEpicLine), totalCount });
     }
@@ -159,6 +184,8 @@ export class McpToolsService {
             priorities,
             labels,
             search,
+            sort,
+            direction,
             offset = 0,
             limit = DEFAULT_TOOL_PAGE_SIZE,
         }: ListIssuesArgs,
@@ -174,6 +201,7 @@ export class McpToolsService {
             projectId: project?.id,
             view,
             filter: { epicIds, statuses, types, priorities, labelIds, search },
+            sort: toSort({ sort, direction }, DEFAULT_ISSUE_SORT_DIRECTIONS),
             offset,
             limit,
         });
@@ -357,4 +385,18 @@ export class McpToolsService {
         }
         return epics[0];
     }
+}
+
+// The sort input of a list query; a direction without a field would be ignored silently, so it is refused
+function toSort<SortField extends string>(
+    { sort, direction }: SortArgs<SortField>,
+    defaultDirections: Record<SortField, SortDirection>,
+): { field: SortField; direction: SortDirection } | undefined {
+    if (!sort) {
+        if (direction) {
+            throw new BadRequestException("A direction needs a sort field");
+        }
+        return undefined;
+    }
+    return { field: sort, direction: direction ?? defaultDirections[sort] };
 }
