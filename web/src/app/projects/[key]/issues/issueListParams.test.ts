@@ -1,6 +1,14 @@
 import { describe, expect, it } from "vitest";
 
-import { isIssueListFiltered, issueListHref, type IssueListParams, parseIssueListParams, toIssueFilter, withView } from "./issueListParams";
+import {
+    isIssueListFiltered,
+    issueListHref,
+    type IssueListParams,
+    parseIssueListParams,
+    toIssueFilter,
+    withinEpic,
+    withView,
+} from "./issueListParams";
 
 const epicId = "0b7f3a52-5c1e-4f0e-9d39-2f4a8e6b1c7d";
 const otherEpicId = "6e2d9c41-8a3b-4b7f-a1e5-3c9d7f2b8e60";
@@ -100,6 +108,18 @@ describe("toIssueFilter", () => {
             labelIds: null,
             search: null,
         });
+    });
+});
+
+describe("withinEpic", () => {
+    it("replaces the epics of the URL with the epic of the page", () => {
+        expect(withinEpic({ ...openIssues, epics: [otherEpicId] }, epicId).epics).toEqual([epicId]);
+    });
+
+    it("keeps the params without an epic", () => {
+        const params: IssueListParams = { ...openIssues, epics: [otherEpicId] };
+
+        expect(withinEpic(params)).toBe(params);
     });
 });
 

@@ -9,7 +9,7 @@ import type { ReactNode } from "react";
 
 import { IssueFilters } from "./IssueFilters";
 import { IssueList } from "./IssueList";
-import { isIssueListFiltered, issueListHref, type IssueListParams, toIssueFilter } from "./issueListParams";
+import { isIssueListFiltered, issueListHref, type IssueListParams, toIssueFilter, withinEpic } from "./issueListParams";
 import { issueListQuery } from "./IssueListView.gql";
 import type { GQLIssueListQuery, GQLIssueListQueryVariables } from "./IssueListView.gql.generated";
 
@@ -32,7 +32,7 @@ export async function IssueListView({ project, labels, path, params, epicId, cre
         graphQLFetch<GQLIssueListQuery, GQLIssueListQueryVariables>(issueListQuery, {
             projectId: project.id,
             view: params.view ?? null,
-            filter: toIssueFilter(epicId ? { ...params, epics: [epicId] } : params),
+            filter: toIssueFilter(withinEpic(params, epicId)),
             sort: params.sort ?? null,
             ...toOffsetAndLimit(params),
         }),

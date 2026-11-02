@@ -103,6 +103,11 @@ export function isIssueListFiltered({ statuses, types, priorities, epics, labels
     );
 }
 
+// The page of an epic shows only its issues, whatever epics the URL names
+export function withinEpic(params: IssueListParams, epicId?: string): IssueListParams {
+    return epicId ? { ...params, epics: [epicId] } : params;
+}
+
 export function toIssueFilter({ statuses, types, priorities, epics, labels, search }: IssueListParams): GQLIssueFilter {
     const listOrNull = <Value>(values: Value[]) => (values.length > 0 ? values : null);
 
