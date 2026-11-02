@@ -440,6 +440,11 @@
         "light": "Hell",
         "system": "System"
     },
+    "toasts": {
+        "epicDeleted": "Epic {name} gelöscht",
+        "issueDeleted": "{key} gelöscht",
+        "projectDeleted": "Projekt {name} gelöscht"
+    },
     "userMenu": {
         "apiTokens": "API-Tokens",
         "instanceRole": "Instanzrolle",

@@ -6,7 +6,9 @@ import { Button } from "@src/components/ui/Button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@src/components/ui/Dialog";
 import { FORM_ERROR } from "final-form";
 import { Trash2Icon } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
+import { toast } from "sonner";
 
 import { deleteIssue } from "../actions";
 
@@ -17,12 +19,15 @@ interface DeleteIssueDialogProps {
 
 export function DeleteIssueDialog({ projectKey, issue }: DeleteIssueDialogProps) {
     const t = useTranslations("deleteIssue");
-    // On success the action redirects to the issue list
+    const tToasts = useTranslations("toasts");
+    const router = useRouter();
     const handleSubmit = async () => {
-        const { error } = await deleteIssue(projectKey, issue.id);
+        const { error } = await deleteIssue(issue.id);
         if (error) {
             return { [FORM_ERROR]: error };
         }
+        toast.success(tToasts("issueDeleted", { key: issue.key }));
+        router.push(`/projects/${projectKey}/issues`);
     };
 
     return (

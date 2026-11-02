@@ -11,6 +11,10 @@ interface RunMutationOptions {
     onSuccess?: () => void | Promise<void>;
 }
 
+// For actions whose caller navigates away and confirms with a toast: a refresh would render the page of what was just deleted,
+// and a redirect in the action would never return to the caller
+export function skipRefresh(): void {}
+
 // Runs the mutation of a Server Action and refreshes the page afterwards, or calls onSuccess instead.
 // Only messages for input the user can correct are shown, everything else stays in the server log.
 export async function runMutation(
