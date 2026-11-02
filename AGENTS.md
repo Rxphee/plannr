@@ -229,7 +229,7 @@ class-validator runs automatically only on resolver arguments (global `Validatio
 
 ### Migrations
 
-Migrations are generated with `db:migration:create`, which compares the entities with the current database. They only have `up()`: the custom `MigrationGenerator` (`api/src/db/migration-generator.ts`) leaves out `down()`, a broken migration is fixed with a new one. Never change the generated `name` of a migration, MikroORM tracks executed migrations by it. To regenerate a migration that is not merged yet: delete it, run `fixtures` (with no migrations it leaves the database empty), then run `db:migration:create` and `fixtures` again.
+Migrations are generated with `db:migration:create`, which compares the entities with the current database. They only have `up()`: the custom `MigrationGenerator` (`api/src/db/migration-generator.ts`) leaves out `down()`, a broken migration is fixed with a new one. It also formats the file with Prettier, and `lint:prettier` checks the migrations, since ESLint ignores them. Never change the generated `name` of a migration, MikroORM tracks executed migrations by it. To regenerate a migration that is not merged yet: delete it, run `fixtures` (with no migrations it leaves the database empty), then run `db:migration:create` and `fixtures` again.
 
 Entities and migrations are found relative to `api/src/db/ormconfig.ts`: the console and the MikroORM CLI run from `src/` (TypeScript through `@swc-node/register`), production runs from `dist/`.
 
