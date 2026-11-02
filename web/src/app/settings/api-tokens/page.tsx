@@ -48,9 +48,7 @@ export default async function ApiTokensPage() {
                 </Empty>
             ) : (
                 <PageContent>
-                    <div className="max-w-4xl">
-                        <ApiTokenList apiTokens={apiTokens} />
-                    </div>
+                    <ApiTokenList apiTokens={apiTokens} />
                 </PageContent>
             )}
         </>
