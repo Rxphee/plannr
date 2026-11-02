@@ -266,6 +266,7 @@
         "allView": "Alle",
         "descriptionDue": "Die Aufgaben und Bugs von {project}, die am frühesten fälligen zuerst.",
         "descriptionNewest": "Die Aufgaben und Bugs von {project}, die neuesten zuerst.",
+        "descriptionSorted": "Die Aufgaben und Bugs von {project}.",
         "noMatchesDescription": "Ändere die Filter oder die Suche, um weitere Issues zu sehen.",
         "noMatchesTitle": "Keine passenden Issues",
         "noOpenDescription": "Issues sind die Aufgaben und Bugs des Projekts. Erledigte findest du über den Statusfilter.",
@@ -431,6 +432,38 @@
         "toggle": "Seitenleiste ein- oder ausblenden",
         "users": "Benutzer",
         "workspace": "Arbeitsbereich"
+    },
+    "sortMenu": {
+        "directions": {
+            "date": {
+                "asc": "Älteste zuerst",
+                "desc": "Neueste zuerst"
+            },
+            "deadline": {
+                "asc": "Früheste zuerst",
+                "desc": "Späteste zuerst"
+            },
+            "rank": {
+                "asc": "Niedrigste zuerst",
+                "desc": "Höchste zuerst"
+            },
+            "text": {
+                "asc": "A–Z",
+                "desc": "Z–A"
+            }
+        },
+        "fields": {
+            "createdAt": "Erstellt",
+            "dueDate": "Fällig am",
+            "key": "Key",
+            "name": "Name",
+            "priority": "Priorität",
+            "title": "Titel",
+            "updatedAt": "Geändert"
+        },
+        "order": "Reihenfolge",
+        "sortBy": "Sortieren nach",
+        "triggerLabel": "Sortiert nach {field}, {direction}"
     },
     "themeSwitcher": {
         "dark": "Dunkel",

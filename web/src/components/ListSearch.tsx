@@ -2,9 +2,8 @@
 
 import { SearchInput } from "@src/components/SearchInput";
 import { useDebouncedSearch } from "@src/hooks/useDebouncedSearch";
+import { useListSearchParams } from "@src/hooks/useListSearchParams";
 import { cn } from "@src/lib/utils";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useTransition } from "react";
 
 interface ListSearchProps {
     placeholder: string;
@@ -13,23 +12,15 @@ interface ListSearchProps {
 
 // Searches a paginated list through the search param `search`, keeping the other params such as the view or the page size
 export function ListSearch({ placeholder, label }: ListSearchProps) {
-    const router = useRouter();
-    const pathname = usePathname();
-    const searchParams = useSearchParams();
-    const [pending, startTransition] = useTransition();
+    const { searchParams, changeSearchParams, pending } = useListSearchParams();
 
     const replaceSearch = (nextSearch?: string) => {
-        const nextSearchParams = new URLSearchParams(searchParams);
-        // Another search starts again on the first page
-        nextSearchParams.delete("page");
-        if (nextSearch) {
-            nextSearchParams.set("search", nextSearch);
-        } else {
-            nextSearchParams.delete("search");
-        }
-        const query = nextSearchParams.toString();
-        startTransition(() => {
-            router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false });
+        changeSearchParams((nextSearchParams) => {
+            if (nextSearch) {
+                nextSearchParams.set("search", nextSearch);
+            } else {
+                nextSearchParams.delete("search");
+            }
         });
     };
 

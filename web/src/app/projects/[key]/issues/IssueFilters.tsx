@@ -4,15 +4,18 @@ import { toLabelSelectOptions } from "@src/app/labels/labelSelectOptions";
 import { FilterMenu } from "@src/components/FilterMenu";
 import { ResetButton } from "@src/components/ResetButton";
 import { SearchInput } from "@src/components/SearchInput";
+import { SortMenu } from "@src/components/SortMenu";
 import type { GQLLabelColor } from "@src/graphql.generated";
 import { useDebouncedSearch } from "@src/hooks/useDebouncedSearch";
 import { cn } from "@src/lib/utils";
+import { isSameSort } from "@src/util/sort";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useTransition } from "react";
 
 import { isIssueListFiltered, issueListHref, type IssueListParams, parseIssueListParams } from "./issueListParams";
 import { toEpicSelectOptions, useIssueSelectOptions } from "./issueSelectOptions";
+import { defaultIssueSort, ISSUE_SORT_FIELDS } from "./issueSort";
 import { OPEN_ISSUE_STATUSES } from "./issueViews";
 
 interface IssueFiltersProps {
@@ -46,9 +49,11 @@ export function IssueFilters({ path, params, epics, labels }: IssueFiltersProps)
 
     const reset = () => {
         clearSearch();
-        // Keeps the view and the page size, they are no filters
-        navigate({ ...parseIssueListParams({}), view: params.view, pageSize: params.pageSize });
+        // Keeps the view, the sort and the page size, they are no filters
+        navigate({ ...parseIssueListParams({}), view: params.view, sort: params.sort, pageSize: params.pageSize });
     };
+
+    const defaultSort = defaultIssueSort(params.view);
 
     return (
         <div className={cn("flex flex-wrap items-center gap-2 transition-opacity duration-100", pending && "opacity-60")}>
@@ -92,6 +97,14 @@ export function IssueFilters({ path, params, epics, labels }: IssueFiltersProps)
                 />
             )}
             {isIssueListFiltered({ ...params, page: 1 }) && <ResetButton onClick={reset} />}
+            <div className="ml-auto">
+                <SortMenu
+                    fields={ISSUE_SORT_FIELDS}
+                    sort={params.sort ?? defaultSort}
+                    // Another order starts again on the first page
+                    onChange={(sort) => navigate({ ...params, sort: isSameSort(sort, defaultSort) ? undefined : sort, page: 1 })}
+                />
+            </div>
         </div>
     );
 }

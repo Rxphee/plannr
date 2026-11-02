@@ -4,12 +4,14 @@ import { PageIntro } from "@src/components/layout/PageIntro";
 import { ViewTabs } from "@src/components/layout/ViewTabs";
 import { ListPagination } from "@src/components/ListPagination";
 import { ListSearch } from "@src/components/ListSearch";
+import { ListSort } from "@src/components/ListSort";
 import { Button } from "@src/components/ui/Button";
 import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@src/components/ui/Empty";
-import type { GQLProjectStatus } from "@src/graphql.generated";
+import type { GQLProjectSortField, GQLProjectStatus } from "@src/graphql.generated";
 import { graphQLFetch } from "@src/util/graphQLFetch";
 import { pageCountOf, type Pagination, paginationHref, parsePagination, toOffsetAndLimit } from "@src/util/pagination";
 import { parseSearch } from "@src/util/search";
+import { parseSort, type Sort, sortParam } from "@src/util/sort";
 import { FolderKanbanIcon, PlusIcon, SearchXIcon } from "lucide-react";
 import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
@@ -19,6 +21,7 @@ import { NewProjectCard } from "./NewProjectCard";
 import { projectsQuery } from "./page.gql";
 import type { GQLProjectsQuery, GQLProjectsQueryVariables } from "./page.gql.generated";
 import { ProjectCard } from "./ProjectCard";
+import { DEFAULT_PROJECT_SORT, PROJECT_SORT_FIELDS } from "./projectSort";
 
 const views = {
     open: { statuses: ["active", "paused"] },
@@ -32,8 +35,17 @@ function isView(value: unknown): value is View {
     return typeof value === "string" && value in views;
 }
 
-function viewHref(view: View, pagination: Pagination, search?: string): string {
-    return paginationHref("/projects", pagination, { ...(view !== "open" && { view }), ...(search && { search }) });
+interface ListParams {
+    search?: string;
+    sort?: Sort<GQLProjectSortField>;
+}
+
+function viewHref(view: View, pagination: Pagination, { search, sort }: ListParams): string {
+    return paginationHref("/projects", pagination, {
+        ...(view !== "open" && { view }),
+        ...(search && { search }),
+        ...(sort && { sort: sortParam(sort) }),
+    });
 }
 
 export default async function ProjectsPage({ searchParams }: PageProps<"/projects">) {
@@ -41,10 +53,12 @@ export default async function ProjectsPage({ searchParams }: PageProps<"/project
     const currentView: View = isView(resolvedSearchParams.view) ? resolvedSearchParams.view : "open";
     const pagination = parsePagination(resolvedSearchParams);
     const search = parseSearch(resolvedSearchParams);
+    const sort = parseSort(resolvedSearchParams, PROJECT_SORT_FIELDS);
     const [{ projects, ...counts }, t, tCommon] = await Promise.all([
         graphQLFetch<GQLProjectsQuery, GQLProjectsQueryVariables>(projectsQuery, {
             statuses: views[currentView].statuses,
             search,
+            sort,
             ...toOffsetAndLimit(pagination),
         }),
         getTranslations("projects"),
@@ -53,7 +67,7 @@ export default async function ProjectsPage({ searchParams }: PageProps<"/project
     // A page behind the last one, e.g. after archiving projects, shows the last one instead
     const pageCount = pageCountOf(projects.totalCount, pagination);
     if (pagination.page > pageCount) {
-        redirect(viewHref(currentView, { ...pagination, page: pageCount }, search));
+        redirect(viewHref(currentView, { ...pagination, page: pageCount }, { search, sort }));
     }
     const newProjectButton = (
         <Button>
@@ -73,8 +87,8 @@ export default async function ProjectsPage({ searchParams }: PageProps<"/project
                     <ViewTabs
                         tabs={(Object.keys(views) as View[]).map((view) => ({
                             label: t(`views.${view}`),
-                            // Another view starts on its first page, with the same page size and search
-                            href: viewHref(view, { ...pagination, page: 1 }, search),
+                            // Another view starts on its first page, with the same page size, search and sort
+                            href: viewHref(view, { ...pagination, page: 1 }, { search, sort }),
                             count: counts[view].totalCount,
                             isActive: view === currentView,
                         }))}
@@ -107,7 +121,10 @@ export default async function ProjectsPage({ searchParams }: PageProps<"/project
                 </Empty>
             ) : (
                 <PageContent className="grid gap-6">
-                    <ListSearch placeholder={t("searchPlaceholder")} label={t("searchLabel")} />
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                        <ListSearch placeholder={t("searchPlaceholder")} label={t("searchLabel")} />
+                        <ListSort fields={PROJECT_SORT_FIELDS} defaultSort={DEFAULT_PROJECT_SORT} />
+                    </div>
                     {projects.totalCount === 0 && search ? (
                         <Empty className="rounded-xl border border-dashed">
                             <EmptyHeader>
@@ -136,7 +153,7 @@ export default async function ProjectsPage({ searchParams }: PageProps<"/project
                             <ListPagination
                                 pagination={pagination}
                                 totalCount={projects.totalCount}
-                                href={(otherPagination) => viewHref(currentView, otherPagination, search)}
+                                href={(otherPagination) => viewHref(currentView, otherPagination, { search, sort })}
                             />
                         </>
                     )}

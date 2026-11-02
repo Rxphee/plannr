@@ -1,8 +1,8 @@
 import { gql } from "@src/util/gql";
 
 export const projectsQuery = gql`
-    query Projects($statuses: [ProjectStatus!]!, $search: String, $offset: Int!, $limit: Int!) {
-        projects(statuses: $statuses, search: $search, offset: $offset, limit: $limit) {
+    query Projects($statuses: [ProjectStatus!]!, $search: String, $sort: ProjectSort, $offset: Int!, $limit: Int!) {
+        projects(statuses: $statuses, search: $search, sort: $sort, offset: $offset, limit: $limit) {
             totalCount
             nodes {
                 id

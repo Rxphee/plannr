@@ -1,8 +1,10 @@
-import type { GQLIssueFilter, GQLIssuePriority, GQLIssueStatus, GQLIssueType, GQLIssueView } from "@src/graphql.generated";
+import type { GQLIssueFilter, GQLIssuePriority, GQLIssueSortField, GQLIssueStatus, GQLIssueType, GQLIssueView } from "@src/graphql.generated";
 import { type Pagination, parsePagination, writePagination } from "@src/util/pagination";
 import { parseSearch } from "@src/util/search";
+import { isSameSort, parseSort, type Sort, sortParam } from "@src/util/sort";
 
 import { ISSUE_PRIORITIES, ISSUE_STATUSES, ISSUE_TYPES } from "./issueOptions";
+import { defaultIssueSort, ISSUE_SORT_FIELDS } from "./issueSort";
 import { isIssueView, OPEN_ISSUE_STATUSES } from "./issueViews";
 
 // Without a status in the URL the list shows what still needs to be done
@@ -21,6 +23,8 @@ export interface IssueListParams extends Pagination {
     epics: string[];
     labels: string[];
     search?: string;
+    // Without, the order of the API, which depends on the view; no filter either
+    sort?: Sort<GQLIssueSortField>;
 }
 
 type SearchParams = Record<string, string | string[] | undefined>;
@@ -66,6 +70,7 @@ export function parseIssueListParams(searchParams: SearchParams): IssueListParam
         epics: readIds(searchParams, "epic"),
         labels: readIds(searchParams, "label"),
         search: parseSearch(searchParams),
+        sort: parseSort(searchParams, ISSUE_SORT_FIELDS),
         ...parsePagination(searchParams),
     };
 }
@@ -76,7 +81,7 @@ export function openStatusesAmong(statuses: GQLIssueStatus[]): GQLIssueStatus[] 
     return openStatuses.length > 0 ? openStatuses : DEFAULT_STATUSES;
 }
 
-// The params of another tab, which keeps search, filters and page size and starts on the first page
+// The params of another tab, which keeps search, filters, sort and page size and starts on the first page
 export function withView(params: IssueListParams, view?: GQLIssueView): IssueListParams {
     return { ...params, view, statuses: view ? openStatusesAmong(params.statuses) : params.statuses, page: 1 };
 }
@@ -112,7 +117,10 @@ export function toIssueFilter({ statuses, types, priorities, epics, labels, sear
 }
 
 // Leaves out the defaults, so the plain list keeps its plain URL
-export function issueListHref(path: string, { view, statuses, types, priorities, epics, labels, search, ...pagination }: IssueListParams): string {
+export function issueListHref(
+    path: string,
+    { view, statuses, types, priorities, epics, labels, search, sort, ...pagination }: IssueListParams,
+): string {
     const searchParams = new URLSearchParams();
     if (view) {
         searchParams.set("view", view);
@@ -132,6 +140,9 @@ export function issueListHref(path: string, { view, statuses, types, priorities,
     }
     if (search) {
         searchParams.set("search", search);
+    }
+    if (sort && !isSameSort(sort, defaultIssueSort(view))) {
+        searchParams.set("sort", sortParam(sort));
     }
     writePagination(searchParams, pagination);
 

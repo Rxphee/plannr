@@ -9,11 +9,19 @@ import { getTranslations } from "next-intl/server";
 import { fetchEpicOptions } from "../epics/fetchEpicOptions";
 import { CreateIssueDialog } from "./CreateIssueDialog";
 import { fetchAssigneeOptions } from "./fetchAssigneeOptions";
-import { parseIssueListParams } from "./issueListParams";
+import { type IssueListParams, parseIssueListParams } from "./issueListParams";
 import { IssueListView } from "./IssueListView";
 import { IssueViewTabs } from "./IssueViewTabs";
 import { issuesPageQuery } from "./page.gql";
 import type { GQLIssuesPageQuery, GQLIssuesPageQueryVariables } from "./page.gql.generated";
+
+// Names the order only while it is the one of the API
+function issueListDescription({ view, sort }: IssueListParams) {
+    if (sort) {
+        return "descriptionSorted";
+    }
+    return view === "due" ? "descriptionDue" : "descriptionNewest";
+}
 
 export default async function IssuesPage({ params, searchParams }: PageProps<"/projects/[key]/issues">) {
     const { key } = await params;
@@ -49,7 +57,7 @@ export default async function IssuesPage({ params, searchParams }: PageProps<"/p
             />
             <PageIntro
                 title={t("title")}
-                description={t(listParams.view === "due" ? "descriptionDue" : "descriptionNewest", { project: project.name })}
+                description={t(issueListDescription(listParams), { project: project.name })}
                 actions={createAction}
                 tabs={<IssueViewTabs projectId={project.id} path={path} params={listParams} />}
             />
