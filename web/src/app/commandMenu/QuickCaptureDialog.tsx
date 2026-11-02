@@ -13,6 +13,7 @@ import { useTranslations } from "next-intl";
 import { createIssue } from "../projects/[key]/issues/actions";
 import { ISSUE_TITLE_MAX_LENGTH } from "../projects/[key]/issues/issueOptions";
 import { useIssueSelectOptions } from "../projects/[key]/issues/issueSelectOptions";
+import { useIssueCreatedToast } from "../projects/[key]/issues/useIssueCreatedToast";
 import { ProjectIcon } from "../projects/ProjectIcon";
 import { useCurrentProject } from "../sidebar/useCurrentProject";
 import type { QuickCaptureProject } from "./AppCommands";
@@ -32,19 +33,24 @@ interface QuickCaptureFormValues {
 }
 
 // Captures an issue with only a title in the epic General, without leaving the page.
-// In a project it lands there, elsewhere the user picks the project.
+// In a project it lands there, elsewhere the user picks the project. A toast confirms it with the new key,
+// as the dialog closes right away.
 export function QuickCaptureDialog({ projects, open, onOpenChange }: QuickCaptureDialogProps) {
     const t = useTranslations("quickCapture");
     const tFields = useTranslations("issueFields");
     const { typeOptions, priorityOptions } = useIssueSelectOptions();
     const currentProject = useCurrentProject(projects);
+    const showIssueCreated = useIssueCreatedToast();
 
     const handleSubmit = async ({ projectId, title, type, priority }: QuickCaptureFormValues) => {
-        const { error } = await createIssue({ projectId, title, type, priority, description: "" });
+        const { error, issue } = await createIssue({ projectId, title, type, priority, description: "" });
         if (error) {
             return { [FORM_ERROR]: error };
         }
         onOpenChange(false);
+        if (issue) {
+            showIssueCreated(issue);
+        }
     };
 
     return (

@@ -2,6 +2,7 @@ import "./globals.css";
 
 import { parseTheme, THEME_COOKIE_NAME } from "@src/components/theme/theme";
 import { SidebarInset, SidebarProvider } from "@src/components/ui/Sidebar";
+import { Toaster } from "@src/components/ui/Sonner";
 import { LOCALE_COOKIE_NAME, parseLocalePreference } from "@src/i18n/locales";
 import { cn } from "@src/lib/utils";
 import type { Metadata } from "next";
@@ -41,6 +42,7 @@ export default async function RootLayout({ children }: PropsWithChildren) {
                             <SidebarInset className="md:ring-border md:ring-1">{children}</SidebarInset>
                         </AppCommands>
                     </SidebarProvider>
+                    <Toaster />
                 </NextIntlClientProvider>
             </body>
         </html>

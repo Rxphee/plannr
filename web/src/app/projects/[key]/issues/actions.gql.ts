@@ -4,6 +4,11 @@ export const createIssueMutation = gql`
     mutation CreateIssue($input: CreateIssueInput!) {
         createIssue(input: $input) {
             id
+            key
+            number
+            project {
+                key
+            }
         }
     }
 `;

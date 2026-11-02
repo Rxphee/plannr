@@ -12,6 +12,7 @@ import { FORM_ERROR } from "final-form";
 import { LockIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useId } from "react";
+import { toast } from "sonner";
 
 import { ProjectIcon } from "../../ProjectIcon";
 import { PROJECT_NAME_MAX_LENGTH } from "../../projectValidation";
@@ -25,12 +26,15 @@ export function EditProjectForm({ project }: EditProjectFormProps) {
     const t = useTranslations("projectSettings");
     const tCommon = useTranslations("common");
     const tCreate = useTranslations("createProject");
+    const tToasts = useTranslations("toasts");
     const keyId = useId();
+    // The form stays as it is after saving, so only the toast tells that it worked
     const handleSubmit = async (values: GQLUpdateProjectInput) => {
         const { error } = await updateProject(project.id, values);
         if (error) {
             return { [FORM_ERROR]: error };
         }
+        toast.success(tToasts("settingsSaved"));
     };
 
     return (
