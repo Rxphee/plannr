@@ -443,8 +443,11 @@
         "epicDeleted": "Epic {name} gelöscht",
         "issueCreated": "{key} erstellt",
         "issueDeleted": "{key} gelöscht",
+        "labelCreated": "Label {name} erstellt",
+        "membersAdded": "{count, plural, one {Mitglied hinzugefügt} other {# Mitglieder hinzugefügt}}",
         "open": "Öffnen",
-        "projectDeleted": "Projekt {name} gelöscht"
+        "projectDeleted": "Projekt {name} gelöscht",
+        "settingsSaved": "Einstellungen gespeichert"
     },
     "userMenu": {
         "apiTokens": "API-Tokens",
