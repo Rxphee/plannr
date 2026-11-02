@@ -22,7 +22,7 @@
         "lint:fix:prettier": "npm run lint:prettier -- --write",
         "lint:generated-files-not-modified": "git diff --exit-code HEAD -- schema.gql",
         "lint:knip": "knip --exports --files --dependencies --tags=-knipignore",
-        "lint:prettier": "npx prettier --check '*.{ts,js,mjs,json,md,yml,yaml}'",
+        "lint:prettier": "npx prettier --check '*.{ts,js,mjs,json,md,yml,yaml}' 'src/db/migrations/*.ts'",
         "lint:tsc": "tsc --project ./tsconfig.lint.json",
         "mikro-orm": "dotenv -e .env.secrets -e .env.local -e .env -- mikro-orm",
         "start": "dotenv -e .env.secrets -e .env.local -e .env -- nest start",
