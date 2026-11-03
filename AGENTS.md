@@ -118,7 +118,7 @@ npm --prefix web run gql:types   # Generate TypeScript types for the GraphQL doc
 - `web/src/components/richText/` - the Markdown editor (`RichTextEditor`), its Tiptap extensions and `markdownToPlainText` for previews
 - `web/src/components/ui/` - shadcn/ui components
 - `web/src/auth/` - OIDC client and session cookies (see Authentication)
-- `web/src/util/` - `gql` tag and `graphQLFetch`
+- `web/src/util/` - `gql` tag, `graphQLFetch` and `apiFetch`
 - `web/src/i18n/` - next-intl request config, supported locales and date formats; the texts live in `web/messages/` (see Translations)
 
 ### Package Independence
@@ -288,6 +288,8 @@ Descriptions link to images in Markdown as `![](/images/<id>)`, a path of the we
 - `GET /api/images/:id` serves an image to whoever sees its project, cached `private` and `immutable`, since an ID never gets other content. A missing image and one of a hidden project both answer 404.
 
 Without storage the query `imageUploadsEnabled` is false and both routes answer 404. The row is written before the object, so an upload that breaks off leaves a row the cleanup finds. When a project is deleted, its images keep their row with `project` set to null, and nobody sees them anymore. An image belongs to the project it was uploaded to: copied into a description of another project, it only shows for members of the first one.
+
+In the web app, `app/images/[id]/route.ts` serves the images and `app/projects/[key]/images/route.ts` takes the uploads; both pass the request on with `apiFetch` (`util/apiFetch.ts`, which `graphQLFetch` uses too). The upload route only accepts requests whose `Origin` is `WEB_URL`, since route handlers get no origin check like Server Actions. The layout of `/projects/[key]` loads `imageUploadsEnabled` and wraps the project in `ImageUploadProvider`, so every editor inside uploads into that project; editors outside a project (creating a project, quick capture) take no images. With storage the editor uploads pasted, dropped and chosen images (`useImageUploads`, `uploadImage`) and inserts them with the file name as alt text, and the toolbar shows an image button. Without it, pasting an image shows a toast. The `Image` extension of Tiptap is always on, also in read-only editors: without it, saving would turn every image in the Markdown into its alt text (a spec in `richTextExtensions.test.ts` keeps them).
 
 Unused images are deleted by `ImageCleanupService`, every night at 01:00 server time (`@nestjs/schedule`) and with the console command `images:cleanup`: mark and sweep instead of deleting on save, since an upload that is never saved and an image copied into another description have no event that could delete them. One query collects the image IDs in the descriptions of all projects, epics and issues (`/images/<id>`), and every image older than 24 hours that none of them names is deleted, first its object, then its row. An object that cannot be deleted keeps its row, so the next run tries again. A transaction-level advisory lock lets only one instance of the API clean up at a time.
 

@@ -1,3 +1,4 @@
+import { Image } from "@tiptap/extension-image";
 import { TaskItem, TaskList } from "@tiptap/extension-list";
 import { Placeholder } from "@tiptap/extensions";
 import { Markdown } from "@tiptap/markdown";
@@ -13,6 +14,8 @@ export function createRichTextExtensions({ placeholder }: { placeholder?: string
         }),
         TaskList,
         TaskItem.configure({ nested: true }),
+        // Always on, also without image uploads: without it, saving would turn every image in the Markdown into its alt text
+        Image,
         Placeholder.configure({ placeholder }),
         Markdown,
     ];
