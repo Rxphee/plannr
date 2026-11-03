@@ -1,5 +1,6 @@
 {
     "name": "plannr",
+    "version": "0.1.0",
     "private": true,
     "license": "AGPL-3.0-only",
     "scripts": {
@@ -8,7 +9,7 @@
         "setup:zitadel": "dotenv -e .env.secrets -e .env.local -e .env -- node dev/zitadel/setup.mts",
         "lint": "run-p -l lint:{api,root,web}",
         "lint:api": "npm --prefix api run lint",
-        "lint:ci": "npm run lint:root",
+        "lint:ci": "npm run lint:root && npm run version:check",
         "lint:fix": "run-p -l lint:fix:{api,root,web}",
         "lint:fix:api": "npm --prefix api run lint:fix",
         "lint:fix:root": "npx prettier --write '{,!(api|web)/**/}*.{ts,mts,cts,js,mjs,cjs,json,md,yml,yaml}'",
@@ -28,7 +29,9 @@
         "browser": "run-p browser:api browser:web",
         "browser:api": "dotenv -- sh -c 'open-cli $API_URL/graphql'",
         "browser:web": "dotenv -- sh -c 'open-cli $WEB_URL'",
-        "setup:ci": "npm run setup-project-files"
+        "setup:ci": "npm run setup-project-files",
+        "version:check": "node version.js check",
+        "version:set": "node version.js set"
     },
     "engines": {
         "node": "26"

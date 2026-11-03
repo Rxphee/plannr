@@ -89,6 +89,32 @@ With an image storage, agents can also upload images (`upload_image`) and put th
     npm run lint
     npm run lint:fix
 
+## Self-Hosting
+
+Plannr runs as two containers, the API and the web app, next to PostgreSQL, an OpenID Connect provider and optionally an S3 storage for images. Every push to `main` publishes both images:
+
+- `ghcr.io/rxphee/plannr-api` (port 4000, runs pending migrations on start)
+- `ghcr.io/rxphee/plannr-web` (port 3000)
+
+Every push to `main` tags them `main` and `sha-<commit>`, a release adds its version (`0.2.0`, `0.2`) and `latest`. Pin a deployment to a version or a digest. To build them yourself, run from the repository root:
+
+    docker build -f api/Dockerfile -t plannr-api .
+    docker build -f web/Dockerfile -t plannr-web .
+
+The API needs `POSTGRESQL_HOST`, `POSTGRESQL_PORT`, `POSTGRESQL_DB`, `POSTGRESQL_USER`, `POSTGRESQL_PASSWORD`, `CORS_ALLOWED_ORIGIN`, `OIDC_ISSUER` and `OIDC_AUDIENCE`, plus `SUPER_ADMIN_EMAILS` (without it nobody can appoint admins) and the `S3_*` variables for images (see `.env`). The web app needs `API_URL` (the API as the web container reaches it, e.g. `http://api:4000/api`), `WEB_URL` (its public URL), `OIDC_ISSUER`, `OIDC_CLIENT_ID`, `OIDC_CLIENT_SECRET` and `SESSION_SECRET` (at least 32 random characters). The browser never talks to the API directly, so the API only needs to be reachable from outside for agents (MCP at `/api/mcp`) and scripts with an API token.
+
+## Releases
+
+The root, the API and the web app share one version, in their `package.json` and `package-lock.json`. CI fails when they disagree. To release:
+
+    # on a new branch; merge the pull request with the changed files
+    npm run version:set -- 0.2.0
+
+    # afterwards, once the commit is on main
+    gh release create v0.2.0 --target main --generate-notes
+
+The release tag builds the images with the version tags. If the tag names another version than the packages, the build fails and publishes nothing.
+
 ## License
 
 Plannr is licensed under the [GNU Affero General Public License v3.0](LICENSE).
