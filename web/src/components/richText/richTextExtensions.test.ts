@@ -16,6 +16,8 @@ describe("createRichTextExtensions", () => {
         ["headings and marks", "# Goal\n\n## Steps\n\n### Details\n\nText with **bold**, *italic* and `code`."],
         ["links", "See [the pull request](https://github.com/Rxphee/plannr/pull/12)."],
         ["code blocks and quotes", "> Quote\n\n```ts\nconst answer = 42;\n```"],
+        ["images", "Before\n\n![Screenshot](/images/0a98e070-7ed8-4bf8-92b3-cce9382336b2)\n\nAfter"],
+        ["images without alt text", "![](/images/0a98e070-7ed8-4bf8-92b3-cce9382336b2)"],
     ])("keeps %s when the Markdown is read and written again", (_, text) => {
         expect(roundTrip(text)).toBe(text);
     });

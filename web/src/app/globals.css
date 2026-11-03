@@ -199,6 +199,14 @@
             @apply text-muted-foreground border-l-2 pl-4;
         }
 
+        img {
+            @apply h-auto max-w-full rounded-md border;
+        }
+
+        img.ProseMirror-selectednode {
+            @apply ring-ring/50 ring-3;
+        }
+
         hr {
             @apply my-5;
         }
