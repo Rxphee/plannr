@@ -200,6 +200,23 @@ function createMcpServer(tools: McpToolsService, user: User): McpServer {
         async (args) => runTool(() => tools.updateIssue(args, user)),
     );
 
+    // Without a storage the tool would only fail, so agents do not see it
+    if (tools.canUploadImages) {
+        server.registerTool(
+            "upload_image",
+            {
+                description: "Upload a PNG, JPEG, GIF or WebP image (at most 10 MB) to a project. Returns a Markdown line for a description",
+                inputSchema: {
+                    project: projectKey,
+                    data: z.string().describe("Base64 or data URL"),
+                    name: z.string().optional().describe("Alt text"),
+                },
+                annotations: { openWorldHint: false },
+            },
+            async (args) => runTool(() => tools.uploadImage(args, user)),
+        );
+    }
+
     return server;
 }
 
