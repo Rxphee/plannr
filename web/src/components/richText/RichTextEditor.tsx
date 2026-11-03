@@ -9,16 +9,20 @@ import {
     Heading1Icon,
     Heading2Icon,
     Heading3Icon,
+    ImageIcon,
     ItalicIcon,
     ListChecksIcon,
     ListIcon,
     ListOrderedIcon,
+    Loader2Icon,
     type LucideIcon,
 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useEffect, useRef } from "react";
 
 import { createRichTextExtensions, removeEmptyParagraphs } from "./richTextExtensions";
+import { SUPPORTED_IMAGE_TYPES } from "./uploadImage";
+import { useImageUploads } from "./useImageUploads";
 
 interface RichTextEditorProps {
     // Markdown
@@ -37,6 +41,12 @@ interface RichTextEditorProps {
 export function RichTextEditor({ value, onChange, readOnly, placeholder, id, className, ...ariaProps }: RichTextEditorProps) {
     // The Markdown of what the editor shows, so a new value from outside (e.g. a form reset) can be told apart from the user's own typing
     const currentMarkdown = useRef(value);
+    const imageUploads = useImageUploads();
+    // The editor keeps the handlers it was created with, so they reach the current uploads through this ref
+    const insertImagesRef = useRef(imageUploads.insertImages);
+    useEffect(() => {
+        insertImagesRef.current = imageUploads.insertImages;
+    });
 
     const editor = useEditor({
         extensions: createRichTextExtensions({ placeholder }),
@@ -53,6 +63,14 @@ export function RichTextEditor({ value, onChange, readOnly, placeholder, id, cla
                 ...(ariaProps["aria-invalid"] && { "aria-invalid": "true" }),
                 ...(ariaProps["aria-describedby"] && { "aria-describedby": ariaProps["aria-describedby"] }),
                 class: cn("rich-text outline-none", !readOnly && "min-h-24 px-3 py-2"),
+            },
+            handlePaste: (view, event) => insertImagesRef.current(view, [...(event.clipboardData?.files ?? [])]),
+            handleDrop: (view, event, _slice, isMovedWithinEditor) => {
+                if (isMovedWithinEditor || !event.dataTransfer?.files.length) {
+                    return false;
+                }
+                const position = view.posAtCoords({ left: event.clientX, top: event.clientY })?.pos;
+                return insertImagesRef.current(view, [...event.dataTransfer.files], position);
             },
         },
         // Tiptap writes Markdown in its own style (e.g. *italic* for _italic_), which alone is no change by the user
@@ -91,7 +109,7 @@ export function RichTextEditor({ value, onChange, readOnly, placeholder, id, cla
                 className,
             )}
         >
-            {editor && <RichTextToolbar editor={editor} />}
+            {editor && <RichTextToolbar editor={editor} imageUploads={imageUploads} />}
             <EditorContent editor={editor} />
         </div>
     );
@@ -140,7 +158,7 @@ const toolbarActions: ToolbarAction[] = [
     },
 ];
 
-function RichTextToolbar({ editor }: { editor: Editor }) {
+function RichTextToolbar({ editor, imageUploads }: { editor: Editor; imageUploads: ReturnType<typeof useImageUploads> }) {
     const t = useTranslations("richText");
     const activeNames = useEditorState({
         editor,
@@ -170,6 +188,41 @@ function RichTextToolbar({ editor }: { editor: Editor }) {
                     </Button>
                 );
             })}
+            {imageUploads.isEnabled && <ImageButton editor={editor} imageUploads={imageUploads} />}
         </div>
+    );
+}
+
+function ImageButton({ editor, imageUploads }: { editor: Editor; imageUploads: ReturnType<typeof useImageUploads> }) {
+    const t = useTranslations("richText");
+    const fileInput = useRef<HTMLInputElement>(null);
+    const label = t("image");
+
+    return (
+        <>
+            <Button
+                type="button"
+                variant="ghost"
+                size="icon-sm"
+                title={label}
+                aria-label={label}
+                aria-busy={imageUploads.isUploading}
+                onClick={() => fileInput.current?.click()}
+            >
+                {imageUploads.isUploading ? <Loader2Icon className="animate-spin" /> : <ImageIcon />}
+            </Button>
+            <input
+                ref={fileInput}
+                type="file"
+                accept={SUPPORTED_IMAGE_TYPES.join(",")}
+                multiple
+                hidden
+                onChange={(event) => {
+                    imageUploads.insertImages(editor.view, [...(event.target.files ?? [])]);
+                    // Lets the same file be chosen again
+                    event.target.value = "";
+                }}
+            />
+        </>
     );
 }
