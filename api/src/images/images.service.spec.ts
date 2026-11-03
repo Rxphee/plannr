@@ -23,6 +23,7 @@ function createService({
         create: vi.fn((_entity: unknown, data: object) => Object.assign(new Image(), data)),
         flush: vi.fn(),
         findOne: vi.fn().mockResolvedValue(storedImage),
+        find: vi.fn().mockResolvedValue([]),
     };
     const projectsService = {
         findOneVisibleTo: vi.fn().mockResolvedValue(project),
@@ -110,5 +111,25 @@ describe("ImagesService.findContent", () => {
         const { service, storage } = createService({ storedImage: null });
         await expect(service.findContent(id, new User())).rejects.toThrow(NotFoundException);
         expect(storage.getObject).not.toHaveBeenCalled();
+    });
+});
+
+describe("ImagesService.findVisible", () => {
+    const ids = ["0b7f3a52-5c1e-4f0e-9d39-2f4a8e6b1c7d"];
+
+    it("finds the images among the IDs in projects the user is a member of", async () => {
+        const { service, entityManager } = createService();
+        const user = new User();
+
+        await service.findVisible(ids, user);
+
+        expect(entityManager.find).toHaveBeenCalledWith(Image, { id: { $in: ids }, project: { members: { user } } }, expect.anything());
+    });
+
+    it("finds none without a storage, as their files cannot be read", async () => {
+        const { service, entityManager } = createService({ isStorageEnabled: false });
+
+        expect(await service.findVisible(ids, new User())).toEqual([]);
+        expect(entityManager.find).not.toHaveBeenCalled();
     });
 });
