@@ -414,6 +414,14 @@
         "heading1": "Heading 1",
         "heading2": "Heading 2",
         "heading3": "Heading 3",
+        "image": "Add image",
+        "imageUploadErrors": {
+            "failed": "The image could not be uploaded. Please try again.",
+            "forbidden": "You cannot add images to this project.",
+            "notSetUp": "Image uploads are not set up on this instance.",
+            "tooLarge": "Images may be at most 10 MB.",
+            "typeNotSupported": "Only PNG, JPEG, GIF and WebP images can be added."
+        },
         "italic": "Italic",
         "orderedList": "Numbered list",
         "taskList": "Checklist"

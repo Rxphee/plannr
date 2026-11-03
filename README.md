@@ -62,6 +62,10 @@ Images are stored in any S3-compatible storage, e.g. Garage, MinIO or AWS S3. It
     // write, read and delete a test object, e.g. after setting up the storage of an instance
     npm --prefix api run console -- storage:check
 
+The API deletes images that no description links to anymore every night at 01:00 (server time), once they are older than a day. To run that by hand:
+
+    npm --prefix api run console -- images:cleanup
+
 ### MCP
 
 The API serves an MCP interface at `/api/mcp`, so AI agents like Claude Code can read and change projects, epics and issues. Create a personal API token on the page "API tokens" and add the server, e.g. for the local API:
