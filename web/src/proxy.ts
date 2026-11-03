@@ -47,6 +47,6 @@ function redirectToLogin(request: NextRequest): NextResponse {
 }
 
 export const config = {
-    // Everything but the login itself and the files of Next.js
-    matcher: ["/((?!auth/|_next/|__nextjs|favicon.ico).*)"],
+    // Everything but the login itself, the healthcheck of the container and the files of Next.js
+    matcher: ["/((?!auth/|healthcheck$|_next/|__nextjs|favicon.ico).*)"],
 };
