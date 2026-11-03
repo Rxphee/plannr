@@ -13,6 +13,7 @@ import type { McpToolsService } from "./mcp-tools.service.js";
 
 const user = Object.assign(new User(), { firstName: "Erika" });
 const tools = {
+    canUploadImages: false,
     listProjects: vi.fn(async () => "Projects 1-1 of 1\nWEB · active · Website Relaunch"),
     getIssue: vi.fn(async () => {
         throw new NotFoundException("The issue WEB-99 does not exist");
@@ -61,6 +62,16 @@ describe("handleMcpRequest", () => {
             "create_issue",
             "update_issue",
         ]);
+    });
+
+    it("offers upload_image only when the instance has a storage", async () => {
+        tools.canUploadImages = true;
+        try {
+            const { tools: toolDefinitions } = await client.listTools();
+            expect(toolDefinitions.map(({ name }) => name)).toContain("upload_image");
+        } finally {
+            tools.canUploadImages = false;
+        }
     });
 
     it("answers a tool call as the user of the request", async () => {
