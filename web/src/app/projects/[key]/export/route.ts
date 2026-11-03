@@ -2,7 +2,7 @@ import { apiFetch } from "@src/util/apiFetch";
 
 const PASSED_ON_HEADERS = ["content-type", "content-length", "content-disposition", "cache-control"];
 
-// The JSON export of the project with its epics and issues, downloaded from the API with the user's access token
+// The export of the project (a ZIP with project.json and the images), downloaded from the API with the user's access token
 export async function GET(_request: Request, { params }: RouteContext<"/projects/[key]/export">) {
     const { key } = await params;
     const response = await apiFetch(`/projects/${encodeURIComponent(key)}/export`);
