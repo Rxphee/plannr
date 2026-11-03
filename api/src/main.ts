@@ -6,6 +6,7 @@ import helmet from "helmet";
 
 import { AppModule } from "./app.module.js";
 import { createConfig } from "./config/config.js";
+import { useMcpBodyParser } from "./mcp/mcp-body-parser.js";
 
 async function bootstrap(): Promise<void> {
     const logger = new Logger("bootstrap");
@@ -13,6 +14,8 @@ async function bootstrap(): Promise<void> {
     const app = await NestFactory.create<NestExpressApplication>(AppModule.forRoot(config));
 
     app.setGlobalPrefix("api");
+
+    useMcpBodyParser(app, "/api/mcp");
 
     app.enableCors({
         origin: config.corsAllowedOrigin,
