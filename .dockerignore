@@ -1,0 +1,18 @@
+# The images build from the repository root (docker build -f api/Dockerfile .), as the web app needs the schema of the API.
+# Everything is left out except the packages, and of those everything that is installed, generated or local.
+*
+!.npmrc
+!api/
+!web/
+
+**/node_modules
+**/.env*
+**/junit.xml
+**/*.tsbuildinfo
+**/*.generated.ts
+api/dist
+api/.npmrc
+web/.next
+web/.npmrc
+web/schema.gql
+web/next-env.d.ts
