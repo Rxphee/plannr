@@ -11,6 +11,7 @@ import { DbModule } from "./db/db.module.js";
 import { FixturesModule } from "./db/fixtures/fixtures.module.js";
 import { EpicsModule } from "./epics/epics.module.js";
 import { HealthcheckModule } from "./healthcheck/healthcheck.module.js";
+import { ImagesModule } from "./images/images.module.js";
 import { InstanceRolesModule } from "./instance-roles/instance-roles.module.js";
 import { IssuesModule } from "./issues/issues.module.js";
 import { LabelsModule } from "./labels/labels.module.js";
@@ -50,6 +51,7 @@ export class AppModule {
                 EpicsModule,
                 IssuesModule,
                 LabelsModule,
+                ImagesModule,
                 ApiTokensModule,
                 McpModule,
                 FixturesModule,

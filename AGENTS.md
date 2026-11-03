@@ -108,7 +108,7 @@ npm --prefix web run gql:types   # Generate TypeScript types for the GraphQL doc
 
 ### Package Structure
 
-- `api/src/` - NestJS modules by feature: `auth/`, `users/`, `instance-roles/`, `api-tokens/`, `projects/`, `epics/`, `issues/`, `labels/`, `mcp/`, `storage/`, `healthcheck/`, `config/`, `db/`; helpers shared by several modules in `common/` (e.g. `trim` for inputs, `PaginationArgs` and `Paginated` for list queries)
+- `api/src/` - NestJS modules by feature: `auth/`, `users/`, `instance-roles/`, `api-tokens/`, `projects/`, `epics/`, `issues/`, `labels/`, `images/`, `mcp/`, `storage/`, `healthcheck/`, `config/`, `db/`; helpers shared by several modules in `common/` (e.g. `trim` for inputs, `PaginationArgs` and `Paginated` for list queries)
 - `api/src/db/` - ORM config, `migrations/`, `fixtures/` and the migration generator
 - `api/src/storage/` - the optional S3 storage (`StorageService`, global) and the check behind `storage:check`
 - `api/src/console.ts` - Console commands (`migrate`, `fixtures`, `storage:check`)
@@ -278,6 +278,15 @@ Fields validate themselves while typing: `required` (a value of only spaces coun
 ### Rich Text
 
 Descriptions of projects, epics and issues are Markdown (GFM with task lists), stored as plain text. The API does not parse them. The web app edits and shows them with `RichTextEditor` (Tiptap with `@tiptap/markdown`, `readOnly` for display), in forms through `RichTextField`. Previews of a line or two, like the description on a project card, use `markdownToPlainText`, so they show no Markdown syntax. Only formatting that Markdown can express is offered: bold, italic, code, headings 1 to 3, lists and checklists, which replace sub-tasks. The editor starts on the client (`immediatelyRender: false`), and the styles of the rendered text are the `.rich-text` class in `globals.css`.
+
+### Images
+
+Descriptions link to images in Markdown as `![](/images/<id>)`, a path of the web app. `images/` in the API stores them in the S3 storage under `images/<id>` and keeps an `Image` row per file (project, uploader, type, size). Two REST routes, since images are binary; the web app passes them on with the user's access token:
+
+- `POST /api/projects/:key/images` takes the image as the multipart field `file` and answers with `{ id, url }`. Whoever may edit the epics and issues of the project (`assertCanContribute`) may upload. The type comes from the first bytes (`detectImageType`: PNG, JPEG, GIF, WebP, never SVG, which can carry scripts), not from the name or the type the client sends; at most 10 MB (`MAX_IMAGE_SIZE`). Errors are HTTP statuses: 404 without storage or for a project the user does not see, 403, 413 and 415.
+- `GET /api/images/:id` serves an image to whoever sees its project, cached `private` and `immutable`, since an ID never gets other content. A missing image and one of a hidden project both answer 404.
+
+Without storage the query `imageUploadsEnabled` is false and both routes answer 404. The row is written before the object, so an upload that breaks off leaves a row the cleanup finds. When a project is deleted, its images keep their row with `project` set to null, and nobody sees them anymore. An image belongs to the project it was uploaded to: copied into a description of another project, it only shows for members of the first one.
 
 ### Translations
 
