@@ -1,6 +1,7 @@
 import { ApolloDriver, type ApolloDriverConfig } from "@nestjs/apollo";
 import { type DynamicModule, Module } from "@nestjs/common";
 import { GraphQLModule } from "@nestjs/graphql";
+import { ScheduleModule } from "@nestjs/schedule";
 import { GraphQLError } from "graphql";
 
 import { ApiTokensModule } from "./api-tokens/api-tokens.module.js";
@@ -26,6 +27,7 @@ export class AppModule {
             module: AppModule,
             imports: [
                 DbModule,
+                ScheduleModule.forRoot(),
                 InstanceRolesModule.forRoot(config),
                 AuthModule.forRoot(config),
                 StorageModule.forRoot(config),
