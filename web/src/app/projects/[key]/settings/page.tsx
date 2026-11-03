@@ -23,6 +23,7 @@ import type {
     GQLProjectSettingsUsersQueryVariables,
 } from "./page.gql.generated";
 import { ProjectAdminAccessList } from "./ProjectAdminAccessList";
+import { ProjectExportButton } from "./ProjectExportButton";
 import { ProjectMemberList } from "./ProjectMemberList";
 import { ProjectStatusActions } from "./ProjectStatusActions";
 import { SettingsSection } from "./SettingsSection";
@@ -108,6 +109,10 @@ export default async function ProjectSettingsPage({ params, searchParams }: Page
 
                     <SettingsSection title={t("statusTitle")} description={t("statusDescription")}>
                         <ProjectStatusActions project={project} />
+                    </SettingsSection>
+
+                    <SettingsSection title={t("exportTitle")} description={t("exportDescription")}>
+                        <ProjectExportButton projectKey={project.key} />
                     </SettingsSection>
 
                     <SettingsSection title={t("deleteTitle")} description={t("deleteDescription")}>

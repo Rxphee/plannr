@@ -1,4 +1,4 @@
-import { EntityManager, type FilterQuery } from "@mikro-orm/postgresql";
+import { EntityManager, type ObjectQuery } from "@mikro-orm/postgresql";
 import { Injectable, NotFoundException, PayloadTooLargeException, UnsupportedMediaTypeException } from "@nestjs/common";
 import { InstanceRolesService } from "@src/instance-roles/instance-roles.service.js";
 import { ProjectsService } from "@src/projects/projects.service.js";
@@ -44,14 +44,31 @@ export class ImagesService {
     // get the same answer, so an ID reveals nothing.
     async findContent(id: string, user: User): Promise<{ image: Image; content: Uint8Array }> {
         this.assertStorageEnabled();
-        const where: FilterQuery<Image> = this.instanceRoles.hasAdminRights(user)
-            ? { id, project: { $ne: null } }
-            : { id, project: { members: { user } } };
-        const image = await this.entityManager.findOne(Image, where);
+        const image = await this.entityManager.findOne(Image, { id, ...this.visibleTo(user) });
         if (!image) {
             throw new NotFoundException("The image does not exist");
         }
-        return { image, content: await this.storage.getObject(imageStorageKey(image.id)) };
+        return { image, content: await this.readContent(image) };
+    }
+
+    // The images among the IDs that the user sees, e.g. the ones the descriptions of a project link to. None without a storage, as their files cannot be read.
+    async findVisible(ids: string[], user: User): Promise<Image[]> {
+        if (!this.storage.isEnabled || ids.length === 0) {
+            return [];
+        }
+        return this.entityManager.find(
+            Image,
+            { id: { $in: ids }, ...this.visibleTo(user) },
+            { populate: ["uploadedBy"], orderBy: { createdAt: "asc", id: "asc" } },
+        );
+    }
+
+    async readContent(image: Image): Promise<Uint8Array> {
+        return this.storage.getObject(imageStorageKey(image.id));
+    }
+
+    private visibleTo(user: User): ObjectQuery<Image> {
+        return this.instanceRoles.hasAdminRights(user) ? { project: { $ne: null } } : { project: { members: { user } } };
     }
 
     private assertStorageEnabled(): void {
