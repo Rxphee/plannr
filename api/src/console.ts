@@ -5,6 +5,8 @@ import { NestFactory } from "@nestjs/core";
 import { AppModule } from "./app.module.js";
 import { createConfig } from "./config/config.js";
 import { FixturesService } from "./db/fixtures/fixtures.service.js";
+import { checkStorage } from "./storage/check-storage.js";
+import { StorageService } from "./storage/storage.service.js";
 
 // Entry point for maintenance commands, e.g. `node dist/console.js migrate`.
 // Booting the app module also writes schema.gql in development, which `lint:api-can-start` relies on.
@@ -19,6 +21,12 @@ const commands: Record<string, { description: string; run: (app: INestApplicatio
         description: "Drops all tables and fills the database with demo data (development only)",
         run: async (app) => {
             await app.get(FixturesService).run();
+        },
+    },
+    "storage:check": {
+        description: "Writes, reads and deletes a test object in the S3 storage",
+        run: async (app) => {
+            await checkStorage(app.get(StorageService));
         },
     },
 };

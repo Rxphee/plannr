@@ -93,6 +93,7 @@ npm --prefix api run db:migrate               # Run pending migrations
 npm --prefix api run db:migration:create      # Create a migration from the entity changes
 npm --prefix api run fixtures                 # Drop all tables, run the migrations and fill in demo data
 npm --prefix api run console -- --help        # List the console commands
+npm --prefix api run console -- storage:check # Write, read and delete a test object in the S3 storage
 ```
 
 ### Code Generation
@@ -107,9 +108,10 @@ npm --prefix web run gql:types   # Generate TypeScript types for the GraphQL doc
 
 ### Package Structure
 
-- `api/src/` - NestJS modules by feature: `auth/`, `users/`, `instance-roles/`, `api-tokens/`, `projects/`, `epics/`, `issues/`, `labels/`, `mcp/`, `healthcheck/`, `config/`, `db/`; helpers shared by several modules in `common/` (e.g. `trim` for inputs, `PaginationArgs` and `Paginated` for list queries)
+- `api/src/` - NestJS modules by feature: `auth/`, `users/`, `instance-roles/`, `api-tokens/`, `projects/`, `epics/`, `issues/`, `labels/`, `mcp/`, `storage/`, `healthcheck/`, `config/`, `db/`; helpers shared by several modules in `common/` (e.g. `trim` for inputs, `PaginationArgs` and `Paginated` for list queries)
 - `api/src/db/` - ORM config, `migrations/`, `fixtures/` and the migration generator
-- `api/src/console.ts` - Console commands (`migrate`, `fixtures`)
+- `api/src/storage/` - the optional S3 storage (`StorageService`, global) and the check behind `storage:check`
+- `api/src/console.ts` - Console commands (`migrate`, `fixtures`, `storage:check`)
 - `web/src/app/` - Next.js App Router pages, Server Actions and their GraphQL documents
 - `web/src/components/layout/` - parts of the app shell: `PageHeader`, `PageIntro`, `PageContent`, `ViewTabs`, `SidebarNavLink`
 - `web/src/components/richText/` - the Markdown editor (`RichTextEditor`), its Tiptap extensions and `markdownToPlainText` for previews
@@ -156,6 +158,7 @@ Tools take keys (`WEB`, `WEB-12`), epics by name or ID, labels by name (any case
 
 - PostgreSQL 18 (port from `POSTGRESQL_PORT` in `.env`)
 - Keycloak as the local OIDC provider (service `oidc-provider`, port from `OIDC_PROVIDER_PORT`), configured by the realm file `dev/keycloak/plannr-realm.json`. Keycloak imports it only when the container is created, so after a change run `docker compose --env-file .env --env-file .env.local up -d --force-recreate oidc-provider`.
+- Garage as the local S3 storage (service `s3`, port from `S3_PORT`), configured by `dev/garage/garage.toml`. It runs as a single node (`--single-node --default-bucket`) and creates its layout and the bucket and key of `S3_BUCKET`, `S3_ACCESS_KEY_ID` and `S3_SECRET_ACCESS_KEY` on start, so it needs no setup. `s3_region` in `garage.toml` has to match `S3_REGION`.
 
 The `docker` script of dev-pm passes `.env` and `.env.local` to compose itself (`--env-file`), as dev-pm hands no `.env` files to its scripts; otherwise the ports of `.env.local` would not reach the containers.
 
@@ -176,6 +179,7 @@ All three have a verified email in the realm, which the super-admin needs. The a
 - API: 4000 (GraphQL at `/api/graphql`, MCP at `/api/mcp`)
 - Web: 3000
 - OIDC provider: 8180 (Keycloak, issuer `http://localhost:8180/realms/plannr`)
+- S3 storage: 3900 (Garage, bucket `plannr`)
 
 ### Code Quality
 
@@ -200,6 +204,8 @@ All three have a verified email in the realm, which the super-admin needs. The a
 - `.env.secrets` - Local secrets (not committed)
 
 The OIDC variables in `.env` (`OIDC_ISSUER`, `OIDC_AUDIENCE`, `OIDC_CLIENT_ID`, `OIDC_CLIENT_SECRET`, `SESSION_SECRET`) are development values for the local Keycloak, `SUPER_ADMIN_EMAILS` names the development admin. Production sets `SUPER_ADMIN_EMAILS` to the address of its super-admin; without it the instance has no super-admin and nobody can appoint admins. Production sets its own: the API needs `OIDC_ISSUER` and `OIDC_AUDIENCE`, the web app `OIDC_ISSUER`, `OIDC_CLIENT_ID`, `OIDC_CLIENT_SECRET`, `SESSION_SECRET` (at least 32 random characters) and `WEB_URL` (the public URL, used for the redirect URIs). A changed `SESSION_SECRET` logs everyone out. With `NODE_ENV=production` the web app refuses the development values of `SESSION_SECRET` and `OIDC_CLIENT_SECRET` (`requireSecret` in `web/src/util/requireEnv.ts`, a test keeps it in line with `.env`): every request fails instead of running with a publicly known key. The API reads no secret of the login.
+
+The S3 storage is optional and switched by `S3_ENDPOINT` alone: without it (also when empty, e.g. `S3_ENDPOINT=` in `.env.local`) `config.storage` is `null` and the other S3 variables are ignored; with it the API requires `S3_REGION`, `S3_BUCKET`, `S3_ACCESS_KEY_ID` and `S3_SECRET_ACCESS_KEY` and refuses to start without one (`StorageEnvironmentVariables`). `S3_FORCE_PATH_STYLE=true` is needed for Garage and MinIO, which expect the bucket in the path. Any S3-compatible storage works. The values in `.env` are development values for the local Garage; production sets its own and checks them with `storage:check`. Code that stores files checks `StorageService.isEnabled` first.
 
 ## Key Patterns
 

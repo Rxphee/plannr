@@ -55,6 +55,13 @@ Run the fixtures (below) once, so they find their projects. Switch users with "S
     // drop all tables and fill the database with demo data (development only)
     npm --prefix api run fixtures
 
+### Image Storage
+
+Images are stored in any S3-compatible storage, e.g. Garage, MinIO or AWS S3. It is optional: without `S3_ENDPOINT` the instance has no image uploads. In development `npm run dev` starts a local Garage that sets up its bucket and key by itself. To work without images, set `S3_ENDPOINT=` in `.env.local`.
+
+    // write, read and delete a test object, e.g. after setting up the storage of an instance
+    npm --prefix api run console -- storage:check
+
 ### MCP
 
 The API serves an MCP interface at `/api/mcp`, so AI agents like Claude Code can read and change projects, epics and issues. Create a personal API token on the page "API tokens" and add the server, e.g. for the local API:

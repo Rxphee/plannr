@@ -16,6 +16,7 @@ import { IssuesModule } from "./issues/issues.module.js";
 import { LabelsModule } from "./labels/labels.module.js";
 import { McpModule } from "./mcp/mcp.module.js";
 import { ProjectsModule } from "./projects/projects.module.js";
+import { StorageModule } from "./storage/storage.module.js";
 
 @Module({})
 export class AppModule {
@@ -26,6 +27,7 @@ export class AppModule {
                 DbModule,
                 InstanceRolesModule.forRoot(config),
                 AuthModule.forRoot(config),
+                StorageModule.forRoot(config),
                 GraphQLModule.forRoot<ApolloDriverConfig>({
                     driver: ApolloDriver,
                     // Serve GraphQL under /api/graphql like the REST routes
