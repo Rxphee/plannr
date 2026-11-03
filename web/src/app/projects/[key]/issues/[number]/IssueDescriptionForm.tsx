@@ -36,7 +36,7 @@ export function IssueDescriptionForm({ issue }: IssueDescriptionFormProps) {
                                 {tCommon("save")}
                             </Button>
                             <Button type="button" variant="ghost" disabled={submitting} onClick={() => form.reset()}>
-                                {t("discard")}
+                                {tCommon("discard")}
                             </Button>
                         </div>
                     )}

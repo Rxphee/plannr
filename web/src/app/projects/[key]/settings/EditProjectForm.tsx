@@ -43,7 +43,7 @@ export function EditProjectForm({ project }: EditProjectFormProps) {
             initialValues={{ name: project.name, description: project.description }}
             className="grid gap-4"
         >
-            {({ pristine, submitting }) => (
+            {({ form, pristine, submitting }) => (
                 <>
                     <div className="grid gap-2">
                         <Label htmlFor={keyId}>{t("key")}</Label>
@@ -68,10 +68,15 @@ export function EditProjectForm({ project }: EditProjectFormProps) {
                     <TextField name="name" label={tCommon("name")} required maxLength={PROJECT_NAME_MAX_LENGTH} />
                     <RichTextField name="description" label={tCommon("description")} placeholder={tCreate("descriptionPlaceholder")} />
                     <FormSubmitError />
-                    <div>
+                    <div className="flex gap-2">
                         <Button type="submit" disabled={pristine || submitting}>
                             {tCommon("save")}
                         </Button>
+                        {!pristine && (
+                            <Button type="button" variant="ghost" disabled={submitting} onClick={() => form.reset()}>
+                                {tCommon("discard")}
+                            </Button>
+                        )}
                     </div>
                 </>
             )}
