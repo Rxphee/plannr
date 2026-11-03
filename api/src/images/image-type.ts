@@ -25,6 +25,20 @@ export function imageUrl(id: string): string {
     return `/images/${id}`;
 }
 
+const IMAGE_URL_PATTERN = /\/images\/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})/g;
+
+// The IDs of the images a Markdown text links to, each once
+export function findImageIds(markdown: string): string[] {
+    return [...new Set(Array.from(markdown.matchAll(IMAGE_URL_PATTERN), ([, id]) => id))];
+}
+
+export const IMAGE_FILE_EXTENSIONS: Record<ImageContentType, string> = {
+    "image/png": "png",
+    "image/jpeg": "jpg",
+    "image/gif": "gif",
+    "image/webp": "webp",
+};
+
 export function imageStorageKey(id: string): string {
     return `images/${id}`;
 }

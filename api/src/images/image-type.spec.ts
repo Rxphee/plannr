@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { detectImageType } from "./image-type.js";
+import { detectImageType, findImageIds } from "./image-type.js";
 
 function bytes(...parts: (number[] | string)[]): Uint8Array {
     return new Uint8Array(parts.flatMap((part) => (typeof part === "string" ? [...part].map((character) => character.charCodeAt(0)) : part)));
@@ -25,5 +25,19 @@ describe("detectImageType", () => {
         ["an empty file", bytes()],
     ])("refuses %s", (_, content) => {
         expect(detectImageType(content)).toBeUndefined();
+    });
+});
+
+describe("findImageIds", () => {
+    it("finds each linked image once", () => {
+        const markdown = [
+            "![Login form](/images/1c349463-21ff-4e83-9119-af96198d3bc7)",
+            "Text ![](/images/8cdb9d66-61ed-400b-a008-d134cd80f12f) and again ![](/images/1c349463-21ff-4e83-9119-af96198d3bc7)",
+        ].join("\n");
+        expect(findImageIds(markdown)).toEqual(["1c349463-21ff-4e83-9119-af96198d3bc7", "8cdb9d66-61ed-400b-a008-d134cd80f12f"]);
+    });
+
+    it("ignores paths that are no image ID, as the database expects a UUID", () => {
+        expect(findImageIds("[docs](/images/logo) ![](/images/------------------------------------)")).toEqual([]);
     });
 });

@@ -17,6 +17,7 @@ import { InstanceRolesModule } from "./instance-roles/instance-roles.module.js";
 import { IssuesModule } from "./issues/issues.module.js";
 import { LabelsModule } from "./labels/labels.module.js";
 import { McpModule } from "./mcp/mcp.module.js";
+import { ProjectExportModule } from "./project-export/project-export.module.js";
 import { ProjectsModule } from "./projects/projects.module.js";
 import { StorageModule } from "./storage/storage.module.js";
 
@@ -54,6 +55,7 @@ export class AppModule {
                 IssuesModule,
                 LabelsModule,
                 ImagesModule,
+                ProjectExportModule,
                 ApiTokensModule,
                 McpModule,
                 FixturesModule,
