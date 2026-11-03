@@ -184,7 +184,7 @@ function writeCredentials({ clientId, clientSecret }: ClientCredentials): void {
         CREDENTIALS_FILE,
         `# Written by dev/zitadel/setup.mts for the local Zitadel\nOIDC_CLIENT_ID=${clientId}\nOIDC_CLIENT_SECRET=${clientSecret}\n`,
     );
-    console.log("Wrote the client credentials to .env.zitadel, restart the web app if it is running");
+    console.log("Wrote the client credentials to .env.zitadel");
 }
 
 function haveSameItems(actual: string[] = [], expected: string[]): boolean {

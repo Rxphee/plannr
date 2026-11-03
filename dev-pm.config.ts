@@ -9,12 +9,6 @@ export default defineConfig({
             group: "api",
         },
         {
-            name: "zitadel-setup",
-            script: "npm run setup:zitadel",
-            group: "api",
-            waitOn: ["tcp:$OIDC_PROVIDER_PORT"],
-        },
-        {
             name: "api",
             script: "npm --prefix api run start:dev",
             group: "api",
@@ -22,10 +16,11 @@ export default defineConfig({
         },
         {
             name: "web",
-            script: "npm --prefix web run dev",
+            // The setup writes the client credentials of the local Zitadel, which the web app reads on start.
+            // It runs here because dev-pm restarts every script that exits.
+            script: "npm run setup:zitadel && npm --prefix web run dev",
             group: "web",
-            // The client credentials of the local Zitadel
-            waitOn: ["tcp:$API_PORT", ".env.zitadel"],
+            waitOn: ["tcp:$API_PORT", "tcp:$OIDC_PROVIDER_PORT"],
         },
         {
             name: "web-codegen",
