@@ -20,7 +20,7 @@ services:
   # The identity provider of production, set up for development by dev/zitadel/setup.mts, see AGENTS.md.
   # Its database lives next to Plannr's in the postgres service.
   oidc-provider:
-    image: ghcr.io/zitadel/zitadel:v4.20.0
+    image: ghcr.io/zitadel/zitadel:v4.20.1
     command: start-from-init --masterkeyFromEnv --tlsMode disabled
     # Zitadel writes the token for the setup to /current-dir as this user
     user: "1000:1000"
