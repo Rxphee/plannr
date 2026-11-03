@@ -68,7 +68,7 @@ The API deletes images that no description links to anymore every night at 01:00
 
 ### Project Export
 
-Owners and admins download a project with its members, epics and issues as a JSON file under "Export" in the project settings, a backup that needs no database dump. Images are not part of it, they stay in the storage. Scripts fetch the same file with a personal API token:
+Owners and admins download a project as a ZIP file under "Export" in the project settings, a backup that needs no database dump. It holds `project.json` with the project, its members, epics, issues and the users and labels they refer to, and the images of the descriptions under `images/`. Scripts fetch the same file with a personal API token:
 
     curl -OJ -H "Authorization: Bearer plannr_…" http://localhost:4000/api/projects/WEB/export
 

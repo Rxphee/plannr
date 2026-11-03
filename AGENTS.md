@@ -296,13 +296,14 @@ Unused images are deleted by `ImageCleanupService`, every night at 01:00 server 
 
 ### Project Export
 
-`project-export/` serves a whole project as one JSON file at `GET /api/projects/:key/export`, a backup that needs no database dump (e.g. before deleting a project). Only owners and admins may export (`canManage`), like deleting; a project the user does not see answers 404. REST instead of GraphQL, so the web app passes it on as a download and scripts fetch it with an API token. The file is `plannr-<KEY>-<day>.json` (`Content-Disposition`), the format is `buildProjectExport` in `project-export-format.ts`:
+`project-export/` serves a whole project as one ZIP at `GET /api/projects/:key/export`, a backup that needs no database dump (e.g. before deleting a project). Only owners and admins may export (`canManage`), like deleting; a project the user does not see answers 404. REST instead of GraphQL, so the web app passes it on as a download and scripts fetch it with an API token. The file is `plannr-<KEY>-<day>.zip` (`Content-Disposition`) with `project.json` and the images under `images/<id>.<extension>`. The format of `project.json` is `buildProjectExport` in `project-export-format.ts`:
 
 - `version` (`PROJECT_EXPORT_VERSION`, raised whenever a field changes its meaning or goes away) and `exportedAt`
 - `project` with its fields, `members` (user and role) and `epics` (General first, then by name), each with its `issues` by number: key, all fields, label names, links, assignee and creator
+- `images`: every image the descriptions link to (`findImageIds`) that the user sees (`ImagesService.findVisible`, the rule of `GET /api/images/:id`, so also images copied in from another project the user sees), with its `file` in the archive. Descriptions keep their `/images/<id>` links, the ID connects them. Without a storage the list is empty.
 - `users` and `labels`: every user and label the project refers to, once. Users are referenced by email and labels by name, which stay meaningful in another instance, unlike the IDs of this one.
 
-Images are not part of the file: descriptions keep their `/images/<id>` links and the files stay in the storage. In the web app, the settings of a project have a section "Export" with a download link (`ProjectExportButton`), and `app/projects/[key]/export/route.ts` passes the file on with `apiFetch`.
+Rights and data are loaded before the first byte; the archive is then streamed (`zipEntries` with fflate), reading one image at a time from the storage, so a large project never sits in memory as a whole. Images are stored without compression, they are compressed already. In the web app, the settings of a project have a section "Export" with a download link (`ProjectExportButton`), and `app/projects/[key]/export/route.ts` passes the file on with `apiFetch`.
 
 ### Translations
 
