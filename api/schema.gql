@@ -486,6 +486,11 @@ type Query {
   ): PaginatedEpics!
 
   """
+  Whether the instance has a storage for images; without it the descriptions take no image uploads
+  """
+  imageUploadsEnabled: Boolean!
+
+  """
   The issue with the key, e.g. KEY-42, if the current user can see its project
   """
   issue(key: String!): Issue
