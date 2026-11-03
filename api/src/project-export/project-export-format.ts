@@ -1,4 +1,6 @@
 import type { Epic } from "@src/epics/entities/epic.entity.js";
+import type { Image } from "@src/images/entities/image.entity.js";
+import { IMAGE_FILE_EXTENSIONS, type ImageContentType } from "@src/images/image-type.js";
 import type { Issue, IssuePriority, IssueStatus, IssueType } from "@src/issues/entities/issue.entity.js";
 import type { IssueLinkKind } from "@src/issues/entities/issue-link.entity.js";
 import type { Label, LabelColor } from "@src/labels/entities/label.entity.js";
@@ -19,6 +21,16 @@ interface ExportedUser {
 interface ExportedLabel {
     name: string;
     color: LabelColor;
+}
+
+// The file lies next to project.json in the archive. Descriptions keep linking to /images/<id>.
+interface ExportedImage {
+    id: string;
+    file: string;
+    contentType: ImageContentType;
+    size: number;
+    uploadedBy: string;
+    createdAt: Date;
 }
 
 interface ExportedMember {
@@ -78,6 +90,7 @@ export interface ProjectExport {
         members: ExportedMember[];
         epics: ExportedEpic[];
     };
+    images: ExportedImage[];
     users: ExportedUser[];
     labels: ExportedLabel[];
 }
@@ -91,10 +104,12 @@ interface ProjectExportSource {
     epics: Epic[];
     // With labels, links, assignee and createdBy loaded
     issues: Issue[];
+    // With uploadedBy loaded
+    images: Image[];
     exportedAt: Date;
 }
 
-export function buildProjectExport({ project, members, epics, issues, exportedAt }: ProjectExportSource): ProjectExport {
+export function buildProjectExport({ project, members, epics, issues, images, exportedAt }: ProjectExportSource): ProjectExport {
     const users = new Map<string, User>();
     const labels = new Map<string, Label>();
     const referenceUser = (user: User): string => {
@@ -158,6 +173,14 @@ export function buildProjectExport({ project, members, epics, issues, exportedAt
         version: PROJECT_EXPORT_VERSION,
         exportedAt,
         project: exportedProject,
+        images: images.map((image) => ({
+            id: image.id,
+            file: imageFileName(image),
+            contentType: image.contentType,
+            size: image.size,
+            uploadedBy: referenceUser(image.uploadedBy.getEntity()),
+            createdAt: image.createdAt,
+        })),
         users: [...users.values()]
             .sort((first, second) => first.email.localeCompare(second.email))
             .map(({ email, firstName, lastName }) => ({ email, firstName, lastName })),
@@ -165,7 +188,12 @@ export function buildProjectExport({ project, members, epics, issues, exportedAt
     };
 }
 
-// e.g. plannr-WEB-2026-11-03.json, with the day of the export in UTC
+// The path of an image in the archive, e.g. images/<id>.png
+export function imageFileName({ id, contentType }: Pick<Image, "id" | "contentType">): string {
+    return `images/${id}.${IMAGE_FILE_EXTENSIONS[contentType]}`;
+}
+
+// e.g. plannr-WEB-2026-11-03.zip, with the day of the export in UTC
 export function projectExportFileName({ project, exportedAt }: Pick<ProjectExport, "project" | "exportedAt">): string {
-    return `plannr-${project.key}-${exportedAt.toISOString().slice(0, 10)}.json`;
+    return `plannr-${project.key}-${exportedAt.toISOString().slice(0, 10)}.zip`;
 }

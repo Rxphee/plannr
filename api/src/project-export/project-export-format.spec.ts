@@ -1,5 +1,6 @@
 import type { Ref } from "@mikro-orm/postgresql";
 import { Epic } from "@src/epics/entities/epic.entity.js";
+import { Image } from "@src/images/entities/image.entity.js";
 import { Issue, IssuePriority, IssueStatus, IssueType } from "@src/issues/entities/issue.entity.js";
 import { IssueLink, IssueLinkKind } from "@src/issues/entities/issue-link.entity.js";
 import { Label, LabelColor } from "@src/labels/entities/label.entity.js";
@@ -8,7 +9,7 @@ import { ProjectMember, ProjectMemberRole } from "@src/projects/entities/project
 import { User } from "@src/users/user.entity.js";
 import { describe, expect, it } from "vitest";
 
-import { buildProjectExport, PROJECT_EXPORT_VERSION, projectExportFileName } from "./project-export-format.js";
+import { buildProjectExport, imageFileName, PROJECT_EXPORT_VERSION, projectExportFileName } from "./project-export-format.js";
 
 // A loaded reference as the queries of the export return them
 function loaded<Entity extends { id: string }>(entity: Entity): Ref<Entity> {
@@ -51,9 +52,9 @@ function createIssue(data: Partial<Omit<Issue, "labels" | "links">> & { labels?:
     });
 }
 
-function exportOf(issues: Issue[]) {
+function exportOf(issues: Issue[], images: Image[] = []) {
     const members = [Object.assign(new ProjectMember(), { user: loaded(max), role: ProjectMemberRole.owner, createdAt })];
-    return buildProjectExport({ project, members, epics: [general, navigation], issues, exportedAt });
+    return buildProjectExport({ project, members, epics: [general, navigation], issues, images, exportedAt });
 }
 
 describe("buildProjectExport", () => {
@@ -77,6 +78,7 @@ describe("buildProjectExport", () => {
                     { id: "navigation-id", name: "Navigation", description: "Menus", isDefault: false, issues: [] },
                 ],
             },
+            images: [],
             users: [{ email: "max@example.com", firstName: "Max", lastName: "Mustermann" }],
             labels: [],
         });
@@ -142,10 +144,40 @@ describe("buildProjectExport", () => {
             { name: "upstream", color: LabelColor.red },
         ]);
     });
+
+    it("lists the images with their file in the archive and their uploader", () => {
+        const image = Object.assign(new Image(), {
+            id: "1c349463-21ff-4e83-9119-af96198d3bc7",
+            contentType: "image/png" as const,
+            size: 2048,
+            uploadedBy: loaded(lukas),
+            createdAt,
+        });
+
+        const projectExport = exportOf([], [image]);
+
+        expect(projectExport.images).toEqual([
+            {
+                id: "1c349463-21ff-4e83-9119-af96198d3bc7",
+                file: "images/1c349463-21ff-4e83-9119-af96198d3bc7.png",
+                contentType: "image/png",
+                size: 2048,
+                uploadedBy: "lukas@example.com",
+                createdAt,
+            },
+        ]);
+        expect(projectExport.users.map(({ email }) => email)).toContain("lukas@example.com");
+    });
+});
+
+describe("imageFileName", () => {
+    it("takes the extension from the type", () => {
+        expect(imageFileName({ id: "abc", contentType: "image/jpeg" })).toBe("images/abc.jpg");
+    });
 });
 
 describe("projectExportFileName", () => {
-    it("names the file after the key and the day of the export in UTC", () => {
-        expect(projectExportFileName(exportOf([]))).toBe("plannr-WEB-2026-11-03.json");
+    it("names the archive after the key and the day of the export in UTC", () => {
+        expect(projectExportFileName(exportOf([]))).toBe("plannr-WEB-2026-11-03.zip");
     });
 });
