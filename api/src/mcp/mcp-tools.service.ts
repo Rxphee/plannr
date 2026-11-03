@@ -7,6 +7,8 @@ import { UpdateEpicInput } from "@src/epics/dto/update-epic.input.js";
 import type { Epic } from "@src/epics/entities/epic.entity.js";
 import { DEFAULT_EPIC_SORT_DIRECTIONS, type EpicSortField } from "@src/epics/epic-sort.js";
 import { EpicsService } from "@src/epics/epics.service.js";
+import { imageUrl } from "@src/images/image-type.js";
+import { ImagesService } from "@src/images/images.service.js";
 import { CreateIssueInput } from "@src/issues/dto/create-issue.input.js";
 import { IssueLinkInput } from "@src/issues/dto/issue-link.input.js";
 import { IssuesArgs } from "@src/issues/dto/issues.args.js";
@@ -21,6 +23,7 @@ import { ProjectsArgs } from "@src/projects/dto/projects.args.js";
 import { type Project, ProjectStatus } from "@src/projects/entities/project.entity.js";
 import { DEFAULT_PROJECT_SORT_DIRECTIONS, type ProjectSortField } from "@src/projects/project-sort.js";
 import { ProjectsService } from "@src/projects/projects.service.js";
+import { StorageService } from "@src/storage/storage.service.js";
 import type { User } from "@src/users/user.entity.js";
 import { isUUID } from "class-validator";
 
@@ -109,6 +112,12 @@ interface UpdateIssueArgs {
     removeLabels?: string[];
 }
 
+interface UploadImageArgs {
+    project: string;
+    data: string;
+    name?: string;
+}
+
 interface LabelChanges {
     key: string;
     issue: Issue;
@@ -124,7 +133,21 @@ export class McpToolsService {
         private readonly epicsService: EpicsService,
         private readonly issuesService: IssuesService,
         private readonly labelsService: LabelsService,
+        private readonly imagesService: ImagesService,
+        private readonly storage: StorageService,
     ) {}
+
+    // upload_image is only offered when the instance has a storage
+    get canUploadImages(): boolean {
+        return this.storage.isEnabled;
+    }
+
+    // Answers with the Markdown line that shows the image, ready for a description
+    async uploadImage({ project: projectKey, data, name = "" }: UploadImageArgs, user: User): Promise<string> {
+        const image = await this.imagesService.upload({ projectKey, content: decodeBase64(data) }, user);
+        const altText = name.replace(/[[\]\r\n]/g, " ").trim();
+        return `![${altText}](${imageUrl(image.id)})`;
+    }
 
     async listProjects(
         { statuses = UNARCHIVED_STATUSES, search, sort, direction, offset = 0, limit = DEFAULT_TOOL_PAGE_SIZE }: ListProjectsArgs,
@@ -399,4 +422,13 @@ function toSort<SortField extends string>(
         return undefined;
     }
     return { field: sort, direction: direction ?? defaultDirections[sort] };
+}
+
+// Agents often send a data URL (data:image/png;base64,iVBOR…) and break long Base64 into lines
+function decodeBase64(data: string): Buffer {
+    const base64 = data.replace(/^data:[\w/+.-]+;base64,/, "").replace(/\s/g, "");
+    if (!/^[A-Za-z0-9+/_-]+={0,2}$/.test(base64)) {
+        throw new BadRequestException("data is no valid Base64");
+    }
+    return Buffer.from(base64, "base64");
 }

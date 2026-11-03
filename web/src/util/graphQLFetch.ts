@@ -1,7 +1,6 @@
 import "server-only";
 
-import { getSession } from "@src/auth/getSession";
-import { redirect } from "next/navigation";
+import { apiFetch } from "./apiFetch";
 
 // The values of an input error, e.g. the key that is already taken
 export type ApiErrorParams = Record<string, string | number | string[]>;
@@ -35,22 +34,10 @@ export async function graphQLFetch<TData, TVariables extends Record<string, unkn
     query: string,
     variables?: TVariables,
 ): Promise<TData> {
-    const apiUrl = process.env.API_URL;
-    if (!apiUrl) {
-        throw new Error("API_URL is not set");
-    }
-
-    // The proxy sends every request without a session to the login, so this only happens if the cookie vanished in between
-    const session = await getSession();
-    if (!session) {
-        redirect("/auth/login");
-    }
-
-    const response = await fetch(`${apiUrl}/graphql`, {
+    const response = await apiFetch("/graphql", {
         method: "POST",
-        headers: { "content-type": "application/json", authorization: `Bearer ${session.accessToken}` },
+        headers: { "content-type": "application/json" },
         body: JSON.stringify({ query, variables }),
-        cache: "no-store",
     });
     const { data, errors } = (await response.json()) as GraphQLResponse<TData>;
     if (errors?.length || !data) {

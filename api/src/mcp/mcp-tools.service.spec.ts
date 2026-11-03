@@ -4,6 +4,7 @@ import { SortDirection } from "@src/common/sort.js";
 import { Epic } from "@src/epics/entities/epic.entity.js";
 import { EpicSortField } from "@src/epics/epic-sort.js";
 import type { EpicsService } from "@src/epics/epics.service.js";
+import type { ImagesService } from "@src/images/images.service.js";
 import { InstanceRolesService } from "@src/instance-roles/instance-roles.service.js";
 import { Issue, IssuePriority, IssueStatus, IssueType } from "@src/issues/entities/issue.entity.js";
 import { IssueSortField } from "@src/issues/issue-sort.js";
@@ -14,6 +15,7 @@ import type { LabelsService } from "@src/labels/labels.service.js";
 import { Project, ProjectStatus } from "@src/projects/entities/project.entity.js";
 import { ProjectSortField } from "@src/projects/project-sort.js";
 import { ProjectsService } from "@src/projects/projects.service.js";
+import type { StorageService } from "@src/storage/storage.service.js";
 import { User } from "@src/users/user.entity.js";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -61,11 +63,14 @@ describe("McpToolsService", () => {
         removeLink: vi.fn(),
     };
     const labelsService = { findAll: vi.fn() };
+    const imagesService = { upload: vi.fn() };
     const tools = new McpToolsService(
         projectsService as unknown as ProjectsService,
         epicsService as unknown as EpicsService,
         issuesService as unknown as IssuesService,
         labelsService as unknown as LabelsService,
+        imagesService as unknown as ImagesService,
+        { isEnabled: true } as StorageService,
     );
 
     beforeEach(() => {
@@ -76,6 +81,36 @@ describe("McpToolsService", () => {
         issuesService.findAll.mockResolvedValue({ nodes: [issue], totalCount: 1 });
         labelsService.findAll.mockResolvedValue({ nodes: [frontendLabel, upstreamLabel], totalCount: 2 });
         projectsService.findAssignableUsers.mockResolvedValue([erika, lukas]);
+        imagesService.upload.mockResolvedValue({ id: "0a98e070-7ed8-4bf8-92b3-cce9382336b2" });
+    });
+
+    describe("uploadImage", () => {
+        const png = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
+
+        it("uploads the decoded image and answers with its Markdown line", async () => {
+            const answer = await tools.uploadImage({ project: "WEB", data: png.toString("base64"), name: "Login form" }, user);
+
+            expect(answer).toBe("![Login form](/images/0a98e070-7ed8-4bf8-92b3-cce9382336b2)");
+            expect(imagesService.upload).toHaveBeenCalledWith({ projectKey: "WEB", content: png }, user);
+        });
+
+        it("takes a data URL and Base64 broken into lines", async () => {
+            const base64 = png.toString("base64");
+            await tools.uploadImage({ project: "WEB", data: `data:image/png;base64,${base64.slice(0, 4)}\n${base64.slice(4)}` }, user);
+
+            expect(imagesService.upload).toHaveBeenCalledWith({ projectKey: "WEB", content: png }, user);
+        });
+
+        it("keeps the Markdown line intact when the alt text has brackets or line breaks", async () => {
+            const answer = await tools.uploadImage({ project: "WEB", data: png.toString("base64"), name: "Step [2]\nof 3" }, user);
+
+            expect(answer).toBe("![Step  2  of 3](/images/0a98e070-7ed8-4bf8-92b3-cce9382336b2)");
+        });
+
+        it.each(["", "not base64!", "data:image/png;base64,"])("refuses %j as no valid Base64", async (data) => {
+            await expect(tools.uploadImage({ project: "WEB", data }, user)).rejects.toThrow(BadRequestException);
+            expect(imagesService.upload).not.toHaveBeenCalled();
+        });
     });
 
     describe("listProjects", () => {
@@ -380,7 +415,14 @@ describe("McpToolsService with the real permission checks", () => {
             {} as LabelsService,
             instanceRoles,
         );
-        const tools = new McpToolsService(projectsService, {} as EpicsService, issuesService, {} as LabelsService);
+        const tools = new McpToolsService(
+            projectsService,
+            {} as EpicsService,
+            issuesService,
+            {} as LabelsService,
+            {} as ImagesService,
+            { isEnabled: false } as StorageService,
+        );
 
         await expect(tools.createIssue({ project: "HOL", title: "Book the train" }, Object.assign(new User(), { isAdmin: true }))).rejects.toThrow(
             "The project is archived. Set it back to active to change it",

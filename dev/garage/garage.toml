@@ -1,0 +1,14 @@
+metadata_dir = "/var/lib/garage/meta"
+data_dir = "/var/lib/garage/data"
+db_engine = "lmdb"
+
+replication_factor = 1
+rpc_bind_addr = "[::]:3901"
+rpc_public_addr = "127.0.0.1:3901"
+# Development value only, the node does not leave the container
+rpc_secret = "8a53dbbaab528dc5fe5be20c375de366a8f6754f6bc5ab6307fb9718f6450355"
+
+[s3_api]
+# Has to match S3_REGION in .env
+s3_region = "garage"
+api_bind_addr = "[::]:3900"

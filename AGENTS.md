@@ -93,6 +93,8 @@ npm --prefix api run db:migrate               # Run pending migrations
 npm --prefix api run db:migration:create      # Create a migration from the entity changes
 npm --prefix api run fixtures                 # Drop all tables, run the migrations and fill in demo data
 npm --prefix api run console -- --help        # List the console commands
+npm --prefix api run console -- storage:check # Write, read and delete a test object in the S3 storage
+npm --prefix api run console -- images:cleanup # Delete the images no description links to, like the nightly job
 ```
 
 ### Code Generation
@@ -107,15 +109,16 @@ npm --prefix web run gql:types   # Generate TypeScript types for the GraphQL doc
 
 ### Package Structure
 
-- `api/src/` - NestJS modules by feature: `auth/`, `users/`, `instance-roles/`, `api-tokens/`, `projects/`, `epics/`, `issues/`, `labels/`, `mcp/`, `healthcheck/`, `config/`, `db/`; helpers shared by several modules in `common/` (e.g. `trim` for inputs, `PaginationArgs` and `Paginated` for list queries)
+- `api/src/` - NestJS modules by feature: `auth/`, `users/`, `instance-roles/`, `api-tokens/`, `projects/`, `epics/`, `issues/`, `labels/`, `images/`, `mcp/`, `storage/`, `healthcheck/`, `config/`, `db/`; helpers shared by several modules in `common/` (e.g. `trim` for inputs, `PaginationArgs` and `Paginated` for list queries)
 - `api/src/db/` - ORM config, `migrations/`, `fixtures/` and the migration generator
-- `api/src/console.ts` - Console commands (`migrate`, `fixtures`)
+- `api/src/storage/` - the optional S3 storage (`StorageService`, global) and the check behind `storage:check`
+- `api/src/console.ts` - Console commands (`migrate`, `fixtures`, `images:cleanup`, `storage:check`)
 - `web/src/app/` - Next.js App Router pages, Server Actions and their GraphQL documents
 - `web/src/components/layout/` - parts of the app shell: `PageHeader`, `PageIntro`, `PageContent`, `ViewTabs`, `SidebarNavLink`
 - `web/src/components/richText/` - the Markdown editor (`RichTextEditor`), its Tiptap extensions and `markdownToPlainText` for previews
 - `web/src/components/ui/` - shadcn/ui components
 - `web/src/auth/` - OIDC client and session cookies (see Authentication)
-- `web/src/util/` - `gql` tag and `graphQLFetch`
+- `web/src/util/` - `gql` tag, `graphQLFetch` and `apiFetch`
 - `web/src/i18n/` - next-intl request config, supported locales and date formats; the texts live in `web/messages/` (see Translations)
 
 ### Package Independence
@@ -149,6 +152,7 @@ The services check the rights, so they hold for GraphQL and the MCP interface al
 - `list_projects` (active and paused by default), `list_epics`, `list_issues` (in one project or, without `project`, across all active and paused projects; a fixed `view` and the filters epic, statuses, types, priorities, labels, search; open issues by default, a view needs no statuses since it shows open issues anyway; all three take `sort` and `direction`, see Sorting), `get_issue` (with epic, links and description)
 - `create_epic` (name and Markdown description), `update_epic` (name or description; the other keeps its value, since `UpdateEpicInput` takes both). Deleting epics and issues and creating projects stay in the web app: an agent cancels an issue instead, and a project needs a key and members chosen on purpose.
 - `create_issue` (in the epic General unless another is given, with labels and assignee), `update_issue` (title, epic, assignee, type, status, priority, due date, description, links and labels to add or remove; the labels become the whole set `UpdateIssueInput.labelIds` expects)
+- `upload_image` (project key, the image as Base64 or data URL, optional alt text), only offered when the instance has a storage (`McpToolsService.canUploadImages`). It goes through `ImagesService.upload`, so rights, type and size are checked as for the web app, and answers with the Markdown line (`![Login form](/images/<id>)`) the agent puts into a description. Images reach the API as JSON, so `/api/mcp` alone takes bodies up to the largest image as Base64 (`useMcpBodyParser` in `mcp/mcp-body-parser.ts`); every other route keeps the default limit of 100 kB, since bodies are read before the login. The parser is wrapped in a function of its own name: Nest leaves out its JSON parser for all routes when it finds a middleware named `jsonParser`, and a spec keeps GraphQL working.
 
 Tools take keys (`WEB`, `WEB-12`), epics by name or ID, labels by name (any case, `#` optional; a wrong name answers with the existing labels, so there is no tool to list them) and the assignee as `me`, an email or a full name (`null` unassigns; a wrong one answers with the members, `ProjectsService.findAssignableUsers`), and paginate with `offset` and `limit` like the API. They answer in short lines (`WEB-12 · bug · high · todo · due 2026-11-03 · Title · @Erika Mustermann · #frontend #upstream`, `get_issue` adds the email of the assignee, formatters in `mcp-format.ts`) instead of JSON, and the tool definitions stay short, because agents pay for every token. `McpToolsService` runs the class-validator rules of the GraphQL inputs on the arguments (`validateInput`), since the global `ValidationPipe` only covers resolvers, and checks every argument of `update_issue` before the first change. Errors the agent can correct (4xx exceptions) come back as tool errors with their message, others only as "The tool failed unexpectedly".
 
@@ -156,6 +160,7 @@ Tools take keys (`WEB`, `WEB-12`), epics by name or ID, labels by name (any case
 
 - PostgreSQL 18 (port from `POSTGRESQL_PORT` in `.env`)
 - Keycloak as the local OIDC provider (service `oidc-provider`, port from `OIDC_PROVIDER_PORT`), configured by the realm file `dev/keycloak/plannr-realm.json`. Keycloak imports it only when the container is created, so after a change run `docker compose --env-file .env --env-file .env.local up -d --force-recreate oidc-provider`.
+- Garage as the local S3 storage (service `s3`, port from `S3_PORT`), configured by `dev/garage/garage.toml`. It runs as a single node (`--single-node --default-bucket`) and creates its layout and the bucket and key of `S3_BUCKET`, `S3_ACCESS_KEY_ID` and `S3_SECRET_ACCESS_KEY` on start, so it needs no setup. `s3_region` in `garage.toml` has to match `S3_REGION`.
 
 The `docker` script of dev-pm passes `.env` and `.env.local` to compose itself (`--env-file`), as dev-pm hands no `.env` files to its scripts; otherwise the ports of `.env.local` would not reach the containers.
 
@@ -176,6 +181,7 @@ All three have a verified email in the realm, which the super-admin needs. The a
 - API: 4000 (GraphQL at `/api/graphql`, MCP at `/api/mcp`)
 - Web: 3000
 - OIDC provider: 8180 (Keycloak, issuer `http://localhost:8180/realms/plannr`)
+- S3 storage: 3900 (Garage, bucket `plannr`)
 
 ### Code Quality
 
@@ -200,6 +206,8 @@ All three have a verified email in the realm, which the super-admin needs. The a
 - `.env.secrets` - Local secrets (not committed)
 
 The OIDC variables in `.env` (`OIDC_ISSUER`, `OIDC_AUDIENCE`, `OIDC_CLIENT_ID`, `OIDC_CLIENT_SECRET`, `SESSION_SECRET`) are development values for the local Keycloak, `SUPER_ADMIN_EMAILS` names the development admin. Production sets `SUPER_ADMIN_EMAILS` to the address of its super-admin; without it the instance has no super-admin and nobody can appoint admins. Production sets its own: the API needs `OIDC_ISSUER` and `OIDC_AUDIENCE`, the web app `OIDC_ISSUER`, `OIDC_CLIENT_ID`, `OIDC_CLIENT_SECRET`, `SESSION_SECRET` (at least 32 random characters) and `WEB_URL` (the public URL, used for the redirect URIs). A changed `SESSION_SECRET` logs everyone out. With `NODE_ENV=production` the web app refuses the development values of `SESSION_SECRET` and `OIDC_CLIENT_SECRET` (`requireSecret` in `web/src/util/requireEnv.ts`, a test keeps it in line with `.env`): every request fails instead of running with a publicly known key. The API reads no secret of the login.
+
+The S3 storage is optional and switched by `S3_ENDPOINT` alone: without it (also when empty, e.g. `S3_ENDPOINT=` in `.env.local`) `config.storage` is `null` and the other S3 variables are ignored; with it the API requires `S3_REGION`, `S3_BUCKET`, `S3_ACCESS_KEY_ID` and `S3_SECRET_ACCESS_KEY` and refuses to start without one (`StorageEnvironmentVariables`). `S3_FORCE_PATH_STYLE=true` is needed for Garage and MinIO, which expect the bucket in the path. Any S3-compatible storage works. The values in `.env` are development values for the local Garage; production sets its own and checks them with `storage:check`. Code that stores files checks `StorageService.isEnabled` first.
 
 ## Key Patterns
 
@@ -272,6 +280,19 @@ Fields validate themselves while typing: `required` (a value of only spaces coun
 ### Rich Text
 
 Descriptions of projects, epics and issues are Markdown (GFM with task lists), stored as plain text. The API does not parse them. The web app edits and shows them with `RichTextEditor` (Tiptap with `@tiptap/markdown`, `readOnly` for display), in forms through `RichTextField`. Previews of a line or two, like the description on a project card, use `markdownToPlainText`, so they show no Markdown syntax. Only formatting that Markdown can express is offered: bold, italic, code, headings 1 to 3, lists and checklists, which replace sub-tasks. The editor starts on the client (`immediatelyRender: false`), and the styles of the rendered text are the `.rich-text` class in `globals.css`.
+
+### Images
+
+Descriptions link to images in Markdown as `![](/images/<id>)`, a path of the web app. `images/` in the API stores them in the S3 storage under `images/<id>` and keeps an `Image` row per file (project, uploader, type, size). Two REST routes, since images are binary; the web app passes them on with the user's access token:
+
+- `POST /api/projects/:key/images` takes the image as the multipart field `file` and answers with `{ id, url }`. Whoever may edit the epics and issues of the project (`assertCanContribute`) may upload. The type comes from the first bytes (`detectImageType`: PNG, JPEG, GIF, WebP, never SVG, which can carry scripts), not from the name or the type the client sends; at most 10 MB (`MAX_IMAGE_SIZE`). Errors are HTTP statuses: 404 without storage or for a project the user does not see, 403, 413 and 415.
+- `GET /api/images/:id` serves an image to whoever sees its project, cached `private` and `immutable`, since an ID never gets other content. A missing image and one of a hidden project both answer 404.
+
+Without storage the query `imageUploadsEnabled` is false and both routes answer 404. The row is written before the object, so an upload that breaks off leaves a row the cleanup finds. When a project is deleted, its images keep their row with `project` set to null, and nobody sees them anymore. An image belongs to the project it was uploaded to: copied into a description of another project, it only shows for members of the first one.
+
+In the web app, `app/images/[id]/route.ts` serves the images and `app/projects/[key]/images/route.ts` takes the uploads; both pass the request on with `apiFetch` (`util/apiFetch.ts`, which `graphQLFetch` uses too). The upload route only accepts requests whose `Origin` is `WEB_URL`, since route handlers get no origin check like Server Actions. The layout of `/projects/[key]` loads `imageUploadsEnabled` and wraps the project in `ImageUploadProvider`, so every editor inside uploads into that project; editors outside a project (creating a project, quick capture) take no images. With storage the editor uploads pasted, dropped and chosen images (`useImageUploads`, `uploadImage`) and inserts them with the file name as alt text, and the toolbar shows an image button. Without it, pasting an image shows a toast. The `Image` extension of Tiptap is always on, also in read-only editors: without it, saving would turn every image in the Markdown into its alt text (a spec in `richTextExtensions.test.ts` keeps them).
+
+Unused images are deleted by `ImageCleanupService`, every night at 01:00 server time (`@nestjs/schedule`) and with the console command `images:cleanup`: mark and sweep instead of deleting on save, since an upload that is never saved and an image copied into another description have no event that could delete them. One query collects the image IDs in the descriptions of all projects, epics and issues (`/images/<id>`), and every image older than 24 hours that none of them names is deleted, first its object, then its row. An object that cannot be deleted keeps its row, so the next run tries again. A transaction-level advisory lock lets only one instance of the API clean up at a time.
 
 ### Translations
 

@@ -1,6 +1,7 @@
 import { ApolloDriver, type ApolloDriverConfig } from "@nestjs/apollo";
 import { type DynamicModule, Module } from "@nestjs/common";
 import { GraphQLModule } from "@nestjs/graphql";
+import { ScheduleModule } from "@nestjs/schedule";
 import { GraphQLError } from "graphql";
 
 import { ApiTokensModule } from "./api-tokens/api-tokens.module.js";
@@ -11,11 +12,13 @@ import { DbModule } from "./db/db.module.js";
 import { FixturesModule } from "./db/fixtures/fixtures.module.js";
 import { EpicsModule } from "./epics/epics.module.js";
 import { HealthcheckModule } from "./healthcheck/healthcheck.module.js";
+import { ImagesModule } from "./images/images.module.js";
 import { InstanceRolesModule } from "./instance-roles/instance-roles.module.js";
 import { IssuesModule } from "./issues/issues.module.js";
 import { LabelsModule } from "./labels/labels.module.js";
 import { McpModule } from "./mcp/mcp.module.js";
 import { ProjectsModule } from "./projects/projects.module.js";
+import { StorageModule } from "./storage/storage.module.js";
 
 @Module({})
 export class AppModule {
@@ -24,8 +27,10 @@ export class AppModule {
             module: AppModule,
             imports: [
                 DbModule,
+                ScheduleModule.forRoot(),
                 InstanceRolesModule.forRoot(config),
                 AuthModule.forRoot(config),
+                StorageModule.forRoot(config),
                 GraphQLModule.forRoot<ApolloDriverConfig>({
                     driver: ApolloDriver,
                     // Serve GraphQL under /api/graphql like the REST routes
@@ -48,6 +53,7 @@ export class AppModule {
                 EpicsModule,
                 IssuesModule,
                 LabelsModule,
+                ImagesModule,
                 ApiTokensModule,
                 McpModule,
                 FixturesModule,

@@ -414,6 +414,14 @@
         "heading1": "Überschrift 1",
         "heading2": "Überschrift 2",
         "heading3": "Überschrift 3",
+        "image": "Bild einfügen",
+        "imageUploadErrors": {
+            "failed": "Das Bild konnte nicht hochgeladen werden. Bitte versuche es noch einmal.",
+            "forbidden": "Du kannst diesem Projekt keine Bilder hinzufügen.",
+            "notSetUp": "Bild-Uploads sind auf dieser Instanz nicht eingerichtet.",
+            "tooLarge": "Bilder dürfen höchstens 10 MB groß sein.",
+            "typeNotSupported": "Nur PNG-, JPEG-, GIF- und WebP-Bilder können eingefügt werden."
+        },
         "italic": "Kursiv",
         "orderedList": "Nummerierte Liste",
         "taskList": "Checkliste"
