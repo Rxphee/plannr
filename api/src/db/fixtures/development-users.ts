@@ -1,7 +1,6 @@
 import type { UserIdentity } from "@src/users/users.service.js";
 
-// The fixed users of the local identity provider in dev/keycloak/plannr-realm.json, which a spec keeps in sync.
-// Their IDs there are the "sub" claims.
+// The fixed users of the local Zitadel, created by dev/zitadel/setup.mts with these IDs, which are their "sub" claims
 export const developmentUsers = {
     admin: {
         oidcSubject: "5d0c8a8e-2f4b-4c47-9a53-7c1e0a3b9f01",

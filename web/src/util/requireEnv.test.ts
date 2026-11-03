@@ -17,8 +17,8 @@ describe("requireSecret", () => {
 
     it("accepts a secret of its own in production", () => {
         vi.stubEnv("NODE_ENV", "production");
-        vi.stubEnv("OIDC_CLIENT_SECRET", "a-secret-of-its-own");
-        expect(requireSecret("OIDC_CLIENT_SECRET")).toBe("a-secret-of-its-own");
+        vi.stubEnv("SESSION_SECRET", "a-secret-of-its-own");
+        expect(requireSecret("SESSION_SECRET")).toBe("a-secret-of-its-own");
     });
 
     it("accepts the development value in development", () => {

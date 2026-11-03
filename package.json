@@ -5,6 +5,7 @@
     "scripts": {
         "dev": "dev-pm start",
         "setup-project-files": "node setup-project-files.js",
+        "setup:zitadel": "dotenv -e .env.secrets -e .env.local -e .env -- node dev/zitadel/setup.mts",
         "lint": "run-p -l lint:{api,root,web}",
         "lint:api": "npm --prefix api run lint",
         "lint:ci": "npm run lint:root",

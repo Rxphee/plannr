@@ -5,7 +5,7 @@
     "scripts": {
         "build": "npm run gql:types && next build",
         "check-node-version": "check-node-version --node $(cat ../.nvmrc)",
-        "dev": "npm run check-node-version && npm run gql:types && dotenv -e .env.secrets -e .env.local -e .env -- sh -c 'next dev --port $WEB_PORT'",
+        "dev": "npm run check-node-version && npm run gql:types && dotenv -e .env.secrets -e .env.local -e .env.zitadel -e .env -- sh -c 'next dev --port $WEB_PORT'",
         "gql:types": "graphql-codegen",
         "gql:watch": "graphql-codegen --watch",
         "prelint": "npm run gql:types",
@@ -18,7 +18,7 @@
         "lint:knip": "knip --exports --files --dependencies --tags=-knipignore",
         "lint:prettier": "npx prettier --check '*.{ts,js,mjs,json,md,yml,yaml,css}' 'src/**/*.css'",
         "lint:tsc": "npx next typegen && tsc --project .",
-        "start": "dotenv -e .env.secrets -e .env.local -e .env -- sh -c 'next start --port $WEB_PORT'",
+        "start": "dotenv -e .env.secrets -e .env.local -e .env.zitadel -e .env -- sh -c 'next start --port $WEB_PORT'",
         "test": "vitest --run",
         "test:ci": "npm run test",
         "test:watch": "vitest --watch"

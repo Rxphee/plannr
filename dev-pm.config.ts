@@ -16,9 +16,11 @@ export default defineConfig({
         },
         {
             name: "web",
-            script: "npm --prefix web run dev",
+            // The setup writes the client credentials of the local Zitadel, which the web app reads on start.
+            // It runs here because dev-pm restarts every script that exits.
+            script: "npm run setup:zitadel && npm --prefix web run dev",
             group: "web",
-            waitOn: ["tcp:$API_PORT"],
+            waitOn: ["tcp:$API_PORT", "tcp:$OIDC_PROVIDER_PORT"],
         },
         {
             name: "web-codegen",

@@ -34,7 +34,7 @@ A lean, self-hosted issue tracker: projects, epics and issues with clear default
 
 ### Login
 
-Plannr logs in through OpenID Connect. In development a local Keycloak (started with `npm run dev`) stands in for the identity provider, with three users who all have the password `plannr`:
+Plannr logs in through OpenID Connect with Zitadel. `npm run dev` starts a local Zitadel and sets it up with three users who all have the password `plannr`:
 
 | Login   | Name             | Role in the demo data               |
 | ------- | ---------------- | ----------------------------------- |
@@ -42,7 +42,9 @@ Plannr logs in through OpenID Connect. In development a local Keycloak (started 
 | `max`   | Max Mustermann   | owns most projects                  |
 | `erika` | Erika Mustermann | member of one project, owns another |
 
-Run the fixtures (below) once, so they find their projects. Switch users with "Sign out" in the user menu.
+Run the fixtures (below) once, so they find their projects. Switch users with "Sign out" in the user menu. The Zitadel console runs at http://localhost:8180/ui/console with the login `zitadel-admin@plannr.localhost` and the password `plannr`.
+
+After updating from a checkout with Keycloak, run `npm run setup-project-files` once, so the web app finds the client credentials of the local Zitadel in `.env.zitadel`.
 
 ### Database
 

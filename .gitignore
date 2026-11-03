@@ -11,3 +11,8 @@ coverage
 .claude/settings.local.json
 .claude/worktrees/
 .pm.sock
+
+# written by the local Zitadel and its setup
+/dev/zitadel/runtime/*
+!/dev/zitadel/runtime/.gitkeep
+.env.zitadel

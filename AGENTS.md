@@ -131,7 +131,7 @@ All packages use `@src/*` to map to their local `src/` directory (configured in 
 
 ### Authentication
 
-Users log in through OpenID Connect, implemented provider-agnostic: Zitadel in production, a local Keycloak in development (see Development Login). Plannr handles no passwords. The web app is the OIDC client, the API only validates the access tokens it receives.
+Users log in through OpenID Connect, implemented provider-agnostic, run with Zitadel in production and in development (see Development Login). Plannr handles no passwords. The web app is the OIDC client, the API only validates the access tokens it receives.
 
 - **Web** (`web/src/auth/`, `web/src/app/auth/`, `web/src/proxy.ts`): `/auth/login` starts the authorization code flow with PKCE (`openid-client`, a confidential client with `OIDC_CLIENT_ID` and `OIDC_CLIENT_SECRET`, scopes `openid profile email offline_access`), `/auth/callback` exchanges the code. The session holds the access, refresh and ID token in an encrypted `httpOnly` cookie (JWE with a key from `SESSION_SECRET`, `jose`), split into chunks (`plannr_session.0`, `.1`, …) because the tokens together can exceed the 4 KB a browser keeps per cookie. The proxy sends every request without a session to the login (back to the requested page afterwards, only paths of the app are accepted) and refreshes the access token a minute before it expires; only the proxy can, as Server Components cannot set cookies. Parallel requests share one refresh, since many providers accept a refresh token only once. `graphQLFetch` sends the access token as `Authorization: Bearer`. "Sign out" in the user menu (`app/sidebar/UserMenu.tsx`, a Server Action) deletes the cookies, revokes the refresh token and ends the session at the provider (RP-initiated logout back to the start page).
 - **API** (`api/src/auth/`): the global `AuthGuard` tries the `AuthStrategy`s registered under `AUTH_STRATEGIES` in `AuthModule` in order, and the first that recognizes the credential logs the request in. Each returns `undefined` for a credential that is not its kind and throws `UnauthorizedException` for an invalid one of its kind, so a wrong credential never falls back to another login. The order is the personal API token (`ApiTokenAuthenticator`), then `OidcAuthStrategy`. A further login (e.g. for another client) is one more strategy in that list. `OidcAuthStrategy` takes bearer tokens shaped like a JWT and checks them with `OidcIssuer`: signature against the JWKS, issuer `OIDC_ISSUER` and audience `OIDC_AUDIENCE` (`jose`). The issuer is discovered on first use, so the API and the console start without the provider. `@Public()` marks routes without login (e.g. the healthcheck), `@CurrentUser()` injects the user into a resolver, the query `currentUser` returns it.
@@ -159,14 +159,16 @@ Tools take keys (`WEB`, `WEB-12`), epics by name or ID, labels by name (any case
 ### Docker Services
 
 - PostgreSQL 18 (port from `POSTGRESQL_PORT` in `.env`)
-- Keycloak as the local OIDC provider (service `oidc-provider`, port from `OIDC_PROVIDER_PORT`), configured by the realm file `dev/keycloak/plannr-realm.json`. Keycloak imports it only when the container is created, so after a change run `docker compose --env-file .env --env-file .env.local up -d --force-recreate oidc-provider`.
+- Zitadel as the local OIDC provider (service `oidc-provider`, port from `OIDC_PROVIDER_PORT`), the same identity provider as in production, with its database `zitadel` in the `postgres` service and the login built into Zitadel instead of the Login V2 container. On its first start it creates the instance with the settings of the `ZITADEL_DEFAULTINSTANCE_*` and `ZITADEL_FIRSTINSTANCE_*` variables in `docker-compose.yml` and writes the token of the service user `setup` to `dev/zitadel/runtime/setup.pat`. Those variables only apply to a new instance.
+- `dev/zitadel/setup.mts` (`npm run setup:zitadel`, run by dev-pm before each start of the web app) sets up the rest through Zitadel's API and only creates what is missing: the project with the ID `OIDC_AUDIENCE` (the audience of Zitadel's access tokens is the project ID), the app `plannr-web` with the redirect URIs of `WEB_URL` and JWT access tokens, and the development users. Zitadel generates the client ID and secret, so the script writes them to `.env.zitadel`, which only the web app reads. A lost `.env.zitadel` gets a new secret on the next run, then `npx dev-pm restart web` picks it up.
+- To start the local Zitadel afresh: `docker compose --env-file .env --env-file .env.local rm -sf oidc-provider`, `docker compose --env-file .env --env-file .env.local exec postgres dropdb -U plannr zitadel`, delete `dev/zitadel/runtime/setup.pat` and `.env.zitadel`, then `npm run dev` again. The Plannr database stays.
 - Garage as the local S3 storage (service `s3`, port from `S3_PORT`), configured by `dev/garage/garage.toml`. It runs as a single node (`--single-node --default-bucket`) and creates its layout and the bucket and key of `S3_BUCKET`, `S3_ACCESS_KEY_ID` and `S3_SECRET_ACCESS_KEY` on start, so it needs no setup. `s3_region` in `garage.toml` has to match `S3_REGION`.
 
 The `docker` script of dev-pm passes `.env` and `.env.local` to compose itself (`--env-file`), as dev-pm hands no `.env` files to its scripts; otherwise the ports of `.env.local` would not reach the containers.
 
 ### Development Login
 
-Keycloak has three fixed users, all with the password `plannr`, created with matching users and memberships by the fixtures (`api/src/db/fixtures/development-users.ts`, a spec keeps them in line with the realm file):
+The local Zitadel has three fixed users, all with the password `plannr`. `dev/zitadel/setup.mts` creates them from `api/src/db/fixtures/development-users.ts` with their `oidcSubject` as user ID, and the fixtures create the matching users and memberships in Plannr:
 
 | Login   | Name             | Role in the fixtures                                                           |
 | ------- | ---------------- | ------------------------------------------------------------------------------ |
@@ -174,13 +176,13 @@ Keycloak has three fixed users, all with the password `plannr`, created with mat
 | `max`   | Max Mustermann   | owns most projects                                                             |
 | `erika` | Erika Mustermann | member of the website project, owns the "Secret Project" that Max does not see |
 
-All three have a verified email in the realm, which the super-admin needs. The access token lives five minutes in the realm, so the refresh runs often during development. To switch users, sign out in the user menu.
+All three have a verified email, which the super-admin needs. The access token lives five minutes, so the refresh runs often during development. To switch users, sign out in the user menu. The Zitadel console (`/ui/console`) takes the login `zitadel-admin@plannr.localhost` with the password `plannr`.
 
 ### Local Ports
 
 - API: 4000 (GraphQL at `/api/graphql`, MCP at `/api/mcp`)
 - Web: 3000
-- OIDC provider: 8180 (Keycloak, issuer `http://localhost:8180/realms/plannr`)
+- OIDC provider: 8180 (Zitadel, issuer `http://localhost:8180`)
 - S3 storage: 3900 (Garage, bucket `plannr`)
 
 ### Code Quality
@@ -204,8 +206,9 @@ All three have a verified email in the realm, which the super-admin needs. The a
 - `.env` - Development defaults (committed)
 - `.env.local` - Local overrides (not committed)
 - `.env.secrets` - Local secrets (not committed)
+- `.env.zitadel` - Client ID and secret of the local Zitadel, written by `dev/zitadel/setup.mts` (not committed, read by the web app only)
 
-The OIDC variables in `.env` (`OIDC_ISSUER`, `OIDC_AUDIENCE`, `OIDC_CLIENT_ID`, `OIDC_CLIENT_SECRET`, `SESSION_SECRET`) are development values for the local Keycloak, `SUPER_ADMIN_EMAILS` names the development admin. Production sets `SUPER_ADMIN_EMAILS` to the address of its super-admin; without it the instance has no super-admin and nobody can appoint admins. Production sets its own: the API needs `OIDC_ISSUER` and `OIDC_AUDIENCE`, the web app `OIDC_ISSUER`, `OIDC_CLIENT_ID`, `OIDC_CLIENT_SECRET`, `SESSION_SECRET` (at least 32 random characters) and `WEB_URL` (the public URL, used for the redirect URIs). A changed `SESSION_SECRET` logs everyone out. With `NODE_ENV=production` the web app refuses the development values of `SESSION_SECRET` and `OIDC_CLIENT_SECRET` (`requireSecret` in `web/src/util/requireEnv.ts`, a test keeps it in line with `.env`): every request fails instead of running with a publicly known key. The API reads no secret of the login.
+The OIDC variables in `.env` (`OIDC_ISSUER`, `OIDC_AUDIENCE`, `SESSION_SECRET`) are development values for the local Zitadel, `OIDC_CLIENT_ID` and `OIDC_CLIENT_SECRET` come from `.env.zitadel`, and `SUPER_ADMIN_EMAILS` names the development admin. Production sets `SUPER_ADMIN_EMAILS` to the address of its super-admin; without it the instance has no super-admin and nobody can appoint admins. Production sets its own: the API needs `OIDC_ISSUER` and `OIDC_AUDIENCE` (with Zitadel the ID of the project), the web app `OIDC_ISSUER`, `OIDC_CLIENT_ID`, `OIDC_CLIENT_SECRET`, `SESSION_SECRET` (at least 32 random characters) and `WEB_URL` (the public URL, used for the redirect URIs). A changed `SESSION_SECRET` logs everyone out. With `NODE_ENV=production` the web app refuses the development value of `SESSION_SECRET` (`requireSecret` in `web/src/util/requireEnv.ts`, a test keeps it in line with `.env`): every request fails instead of running with a publicly known key. The API reads no secret of the login.
 
 The S3 storage is optional and switched by `S3_ENDPOINT` alone: without it (also when empty, e.g. `S3_ENDPOINT=` in `.env.local`) `config.storage` is `null` and the other S3 variables are ignored; with it the API requires `S3_REGION`, `S3_BUCKET`, `S3_ACCESS_KEY_ID` and `S3_SECRET_ACCESS_KEY` and refuses to start without one (`StorageEnvironmentVariables`). `S3_FORCE_PATH_STYLE=true` is needed for Garage and MinIO, which expect the bucket in the path. Any S3-compatible storage works. The values in `.env` are development values for the local Garage; production sets its own and checks them with `storage:check`. Code that stores files checks `StorageService.isEnabled` first.
 
