@@ -1,6 +1,5 @@
 // The values of these secrets in .env are public, so production must set its own
 export const developmentSecrets = {
-    OIDC_CLIENT_SECRET: "plannr-development-secret",
     SESSION_SECRET: "plannr-development-session-secret-of-32-characters",
 };
 

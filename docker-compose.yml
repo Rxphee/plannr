@@ -13,23 +13,64 @@ services:
       POSTGRES_USER: ${POSTGRESQL_USER}
       POSTGRES_PASSWORD: ${POSTGRESQL_PASSWORD}
       POSTGRES_DB: ${POSTGRESQL_DB}
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "${POSTGRESQL_USER}", "-d", "${POSTGRESQL_DB}"]
+      interval: 2s
 
-  # Stands in for Zitadel during development: a realm with fixed users, see README.md.
-  # The realm is imported on the first start; recreate the container to import changes.
+  # The identity provider of production, set up for development by dev/zitadel/setup.mts, see AGENTS.md.
+  # Its database lives next to Plannr's in the postgres service.
   oidc-provider:
-    image: quay.io/keycloak/keycloak:26.8
-    pull_policy: weekly
-    command: start-dev --import-realm
+    image: ghcr.io/zitadel/zitadel:v4.20.0
+    command: start-from-init --masterkeyFromEnv --tlsMode disabled
+    # Zitadel writes the token for the setup to /current-dir as this user
+    user: "1000:1000"
+    depends_on:
+      postgres:
+        condition: service_healthy
     volumes:
-      - ./dev/keycloak:/opt/keycloak/data/import:ro
+      - ./dev/zitadel/runtime:/current-dir
     ports:
       - "127.0.0.1:${OIDC_PROVIDER_PORT}:8080"
+    healthcheck:
+      test: ["CMD", "/app/zitadel", "ready"]
+      interval: 5s
     environment:
-      # Placeholders in the realm file
-      WEB_URL: http://localhost:${WEB_PORT}
-      OIDC_AUDIENCE: ${OIDC_AUDIENCE}
-      OIDC_CLIENT_ID: ${OIDC_CLIENT_ID}
-      OIDC_CLIENT_SECRET: ${OIDC_CLIENT_SECRET}
+      # Development value only, it encrypts the secrets in Zitadel's database
+      ZITADEL_MASTERKEY: plannr-development-masterkey-32c
+      ZITADEL_EXTERNALDOMAIN: localhost
+      ZITADEL_EXTERNALPORT: ${OIDC_PROVIDER_PORT}
+      ZITADEL_EXTERNALSECURE: "false"
+      ZITADEL_DATABASE_POSTGRES_HOST: postgres
+      ZITADEL_DATABASE_POSTGRES_PORT: 5432
+      ZITADEL_DATABASE_POSTGRES_DATABASE: zitadel
+      ZITADEL_DATABASE_POSTGRES_USER_USERNAME: zitadel
+      ZITADEL_DATABASE_POSTGRES_USER_PASSWORD: zitadel
+      ZITADEL_DATABASE_POSTGRES_USER_SSL_MODE: disable
+      ZITADEL_DATABASE_POSTGRES_ADMIN_USERNAME: ${POSTGRESQL_USER}
+      ZITADEL_DATABASE_POSTGRES_ADMIN_PASSWORD: ${POSTGRESQL_PASSWORD}
+      ZITADEL_DATABASE_POSTGRES_ADMIN_EXISTINGDATABASE: ${POSTGRESQL_DB}
+      ZITADEL_DATABASE_POSTGRES_ADMIN_SSL_MODE: disable
+      # The settings below only apply when the instance is created on the first start.
+      # The login built into Zitadel, so development needs no second container for Login V2
+      ZITADEL_DEFAULTINSTANCE_FEATURES_LOGINV2_REQUIRED: "false"
+      # Lets the development users have the short password plannr
+      ZITADEL_DEFAULTINSTANCE_PASSWORDCOMPLEXITYPOLICY_MINLENGTH: 6
+      ZITADEL_DEFAULTINSTANCE_PASSWORDCOMPLEXITYPOLICY_HASUPPERCASE: "false"
+      ZITADEL_DEFAULTINSTANCE_PASSWORDCOMPLEXITYPOLICY_HASNUMBER: "false"
+      ZITADEL_DEFAULTINSTANCE_PASSWORDCOMPLEXITYPOLICY_HASSYMBOL: "false"
+      # Short-lived, so the refresh of the session runs often during development
+      ZITADEL_DEFAULTINSTANCE_OIDCSETTINGS_ACCESSTOKENLIFETIME: 5m
+      # Never asks the development users to set up a second factor
+      ZITADEL_DEFAULTINSTANCE_LOGINPOLICY_MFAINITSKIPLIFETIME: 0s
+      ZITADEL_DEFAULTINSTANCE_LOGINPOLICY_ALLOWREGISTER: "false"
+      ZITADEL_FIRSTINSTANCE_ORG_NAME: Plannr
+      ZITADEL_FIRSTINSTANCE_ORG_HUMAN_USERNAME: zitadel-admin
+      ZITADEL_FIRSTINSTANCE_ORG_HUMAN_PASSWORD: plannr
+      ZITADEL_FIRSTINSTANCE_ORG_HUMAN_PASSWORDCHANGEREQUIRED: "false"
+      ZITADEL_FIRSTINSTANCE_ORG_MACHINE_MACHINE_USERNAME: setup
+      ZITADEL_FIRSTINSTANCE_ORG_MACHINE_MACHINE_NAME: Development setup
+      ZITADEL_FIRSTINSTANCE_ORG_MACHINE_PAT_EXPIRATIONDATE: "9999-12-31T23:59:59Z"
+      ZITADEL_FIRSTINSTANCE_PATPATH: /current-dir/setup.pat
 
   # Stands in for any S3-compatible storage during development: a single Garage node that creates
   # its layout and the bucket and key of the S3 variables on start.

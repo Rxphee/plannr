@@ -14,8 +14,8 @@ const environment = {
     POSTGRESQL_PASSWORD: "plannr",
     API_PORT: "4000",
     CORS_ALLOWED_ORIGIN: "^http://localhost:3000$",
-    OIDC_ISSUER: "http://localhost:8180/realms/plannr",
-    OIDC_AUDIENCE: "plannr-api",
+    OIDC_ISSUER: "http://localhost:8180",
+    OIDC_AUDIENCE: "plannr",
 };
 
 describe("createConfig", () => {

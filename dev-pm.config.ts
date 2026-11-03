@@ -9,6 +9,12 @@ export default defineConfig({
             group: "api",
         },
         {
+            name: "zitadel-setup",
+            script: "npm run setup:zitadel",
+            group: "api",
+            waitOn: ["tcp:$OIDC_PROVIDER_PORT"],
+        },
+        {
             name: "api",
             script: "npm --prefix api run start:dev",
             group: "api",
@@ -18,7 +24,8 @@ export default defineConfig({
             name: "web",
             script: "npm --prefix web run dev",
             group: "web",
-            waitOn: ["tcp:$API_PORT"],
+            // The client credentials of the local Zitadel
+            waitOn: ["tcp:$API_PORT", ".env.zitadel"],
         },
         {
             name: "web-codegen",

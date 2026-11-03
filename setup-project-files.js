@@ -17,6 +17,10 @@ const files = [
                   file: ".env.secrets",
                   targetDir: ["api", "web"],
               },
+              {
+                  file: ".env.zitadel",
+                  targetDir: ["web"],
+              },
           ]),
     {
         file: "api/schema.gql",
