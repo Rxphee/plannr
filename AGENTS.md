@@ -220,7 +220,11 @@ The S3 storage is optional and switched by `S3_ENDPOINT` alone: without it (also
 - The API image runs the pending migrations on every start (`node dist/console.js migrate`, then `exec node dist/main.js`, so the API gets the signals). It sets `SERVER_HOST=0.0.0.0` and `API_PORT=4000`; its healthcheck asks `/api/healthcheck/live`.
 - The web image is the standalone output of Next.js (`server.js` with only the dependencies it uses, `.next/static` next to it) on port 3000. Its healthcheck asks `/healthcheck` (`app/healthcheck/route.ts`), the one page the proxy lets through without a session, as the login would ask the OIDC provider. The web app reads its configuration at runtime (no `NEXT_PUBLIC_` variables), so one image fits every instance.
 
-`.github/workflows/images.yml` builds both images on every push to `main` and pushes them to `ghcr.io/rxphee/plannr-api` and `ghcr.io/rxphee/plannr-web`, tagged `main` and `sha-<commit>`.
+`.github/workflows/images.yml` builds both images on every push to `main` and every release tag and pushes them to `ghcr.io/rxphee/plannr-api` and `ghcr.io/rxphee/plannr-web`. A push to `main` tags them `main` and `sha-<commit>`, a tag `v0.2.0` tags them `sha-<commit>`, `0.2.0`, `0.2` and `latest`.
+
+### Versions
+
+The root, `api/` and `web/` share one version in their `package.json` and `package-lock.json`. Never edit it by hand: `npm run version:set -- 0.2.0` (`version.js`) sets it everywhere through `npm version`. `npm run version:check` fails when the files disagree and runs in CI (`lint:ci` of the root). A release is a pull request with the new version, then `gh release create v0.2.0 --target main --generate-notes` on the merged commit; the images workflow first runs `node version.js check` with the tag, so a tag that names another version publishes nothing. Versions follow Semantic Versioning, still `0.x`: a new feature raises the minor version, a fix the patch version.
 
 ## Key Patterns
 
