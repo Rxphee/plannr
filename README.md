@@ -66,6 +66,12 @@ The API deletes images that no description links to anymore every night at 01:00
 
     npm --prefix api run console -- images:cleanup
 
+### Project Export
+
+Owners and admins download a project with its members, epics and issues as a JSON file under "Export" in the project settings, a backup that needs no database dump. Images are not part of it, they stay in the storage. Scripts fetch the same file with a personal API token:
+
+    curl -OJ -H "Authorization: Bearer plannr_…" http://localhost:4000/api/projects/WEB/export
+
 ### MCP
 
 The API serves an MCP interface at `/api/mcp`, so AI agents like Claude Code can read and change projects, epics and issues. Create a personal API token on the page "API tokens" and add the server, e.g. for the local API:
