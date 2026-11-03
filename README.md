@@ -68,6 +68,10 @@ The API serves an MCP interface at `/api/mcp`, so AI agents like Claude Code can
 
     claude mcp add --transport http plannr http://localhost:4000/api/mcp --header "Authorization: Bearer plannr_…"
 
+With an image storage, agents can also upload images (`upload_image`) and put the Markdown line it returns into a description. The image travels as Base64 through the agent's output, which costs tokens and in practice limits it to small images; a file on disk is better sent to the API directly:
+
+    curl -H "Authorization: Bearer plannr_…" -F "file=@screenshot.png" http://localhost:4000/api/projects/WEB/images
+
 ### Lint
 
     npm run lint
