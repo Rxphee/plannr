@@ -62,7 +62,7 @@ export function ProjectSwitcher({ projects }: { projects: SidebarProject[] }) {
                     filter={(project, query) => contains(project, query, ({ name }) => name) || contains(project, query, ({ key }) => key)}
                 >
                     <SidebarMenuButton size="lg" tooltip={currentProject?.name ?? t("chooseProject")} render={<ComboboxPrimitive.Trigger />}>
-                        {currentProject ? <ProjectIcon projectKey={currentProject.key} size="md" /> : <Logo className="size-8" />}
+                        {currentProject ? <ProjectIcon projectKey={currentProject.key} size="md" /> : <Logo className="size-8!" />}
                         <span className="grid flex-1 leading-tight">
                             <span className="font-heading truncate font-semibold">{currentProject?.name ?? "Plannr"}</span>
                             <span className="text-sidebar-foreground/60 truncate text-xs">
