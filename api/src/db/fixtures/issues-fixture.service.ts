@@ -82,7 +82,7 @@ export class IssuesFixtureService {
                 labels: [labels.frontend, labels.upstream],
                 description:
                     "Between 768 and 900 pixels the menu items wrap into two lines.\n\n**Steps**\n\n1. Open the home page on an iPad in portrait\n2. Look at the header",
-                links: ["https://github.com/Rxphee/plannr/pull/12", "obsidian://open?vault=SecondBrain&file=Website%20Relaunch"],
+                links: ["https://github.com/Rxphee/plannr/pull/12", "https://www.figma.com/design/website-relaunch"],
                 assignee: developmentUser,
             },
             { epic: content, title: "Collect photos of the team", dueInDays: -3, priority: IssuePriority.high },
