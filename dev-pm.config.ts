@@ -15,6 +15,12 @@ export default defineConfig({
             waitOn: ["tcp:$POSTGRESQL_PORT"],
         },
         {
+            name: "login",
+            script: "npm run login:zitadel",
+            group: "web",
+            waitOn: ["tcp:$OIDC_PROVIDER_PORT"],
+        },
+        {
             name: "web",
             // The setup writes the client credentials of the local Zitadel, which the web app reads on start.
             // It runs here because dev-pm restarts every script that exits.
