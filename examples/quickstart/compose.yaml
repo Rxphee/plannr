@@ -1,0 +1,139 @@
+# Plannr on your machine, to try it out: docker compose up -d, then open http://localhost:3000.
+# The passwords below are fixed and everything runs without TLS, so do not run this on a server.
+# "Self-Hosting" in the README describes a real installation.
+name: plannr-quickstart
+
+services:
+  postgres:
+    image: mirror.gcr.io/library/postgres:18
+    volumes:
+      # Postgres 18 keeps its data in /var/lib/postgresql/18/docker and expects /var/lib/postgresql itself to be mounted
+      - postgres:/var/lib/postgresql
+    environment:
+      POSTGRES_USER: plannr
+      POSTGRES_PASSWORD: plannr
+      POSTGRES_DB: plannr
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "plannr", "-d", "plannr"]
+      interval: 2s
+
+  # A new volume belongs to root, but Zitadel and the setup write to it as user 1000
+  setup-volume:
+    image: mirror.gcr.io/library/postgres:18
+    entrypoint: ["chown", "1000:1000", "/current-dir"]
+    volumes:
+      - setup:/current-dir
+    restart: "no"
+
+  # Web, API and setup share the network of this service. The URL of Zitadel ends up in its tokens and has to be the
+  # same for the browser and for them, and this way http://localhost:8180 means Zitadel everywhere.
+  oidc-provider:
+    image: ghcr.io/zitadel/zitadel:v4.20.1
+    command: start-from-init --masterkeyFromEnv --tlsMode disabled
+    user: "1000:1000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      setup-volume:
+        condition: service_completed_successfully
+    volumes:
+      - setup:/current-dir
+    ports:
+      - "127.0.0.1:${WEB_PORT:-3000}:3000"
+      - "127.0.0.1:${OIDC_PORT:-8180}:${OIDC_PORT:-8180}"
+    healthcheck:
+      test: ["CMD", "/app/zitadel", "ready"]
+      interval: 5s
+      start_period: 3m
+    environment:
+      ZITADEL_MASTERKEY: plannr-quickstart-masterkey-32ch
+      ZITADEL_PORT: ${OIDC_PORT:-8180}
+      # The health check below reads this, it does not know the flag of the command
+      ZITADEL_TLS_ENABLED: "false"
+      ZITADEL_EXTERNALDOMAIN: localhost
+      ZITADEL_EXTERNALPORT: ${OIDC_PORT:-8180}
+      ZITADEL_EXTERNALSECURE: "false"
+      ZITADEL_DATABASE_POSTGRES_HOST: postgres
+      ZITADEL_DATABASE_POSTGRES_PORT: 5432
+      ZITADEL_DATABASE_POSTGRES_DATABASE: zitadel
+      ZITADEL_DATABASE_POSTGRES_USER_USERNAME: zitadel
+      ZITADEL_DATABASE_POSTGRES_USER_PASSWORD: zitadel
+      ZITADEL_DATABASE_POSTGRES_USER_SSL_MODE: disable
+      ZITADEL_DATABASE_POSTGRES_ADMIN_USERNAME: plannr
+      ZITADEL_DATABASE_POSTGRES_ADMIN_PASSWORD: plannr
+      ZITADEL_DATABASE_POSTGRES_ADMIN_EXISTINGDATABASE: plannr
+      ZITADEL_DATABASE_POSTGRES_ADMIN_SSL_MODE: disable
+      # The login built into Zitadel, so there is no second container for Login V2
+      ZITADEL_DEFAULTINSTANCE_FEATURES_LOGINV2_REQUIRED: "false"
+      ZITADEL_DEFAULTINSTANCE_LOGINPOLICY_MFAINITSKIPLIFETIME: 0s
+      ZITADEL_FIRSTINSTANCE_ORG_NAME: Plannr
+      ZITADEL_FIRSTINSTANCE_ORG_HUMAN_USERNAME: admin
+      ZITADEL_FIRSTINSTANCE_ORG_HUMAN_FIRSTNAME: Ada
+      ZITADEL_FIRSTINSTANCE_ORG_HUMAN_LASTNAME: Admin
+      ZITADEL_FIRSTINSTANCE_ORG_HUMAN_EMAIL_ADDRESS: admin@plannr.localhost
+      ZITADEL_FIRSTINSTANCE_ORG_HUMAN_EMAIL_VERIFIED: "true"
+      ZITADEL_FIRSTINSTANCE_ORG_HUMAN_PASSWORD: Plannr-quickstart-1
+      ZITADEL_FIRSTINSTANCE_ORG_HUMAN_PASSWORDCHANGEREQUIRED: "false"
+      ZITADEL_FIRSTINSTANCE_ORG_MACHINE_MACHINE_USERNAME: setup
+      ZITADEL_FIRSTINSTANCE_ORG_MACHINE_MACHINE_NAME: Quick start setup
+      ZITADEL_FIRSTINSTANCE_ORG_MACHINE_PAT_EXPIRATIONDATE: "9999-12-31T23:59:59Z"
+      ZITADEL_FIRSTINSTANCE_PATPATH: /current-dir/setup.pat
+
+  # Creates the project and the app in Zitadel and writes the secrets of the web app
+  setup:
+    image: ghcr.io/rxphee/plannr-api:latest
+    network_mode: service:oidc-provider
+    depends_on:
+      oidc-provider:
+        condition: service_healthy
+    volumes:
+      - setup:/current-dir
+      - ./setup.mjs:/setup.mjs:ro
+    entrypoint: ["node", "/setup.mjs"]
+    restart: "no"
+    healthcheck:
+      disable: true
+    environment:
+      OIDC_ISSUER: http://localhost:${OIDC_PORT:-8180}
+      OIDC_AUDIENCE: plannr
+      WEB_URL: http://localhost:${WEB_PORT:-3000}
+
+  api:
+    image: ghcr.io/rxphee/plannr-api:latest
+    network_mode: service:oidc-provider
+    depends_on:
+      setup:
+        condition: service_completed_successfully
+    restart: unless-stopped
+    environment:
+      POSTGRESQL_HOST: postgres
+      POSTGRESQL_PORT: 5432
+      POSTGRESQL_DB: plannr
+      POSTGRESQL_USER: plannr
+      POSTGRESQL_PASSWORD: plannr
+      CORS_ALLOWED_ORIGIN: ^http://localhost:${WEB_PORT:-3000}$$
+      OIDC_ISSUER: http://localhost:${OIDC_PORT:-8180}
+      OIDC_AUDIENCE: plannr
+      SUPER_ADMIN_EMAILS: admin@plannr.localhost
+
+  web:
+    image: ghcr.io/rxphee/plannr-web:latest
+    network_mode: service:oidc-provider
+    depends_on:
+      setup:
+        condition: service_completed_successfully
+      api:
+        condition: service_started
+    volumes:
+      - setup:/current-dir:ro
+    # The secrets of web.env come from the setup
+    command: ["sh", "-c", "set -a && . /current-dir/web.env && exec node server.js"]
+    restart: unless-stopped
+    environment:
+      API_URL: http://localhost:4000/api
+      WEB_URL: http://localhost:${WEB_PORT:-3000}
+      OIDC_ISSUER: http://localhost:${OIDC_PORT:-8180}
+
+volumes:
+  postgres:
+  setup:

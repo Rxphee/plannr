@@ -63,8 +63,8 @@
             "allowedVersions": "<12"
         },
         {
-            "description": "The local development setup follows major tags, pinning digests there only adds pull requests",
-            "matchFileNames": ["docker-compose.yml"],
+            "description": "The local development setup and the quick start follow tags, pinning digests there only adds pull requests",
+            "matchFileNames": ["docker-compose.yml", "examples/quickstart/compose.yaml"],
             "pinDigests": false
         },
         {

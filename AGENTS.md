@@ -168,21 +168,26 @@ The `docker` script of dev-pm passes `.env` and `.env.local` to compose itself (
 
 ### Development Login
 
-The local Zitadel has three fixed users, all with the password `plannr`. `dev/zitadel/setup.mts` creates them from `api/src/db/fixtures/development-users.ts` with their `oidcSubject` as user ID, and the fixtures create the matching users and memberships in Plannr:
+The local Zitadel has three fixed users, and signing in means choosing one from a list, without a password. `dev/zitadel/setup.mts` creates them from `api/src/db/fixtures/development-users.ts` with their `oidcSubject` as user ID, and the fixtures create the matching users and memberships in Plannr:
 
-| Login   | Name             | Role in the fixtures                                                           |
-| ------- | ---------------- | ------------------------------------------------------------------------------ |
-| `admin` | Ada Admin        | super-admin (`SUPER_ADMIN_EMAILS` in `.env`), member of no project, sees all   |
-| `max`   | Max Mustermann   | owns most projects                                                             |
-| `erika` | Erika Mustermann | member of the website project, owns the "Secret Project" that Max does not see |
+| Login    | Name         | Role in the fixtures                                                             |
+| -------- | ------------ | -------------------------------------------------------------------------------- |
+| `admin`  | Ada Admin    | super-admin (`SUPER_ADMIN_EMAILS` in `.env`), member of no project, sees all     |
+| `owner`  | Olivia Owner | owns most projects                                                               |
+| `member` | Mia Member   | owns nothing, member of the website and the "Secret Project" Olivia does not see |
 
-All three have a verified email, which the super-admin needs. The access token lives five minutes, so the refresh runs often during development. To switch users, sign out in the user menu. The Zitadel console (`/ui/console`) takes the login `zitadel-admin@plannr.localhost` with the password `plannr`.
+Their names say what they can do, so keep a name in line with the rights when changing the fixtures. `setup.mts` also takes changed names and email addresses over to existing users.
+
+All three have a verified email, which the super-admin needs. The access token lives five minutes, so the refresh runs often during development. To switch users, sign out in the user menu.
+
+The list is `dev/zitadel/login.mts` (script `login` of dev-pm, port from `OIDC_LOGIN_PORT`), a small server without dependencies that takes the place of Zitadel's login for the app `plannr-web`: `setup.mts` sets it as the app's Login V2 (`loginVersion`) and gives the service user `setup` the role `IAM_LOGIN_CLIENT`. Zitadel redirects to `/login?authRequest=…`, the page creates a session for the chosen user (`CreateSession` with only a user check) and finishes the login (`CreateCallback`). The rest of the flow, and all of `web/src/auth/`, stays the same as in production, and the Docker images do not contain the page. The users still have the password `plannr` for Zitadel's own pages. The Zitadel console (`/ui/console`) takes the login `zitadel-admin@plannr.localhost` with the password `plannr`.
 
 ### Local Ports
 
 - API: 4000 (GraphQL at `/api/graphql`, MCP at `/api/mcp`)
 - Web: 3000
 - OIDC provider: 8180 (Zitadel, issuer `http://localhost:8180`)
+- Development login: 8181 (`dev/zitadel/login.mts`)
 - S3 storage: 3900 (Garage, bucket `plannr`)
 
 ### Code Quality
@@ -220,7 +225,17 @@ The S3 storage is optional and switched by `S3_ENDPOINT` alone: without it (also
 - The API image runs the pending migrations on every start (`node dist/console.js migrate`, then `exec node dist/main.js`, so the API gets the signals). It sets `SERVER_HOST=0.0.0.0` and `API_PORT=4000`; its healthcheck asks `/api/healthcheck/live`.
 - The web image is the standalone output of Next.js (`server.js` with only the dependencies it uses, `.next/static` next to it) on port 3000. Its healthcheck asks `/healthcheck` (`app/healthcheck/route.ts`), the one page the proxy lets through without a session, as the login would ask the OIDC provider. The web app reads its configuration at runtime (no `NEXT_PUBLIC_` variables), so one image fits every instance.
 
-`.github/workflows/images.yml` builds both images on every push to `main` and every release tag and pushes them to `ghcr.io/rxphee/plannr-api` and `ghcr.io/rxphee/plannr-web`. A push to `main` tags them `main` and `sha-<commit>`, a tag `v0.2.0` tags them `sha-<commit>`, `0.2.0`, `0.2` and `latest`.
+`.github/workflows/images.yml` builds both images for `linux/amd64` and `linux/arm64` (the latter emulated with QEMU) on every push to `main` and every release tag and pushes them to `ghcr.io/rxphee/plannr-api` and `ghcr.io/rxphee/plannr-web`. A push to `main` tags them `main` and `sha-<commit>`, a tag `v0.2.0` tags them `sha-<commit>`, `0.2.0`, `0.2` and `latest`.
+
+### Quick Start
+
+`examples/quickstart/` starts Plannr from the published images (`latest`) with its own PostgreSQL and Zitadel, to try it out, not for a server. The real installation stays with whoever hosts it, so there is no production compose file.
+
+- Web, API and `setup.mjs` share the network of the Zitadel container (`network_mode: service:oidc-provider`), so `http://localhost:8180` means Zitadel for the browser and for them alike. An issuer has to look the same to both. `web/src/auth/oidc.ts` allows `http` only for a `localhost` issuer.
+- `setup.mjs` runs on every start and only creates what is missing: the project, the app and `web.env` with the client credentials and a random `SESSION_SECRET` in the volume `setup`, which the web container reads on start.
+- It logs in with Zitadel's own login, so there are no development users and no fixtures; the first human user of Zitadel is the super-admin.
+
+Test changes with images built from the checkout, as `latest` does not contain them yet: a second compose file that overrides `image`, and `WEB_PORT` and `OIDC_PORT` next to a running development setup.
 
 ### Versions
 
