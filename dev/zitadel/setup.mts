@@ -1,4 +1,5 @@
-// Sets up the local Zitadel for development: the project, the app of the web app and the development users.
+// Sets up the local Zitadel for development: the project, the app of the web app, the development users
+// and the rights of the development login (dev/zitadel/login.mts).
 // Safe to run again, it only creates what is missing. Zitadel generates the client ID and secret,
 // so they are written to .env.zitadel, which the web app reads next to .env.
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
@@ -7,6 +8,7 @@ import { developmentUsers } from "../../api/src/db/fixtures/development-users.ts
 
 const DEVELOPMENT_PASSWORD = "plannr";
 const APPLICATION_ID = "plannr-web";
+const GRANT_TYPES = ["OIDC_GRANT_TYPE_AUTHORIZATION_CODE", "OIDC_GRANT_TYPE_REFRESH_TOKEN"];
 const SETUP_TOKEN_FILE = new URL("runtime/setup.pat", import.meta.url);
 const CREDENTIALS_FILE = new URL("../../.env.zitadel", import.meta.url);
 // The first start creates the database and the instance, which takes a while
@@ -17,21 +19,32 @@ interface ClientCredentials {
     clientSecret: string;
 }
 
+interface HumanUser {
+    user: {
+        username: string;
+        human: { profile: { givenName: string; familyName: string }; email: { email: string } };
+    };
+}
+
 interface OidcConfiguration {
     clientId: string;
+    grantTypes?: string[];
     redirectUris?: string[];
     postLogoutRedirectUris?: string[];
+    loginVersion?: { loginV2?: { baseUri?: string } };
 }
 
 const issuer = requireEnv("OIDC_ISSUER");
 // The audience of Zitadel's access tokens is the ID of the project
 const projectId = requireEnv("OIDC_AUDIENCE");
 const webUrl = requireEnv("WEB_URL");
+const loginVersion = { loginV2: { baseUri: requireEnv("OIDC_LOGIN_URL") } };
 const redirectUris = [new URL("/auth/callback", webUrl).href];
 const postLogoutRedirectUris = [new URL("/", webUrl).href];
 
 await waitUntilReady();
 const setupToken = readSetupToken();
+await allowDevelopmentLogin();
 await ensureProject();
 const credentials = await ensureApplication();
 await ensureDevelopmentUsers();
@@ -80,6 +93,16 @@ function readSetupToken(): string {
     return readFileSync(SETUP_TOKEN_FILE, "utf8").trim();
 }
 
+// A login page needs IAM_LOGIN_CLIENT to finish a login with a session it created. The call changes nothing if the role is already there.
+async function allowDevelopmentLogin(): Promise<void> {
+    const { user } = await request<{ user: { id: string } }>("auth/v1/users/me");
+    await request("zitadel.internal_permission.v2.InternalPermissionService/UpdateAdministrator", {
+        userId: user.id,
+        resource: { instance: true },
+        roles: ["IAM_OWNER", "IAM_LOGIN_CLIENT"],
+    });
+}
+
 async function ensureProject(): Promise<void> {
     if (await find("zitadel.project.v2.ProjectService/GetProject", { projectId })) {
         return;
@@ -101,13 +124,19 @@ async function ensureApplication(): Promise<ClientCredentials> {
     }
 
     const configuration = existing.application.oidcConfiguration;
-    if (!haveSameItems(configuration.redirectUris, redirectUris) || !haveSameItems(configuration.postLogoutRedirectUris, postLogoutRedirectUris)) {
+    if (
+        !haveSameItems(configuration.redirectUris, redirectUris) ||
+        !haveSameItems(configuration.postLogoutRedirectUris, postLogoutRedirectUris) ||
+        !haveSameItems(configuration.grantTypes, GRANT_TYPES) ||
+        configuration.loginVersion?.loginV2?.baseUri !== loginVersion.loginV2.baseUri
+    ) {
         await request("zitadel.application.v2.ApplicationService/UpdateApplication", {
             applicationId: APPLICATION_ID,
             projectId,
-            oidcConfiguration: { redirectUris, postLogoutRedirectUris },
+            // Zitadel resets the grant types of an update that leaves them out
+            oidcConfiguration: { redirectUris, postLogoutRedirectUris, loginVersion, grantTypes: GRANT_TYPES },
         });
-        console.log(`Updated the redirect URIs of the app ${APPLICATION_ID} for ${webUrl}`);
+        console.log(`Updated the URLs of the app ${APPLICATION_ID} for ${webUrl}`);
     }
 
     const written = readCredentials();
@@ -134,9 +163,10 @@ async function createApplication(): Promise<ClientCredentials> {
                 applicationType: "OIDC_APP_TYPE_WEB",
                 authMethodType: "OIDC_AUTH_METHOD_TYPE_BASIC",
                 responseTypes: ["OIDC_RESPONSE_TYPE_CODE"],
-                grantTypes: ["OIDC_GRANT_TYPE_AUTHORIZATION_CODE", "OIDC_GRANT_TYPE_REFRESH_TOKEN"],
+                grantTypes: GRANT_TYPES,
                 redirectUris,
                 postLogoutRedirectUris,
+                loginVersion,
                 // The API validates the access tokens itself, which needs JWTs instead of opaque tokens
                 accessTokenType: "OIDC_TOKEN_TYPE_JWT",
                 // Allows redirect URIs with http
@@ -150,15 +180,28 @@ async function createApplication(): Promise<ClientCredentials> {
 
 async function ensureDevelopmentUsers(): Promise<void> {
     for (const [username, user] of Object.entries(developmentUsers)) {
-        if (await find("zitadel.user.v2.UserService/GetUserByID", { userId: user.oidcSubject })) {
+        const profile = { givenName: user.firstName, familyName: user.lastName };
+        const email = { email: user.email, isVerified: user.isEmailVerified };
+        const existing = await find<HumanUser>("zitadel.user.v2.UserService/GetUserByID", { userId: user.oidcSubject });
+        if (existing) {
+            const { username: existingUsername, human } = existing.user;
+            const isUpToDate =
+                existingUsername === username &&
+                human.profile.givenName === profile.givenName &&
+                human.profile.familyName === profile.familyName &&
+                human.email.email === email.email;
+            if (!isUpToDate) {
+                await request("zitadel.user.v2.UserService/UpdateHumanUser", { userId: user.oidcSubject, username, profile, email });
+                console.log(`Updated the user ${username}`);
+            }
             continue;
         }
         await request("zitadel.user.v2.UserService/AddHumanUser", {
             // A fixed ID, so the fixtures know the sub claim of each user
             userId: user.oidcSubject,
             username,
-            profile: { givenName: user.firstName, familyName: user.lastName },
-            email: { email: user.email, isVerified: user.isEmailVerified },
+            profile,
+            email,
             password: { password: DEVELOPMENT_PASSWORD, changeRequired: false },
         });
         console.log(`Created the user ${username}`);

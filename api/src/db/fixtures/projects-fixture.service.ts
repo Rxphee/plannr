@@ -47,7 +47,12 @@ export class ProjectsFixtureService {
         await this.addMembers(move, developmentUser, [[team[3], ProjectMemberRole.member]]);
 
         const holiday = await this.createProject(developmentUser, { name: "Holiday Planning", key: "HOL", description: "" });
-        await this.createProject(otherUser, { name: "Secret Project", key: "SEC", description: "Only visible to its members and admins." });
+        const secret = await this.createProject(team[1], {
+            name: "Secret Project",
+            key: "SEC",
+            description: "Only visible to its members and admins.",
+        });
+        await this.addMembers(secret, team[1], [[otherUser, ProjectMemberRole.member]]);
 
         return { website, app, holiday };
     }

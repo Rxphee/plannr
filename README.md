@@ -46,15 +46,15 @@ This setup brings its own PostgreSQL and Zitadel, with fixed passwords and witho
 
 ### Login
 
-Plannr logs in through OpenID Connect with Zitadel. `npm run dev` starts a local Zitadel and sets it up with three users who all have the password `plannr`:
+Plannr logs in through OpenID Connect with Zitadel. `npm run dev` starts a local Zitadel and sets it up with three users, which you choose from a list when you sign in:
 
-| Login   | Name             | Role in the demo data               |
-| ------- | ---------------- | ----------------------------------- |
-| `admin` | Ada Admin        | super-admin, sees all projects      |
-| `max`   | Max Mustermann   | owns most projects                  |
-| `erika` | Erika Mustermann | member of one project, owns another |
+| Name         | Role in the demo data             |
+| ------------ | --------------------------------- |
+| Ada Admin    | super-admin, sees all projects    |
+| Olivia Owner | owns most projects                |
+| Mia Member   | member of two projects, owns none |
 
-Run the fixtures (below) once, so they find their projects. Switch users with "Sign out" in the user menu. The Zitadel console runs at http://localhost:8180/ui/console with the login `zitadel-admin@plannr.localhost` and the password `plannr`.
+Run the fixtures (below) once, so they find their projects. Switch users with "Sign out" in the user menu. The list is a small page in `dev/zitadel/login.mts` that only exists in development. The Zitadel console runs at http://localhost:8180/ui/console with the login `zitadel-admin@plannr.localhost` and the password `plannr`.
 
 After updating from a checkout with Keycloak, run `npm run setup-project-files` once, so the web app finds the client credentials of the local Zitadel in `.env.zitadel`.
 
