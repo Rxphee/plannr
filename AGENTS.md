@@ -168,21 +168,26 @@ The `docker` script of dev-pm passes `.env` and `.env.local` to compose itself (
 
 ### Development Login
 
-The local Zitadel has three fixed users, all with the password `plannr`. `dev/zitadel/setup.mts` creates them from `api/src/db/fixtures/development-users.ts` with their `oidcSubject` as user ID, and the fixtures create the matching users and memberships in Plannr:
+The local Zitadel has three fixed users, and signing in means choosing one from a list, without a password. `dev/zitadel/setup.mts` creates them from `api/src/db/fixtures/development-users.ts` with their `oidcSubject` as user ID, and the fixtures create the matching users and memberships in Plannr:
 
-| Login   | Name             | Role in the fixtures                                                           |
-| ------- | ---------------- | ------------------------------------------------------------------------------ |
-| `admin` | Ada Admin        | super-admin (`SUPER_ADMIN_EMAILS` in `.env`), member of no project, sees all   |
-| `max`   | Max Mustermann   | owns most projects                                                             |
-| `erika` | Erika Mustermann | member of the website project, owns the "Secret Project" that Max does not see |
+| Login    | Name         | Role in the fixtures                                                             |
+| -------- | ------------ | -------------------------------------------------------------------------------- |
+| `admin`  | Ada Admin    | super-admin (`SUPER_ADMIN_EMAILS` in `.env`), member of no project, sees all     |
+| `owner`  | Olivia Owner | owns most projects                                                               |
+| `member` | Mia Member   | owns nothing, member of the website and the "Secret Project" Olivia does not see |
 
-All three have a verified email, which the super-admin needs. The access token lives five minutes, so the refresh runs often during development. To switch users, sign out in the user menu. The Zitadel console (`/ui/console`) takes the login `zitadel-admin@plannr.localhost` with the password `plannr`.
+Their names say what they can do, so keep a name in line with the rights when changing the fixtures. `setup.mts` also takes changed names and email addresses over to existing users.
+
+All three have a verified email, which the super-admin needs. The access token lives five minutes, so the refresh runs often during development. To switch users, sign out in the user menu.
+
+The list is `dev/zitadel/login.mts` (script `login` of dev-pm, port from `OIDC_LOGIN_PORT`), a small server without dependencies that takes the place of Zitadel's login for the app `plannr-web`: `setup.mts` sets it as the app's Login V2 (`loginVersion`) and gives the service user `setup` the role `IAM_LOGIN_CLIENT`. Zitadel redirects to `/login?authRequest=…`, the page creates a session for the chosen user (`CreateSession` with only a user check) and finishes the login (`CreateCallback`). The rest of the flow, and all of `web/src/auth/`, stays the same as in production, and the Docker images do not contain the page. The users still have the password `plannr` for Zitadel's own pages. The Zitadel console (`/ui/console`) takes the login `zitadel-admin@plannr.localhost` with the password `plannr`.
 
 ### Local Ports
 
 - API: 4000 (GraphQL at `/api/graphql`, MCP at `/api/mcp`)
 - Web: 3000
 - OIDC provider: 8180 (Zitadel, issuer `http://localhost:8180`)
+- Development login: 8181 (`dev/zitadel/login.mts`)
 - S3 storage: 3900 (Garage, bucket `plannr`)
 
 ### Code Quality
