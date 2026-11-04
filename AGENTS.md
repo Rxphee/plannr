@@ -220,7 +220,17 @@ The S3 storage is optional and switched by `S3_ENDPOINT` alone: without it (also
 - The API image runs the pending migrations on every start (`node dist/console.js migrate`, then `exec node dist/main.js`, so the API gets the signals). It sets `SERVER_HOST=0.0.0.0` and `API_PORT=4000`; its healthcheck asks `/api/healthcheck/live`.
 - The web image is the standalone output of Next.js (`server.js` with only the dependencies it uses, `.next/static` next to it) on port 3000. Its healthcheck asks `/healthcheck` (`app/healthcheck/route.ts`), the one page the proxy lets through without a session, as the login would ask the OIDC provider. The web app reads its configuration at runtime (no `NEXT_PUBLIC_` variables), so one image fits every instance.
 
-`.github/workflows/images.yml` builds both images on every push to `main` and every release tag and pushes them to `ghcr.io/rxphee/plannr-api` and `ghcr.io/rxphee/plannr-web`. A push to `main` tags them `main` and `sha-<commit>`, a tag `v0.2.0` tags them `sha-<commit>`, `0.2.0`, `0.2` and `latest`.
+`.github/workflows/images.yml` builds both images for `linux/amd64` and `linux/arm64` (the latter emulated with QEMU) on every push to `main` and every release tag and pushes them to `ghcr.io/rxphee/plannr-api` and `ghcr.io/rxphee/plannr-web`. A push to `main` tags them `main` and `sha-<commit>`, a tag `v0.2.0` tags them `sha-<commit>`, `0.2.0`, `0.2` and `latest`.
+
+### Quick Start
+
+`examples/quickstart/` starts Plannr from the published images (`latest`) with its own PostgreSQL and Zitadel, to try it out, not for a server. The real installation stays with whoever hosts it, so there is no production compose file.
+
+- Web, API and `setup.mjs` share the network of the Zitadel container (`network_mode: service:oidc-provider`), so `http://localhost:8180` means Zitadel for the browser and for them alike. An issuer has to look the same to both. `web/src/auth/oidc.ts` allows `http` only for a `localhost` issuer.
+- `setup.mjs` runs on every start and only creates what is missing: the project, the app and `web.env` with the client credentials and a random `SESSION_SECRET` in the volume `setup`, which the web container reads on start.
+- It logs in with Zitadel's own login, so there are no development users and no fixtures; the first human user of Zitadel is the super-admin.
+
+Test changes with images built from the checkout, as `latest` does not contain them yet: a second compose file that overrides `image`, and `WEB_PORT` and `OIDC_PORT` next to a running development setup.
 
 ### Versions
 

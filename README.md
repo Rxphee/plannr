@@ -5,6 +5,18 @@ A lean, self-hosted issue tracker: projects, epics and issues with clear default
 - `api/`: NestJS, GraphQL (code-first), MikroORM, PostgreSQL
 - `web/`: Next.js, Tailwind CSS, shadcn/ui
 
+## Quick Start
+
+Try Plannr on your machine, all you need is Docker:
+
+    git clone https://github.com/Rxphee/plannr.git
+    cd plannr/examples/quickstart
+    docker compose up -d
+
+Open http://localhost:3000 and sign in with `admin@plannr.localhost` and the password `Plannr-quickstart-1`. If a port is taken, set `WEB_PORT` or `OIDC_PORT` (default 8180). To remove everything again, including the data, run `docker compose down -v`.
+
+This setup brings its own PostgreSQL and Zitadel, with fixed passwords and without TLS, so it is not meant for a server (see [Self-Hosting](#self-hosting)). It has no image uploads, as those need an S3 storage.
+
 ## Development
 
 ### Requirements
@@ -96,7 +108,7 @@ Plannr runs as two containers, the API and the web app, next to PostgreSQL, an O
 - `ghcr.io/rxphee/plannr-api` (port 4000, runs pending migrations on start)
 - `ghcr.io/rxphee/plannr-web` (port 3000)
 
-Every push to `main` tags them `main` and `sha-<commit>`, a release adds its version (`0.2.0`, `0.2`) and `latest`. Pin a deployment to a version or a digest. To build them yourself, run from the repository root:
+The images run on `linux/amd64` and `linux/arm64`. Every push to `main` tags them `main` and `sha-<commit>`, a release adds its version (`0.2.0`, `0.2`) and `latest`. Pin a deployment to a version or a digest. To build them yourself, run from the repository root:
 
     docker build -f api/Dockerfile -t plannr-api .
     docker build -f web/Dockerfile -t plannr-web .

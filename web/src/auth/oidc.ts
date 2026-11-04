@@ -32,10 +32,10 @@ export function getOidcConfiguration(): Promise<Configuration> {
 
 async function discoverConfiguration(): Promise<Configuration> {
     const issuer = new URL(requireEnv("OIDC_ISSUER"));
-    const isLocalDevelopment = issuer.protocol === "http:" && process.env.NODE_ENV !== "production";
+    const isLocalIssuer = issuer.protocol === "http:" && issuer.hostname === "localhost";
     return discovery(issuer, requireEnv("OIDC_CLIENT_ID"), undefined, ClientSecretBasic(requireEnv("OIDC_CLIENT_SECRET")), {
-        // The local identity provider runs without TLS
-        execute: isLocalDevelopment ? [allowInsecureRequests] : [],
+        // The identity provider of the development setup and the quick start runs on this machine, without TLS
+        execute: isLocalIssuer ? [allowInsecureRequests] : [],
     });
 }
 
