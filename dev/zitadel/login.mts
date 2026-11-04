@@ -155,6 +155,14 @@ function renderPage(content: string): string {
             font: inherit;
         }
 
+        select {
+            appearance: none;
+            padding-right: 36px;
+            border: 1px solid GrayText;
+            background: Field url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' stroke='%23888' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m4 6 4 4 4-4'/%3E%3C/svg%3E") no-repeat right 12px center;
+            color: FieldText;
+        }
+
         button {
             margin-top: 8px;
             border: 0;
