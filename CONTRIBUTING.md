@@ -2,7 +2,7 @@
 
 Thanks for your interest! Bug reports, ideas and pull requests are all welcome.
 
-Plannr stays lean on purpose: clear defaults instead of options. Before you build a bigger feature, please open an issue, so we can talk about whether it fits. The [list of things Plannr will not do](README.md#what-plannr-will-not-do) saves you some work too.
+Plannr stays lean on purpose: clear defaults instead of options. Before you build a bigger feature, please open an issue, so we can talk about whether it fits.
 
 ## Requirements
 
