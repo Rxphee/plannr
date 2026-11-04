@@ -2,6 +2,7 @@
 
 import { Combobox as ComboboxPrimitive } from "@base-ui/react/combobox";
 import { ClearButton } from "@src/components/ClearButton";
+import { Logo } from "@src/components/Logo";
 import {
     Combobox,
     ComboboxCollection,
@@ -61,13 +62,7 @@ export function ProjectSwitcher({ projects }: { projects: SidebarProject[] }) {
                     filter={(project, query) => contains(project, query, ({ name }) => name) || contains(project, query, ({ key }) => key)}
                 >
                     <SidebarMenuButton size="lg" tooltip={currentProject?.name ?? t("chooseProject")} render={<ComboboxPrimitive.Trigger />}>
-                        {currentProject ? (
-                            <ProjectIcon projectKey={currentProject.key} size="md" />
-                        ) : (
-                            <span className="from-primary flex size-8 shrink-0 items-center justify-center rounded-md bg-linear-to-br to-blue-800 font-semibold text-white shadow-xs">
-                                P
-                            </span>
-                        )}
+                        {currentProject ? <ProjectIcon projectKey={currentProject.key} size="md" /> : <Logo className="size-8" />}
                         <span className="grid flex-1 leading-tight">
                             <span className="font-heading truncate font-semibold">{currentProject?.name ?? "Plannr"}</span>
                             <span className="text-sidebar-foreground/60 truncate text-xs">
