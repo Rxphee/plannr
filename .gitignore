@@ -9,6 +9,7 @@ node_modules
 coverage
 
 .claude/settings.local.json
+CLAUDE.local.md
 .claude/worktrees/
 .pm.sock
 

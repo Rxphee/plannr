@@ -5,7 +5,7 @@ import { UsersService } from "@src/users/users.service.js";
 
 import { developmentUsers } from "./development-users.js";
 
-// The first three can log in at the local identity provider, see README.md
+// The first three can log in at the local identity provider, see CONTRIBUTING.md
 export interface FixtureUsers {
     // The super-admin (SUPER_ADMIN_EMAILS in .env), who is a member of no project, but sees all of them.
     // Also an admin, so she keeps the admin rights without SUPER_ADMIN_EMAILS.
