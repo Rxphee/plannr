@@ -92,10 +92,6 @@ Your agent can now list what is due, create issues and update them as it works. 
 
 Next up are in-app notifications and dependencies between issues. Comments with a history, pull request status from GitHub, a Kanban board and milestones are ideas for later, without a promise.
 
-### What Plannr Will Not Do
-
-To stay lean, Plannr will not get custom issue types, custom fields or configurable workflows, Scrum with sprints and story points, time tracking and estimates, or its own query language and configurable reports.
-
 ## Built With
 
 The API runs on [NestJS](https://nestjs.com) with GraphQL, [MikroORM](https://mikro-orm.io) and PostgreSQL, the web app on [Next.js](https://nextjs.org) with Tailwind CSS and [shadcn/ui](https://ui.shadcn.com).
