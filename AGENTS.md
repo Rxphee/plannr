@@ -364,6 +364,23 @@ Add a component with `npx shadcn add <name>` in `web/`, then:
 - Replace `import * as React from "react"` with named imports (ESLint forbids the namespace import).
 - Run `npm --prefix web run lint:fix`; knip ignores unused exports in `components/ui/`.
 
+## Pull Requests
+
+Write every pull request description with these sections, in English:
+
+- `## Task`: the task this PR resolves, in the wording you were given
+- `## Overview`: in two or three sentences, what this is about and what the PR does
+- `## Before`: the state before this PR (behaviour, look, problem)
+- `## After`: the state after this PR
+- `## Testing` (only if needed): how you verified the change
+- `## Follow-ups` (only if needed): open points, known limitations, next steps
+
+Show `Before` and `After` with screenshots wherever the change is visible (UI, layout, output). Images never go into the feature branch: commit them to the branch `assets` of this repository and push it directly, without a pull request. `assets` is never merged.
+
+- Path: `pr/<feature-branch>/<before|after>-<n>.png`
+- Work on it through a separate worktree, so the feature branch stays clean: `git worktree add ../assets assets`, or the first time `git worktree add --orphan -b assets ../assets`
+- Embed with `![<what it shows>](https://github.com/Rxphee/plannr/blob/assets/pr/<feature-branch>/<file>?raw=true)`
+
 ## References
 
 Tooling and conventions follow Atrium, a Dextinity project, but Plannr does not use Dextinity. Project concept, data model and decisions live outside this repository.
