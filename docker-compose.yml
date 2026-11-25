@@ -75,7 +75,7 @@ services:
   # Stands in for any S3-compatible storage during development: a single Garage node that creates
   # its layout and the bucket and key of the S3 variables on start.
   s3:
-    image: dxflrs/garage:v2.5.0
+    image: dxflrs/garage:v2.6.0
     command: ["/garage", "server", "--single-node", "--default-bucket"]
     volumes:
       - ./dev/garage/garage.toml:/etc/garage.toml:ro
